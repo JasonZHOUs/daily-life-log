@@ -139,4 +139,10 @@ ok('every tab renders in both languages without throwing', () => {
     assert.ok(env0.els.app.innerHTML.length > 200, `${lang}/${tb} rendered`);
   }
 });
+ok('what is new card shows once', () => {
+  env0.run(`S.lang='en';S.seen=undefined;tab='today';render()`);
+  assert.ok(env0.els.app.innerHTML.includes('data-a="seen"'));
+  env0.run(`S.seen=VER;render()`);
+  assert.ok(!env0.els.app.innerHTML.includes('data-a="seen"'));
+});
 console.log(`\n${n} checks passed`);

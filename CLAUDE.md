@@ -32,6 +32,7 @@ Fewest taps for repeated actions; frequent-foods shelf and remembered portions; 
 - Keep the app usable on a 390 px wide iPhone screen. Inputs at least 16 px font. Respect safe-area insets.
 - Keep light and dark themes working (CSS variables).
 - Do not break existing user data: old days may lack newer fields, so always normalise with `norm()`.
+- Each release: bump `VER` in index.html and rewrite the `new1`–`new4` strings. Users see a one-time "New in this version" card on Today, and the version is shown in Review. iPhone Home Screen apps keep the old page in memory until the app is swiped away, so tell the user to fully close and reopen it after a deploy.
 - Run `node tests/run.mjs` after every change. It runs the inline script in a stubbed DOM and checks the parser, summary, CSV, i18n completeness and that every tab renders in both languages. Add a check for each new feature.
 - Service workers do not run in the Claude desktop browser pane. Test `sw.js` with headless Chrome (CDP) or a real phone.
 - Energy balance assumes a male body (Mifflin-St Jeor BMR x 1.2 plus MET-based exercise).

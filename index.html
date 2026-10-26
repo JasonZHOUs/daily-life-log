@@ -67,7 +67,7 @@ details summary{cursor:pointer;font-weight:600}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js" crossorigin="anonymous"></script>
 <script src="config.js"></script>
 <script>
-const KEY='dl1',KCAL=2800,PROT=120;
+const KEY='dl1',KCAL=2800,PROT=120,VER='2026-10-27';
 let S={days:{},foods:[],dbx:[],t:{},gm:{},meals:[],tpl:null,lang:''};
 try{const r=localStorage.getItem(KEY);if(r){const o=JSON.parse(r);if(o&&o.days)S=Object.assign(S,o)}}catch(e){}
 S.foods=S.foods||[];S.dbx=S.dbx||[];S.t=S.t||{};S.gm=S.gm||{};S.meals=S.meals||[];S.tpl=S.tpl||null;
@@ -104,6 +104,11 @@ s_prot:['Protein hit target on {n} of {m} logged days. Add eggs, Greek yogurt or
 s_gym:['{n} gym days this week. Aim for 3 to 4.','本周健身 {n} 天，目标是 3 到 4 天。'],s_part:['Not trained this week: {p}.','本周没练：{p}。'],
 s_eng:['English practice on {n} of 7 days. Five minutes before bed is enough.','7天中有 {n} 天练了英语，睡前5分钟就够。'],s_ai:['No AI project time this week. Book one block for it.','本周没有 AI 项目时间，给它留一个时间段吧。'],
 s_log:['Food logged on only {n} of 7 days. Recent meals make it one tap.','7天中只有 {n} 天记录了饮食。用“最近的餐”可以一键记录。'],s_plan:['Only {r}% of plan items done. Try fewer items per day.','计划只完成了 {r}%。试试每天少安排几项。'],s_ok:['A solid week. Keep the same rhythm.','这周很扎实，保持这个节奏。'],
+newT:['New in this version','本次更新'],newOk:['Got it','知道了'],verL:['Version','版本'],
+new1:['Food: type a whole meal, like “2 eggs, chicken rice, kopi”, then press Enter.','饮食：直接输入一餐，例如“两个鸡蛋，鸡饭，咖啡”，按回车即可。'],
+new2:['About 50 Singapore hawker and Chinese dishes. Meals you log appear under Recent meals for one-tap repeat.','新增约50种新加坡小贩中心和中式菜品。记录过的餐会出现在“最近的餐”，点一下即可重复。'],
+new3:['Review: weekly summary with suggestions, an editable weekly plan template, and CSV export.','回顾：本周概览和建议、可编辑的每周计划模板、CSV 导出。'],
+new4:['Opens without signal. A Reload bar appears when a new version is ready.','没有网络也能打开。有新版本时会出现“刷新”提示。'],
 csv:['Export CSV','导出 CSV'],csvOk:['CSV file created (all days).','已生成 CSV 文件（全部日期）。']
 };
 const L=()=>S.lang==='zh'?1:0;
@@ -314,7 +319,8 @@ const tpl=()=>S.tpl||TPL;
 const plan=(d,k)=>{if(!d.plan){const wd=new Date(k+'T00:00:00').getDay();d.plan=tpl().filter(x=>x[0].indexOf(wd)>=0).map(x=>({t:x[1],n:x[2],z:x[3],x:false}))}return d.plan};
 function vToday(d,k,p,f,c){
   const T0=T(),r=T0.k-k;
-  let h='<div class="c"><div class="kc"><b>'+Math.round(Math.abs(r))+'</b><span>'+(r>=0?t('kleft'):t('over'))+'</span></div>'+bar(k,T0.k)+'<div class="g3">'+mini(t('pro'),p,T0.p,'g')+mini(t('fat'),f,T0.f,'g')+mini(t('carb'),c,T0.c,'g')+'</div></div>';
+  let h=S.seen!==VER?'<div class="c hl"><h2>'+t('newT')+'</h2><ul style="margin:0 0 8px;padding-left:20px">'+['new1','new2','new3','new4'].map(x=>'<li style="margin:4px 0">'+t(x)+'</li>').join('')+'</ul><button class="on sm" data-a="seen">'+t('newOk')+'</button></div>':'';
+  h+='<div class="c"><div class="kc"><b>'+Math.round(Math.abs(r))+'</b><span>'+(r>=0?t('kleft'):t('over'))+'</span></div>'+bar(k,T0.k)+'<div class="g3">'+mini(t('pro'),p,T0.p,'g')+mini(t('fat'),f,T0.f,'g')+mini(t('carb'),c,T0.c,'g')+'</div></div>';
   const pv=S.days[shift(cur,-1)];
   if(pv&&pv.next&&pv.next.trim())h+='<div class="c hl"><h2>'+t('plannedL')+'</h2><div style="white-space:pre-wrap">'+esc(pv.next)+'</div></div>';
   const pd=plan(d,cur),pl=pd.map((x,i)=>({x:x,i:i})).sort((a,b)=>a.x.t<b.x.t?-1:a.x.t>b.x.t?1:0);
@@ -447,7 +453,7 @@ function vRev(){
   const d=day(),tt=T(),f=(id,l,v)=>'<div class="row"><label for="t_'+id+'">'+l+'</label><span class="sp"></span><input class="s" id="t_'+id+'" type="number" value="'+v+'"></div>';
   return week()+sumCard()+trend()+heat()+'<div class="c"><h2>'+t('weight')+'</h2><div class="row"><input class="s" id="wt" type="number" step="0.1" inputmode="decimal" value="'+esc(d.wt)+'"><small>'+t('weightHint')+'</small></div></div>'
    +'<details class="c"><summary>'+t('targets')+'</summary>'+f('k',t('tk'),tt.k)+f('p',t('tp'),tt.p)+f('f',t('tf'),tt.f)+f('c',t('tc'),tt.c)+f('h',t('th'),tt.h)+f('a',t('ta'),tt.a)+'<p class="mut">'+t('tNote')+'</p></details>'+tplCard()
-   +(user?'<div class="c"><div class="row"><small>'+esc(user.email||'')+'</small><span class="sp"></span><button data-a="signout">'+t('signout')+'</button></div></div>':'')+'<div class="c"><h2>'+t('tips')+'</h2><p class="mut">'+t('tipsT')+'</p></div>'
+   +(user?'<div class="c"><div class="row"><small>'+esc(user.email||'')+'</small><span class="sp"></span><button data-a="signout">'+t('signout')+'</button></div></div>':'')+'<div class="c"><h2>'+t('tips')+'</h2><p class="mut">'+t('tipsT')+'</p><small>'+t('verL')+' '+VER+'</small></div>'
    +'<details class="c"><summary>'+t('backup')+'</summary><textarea id="bk" rows="4"></textarea><div class="row"><button data-a="bshow">'+t('bshow')+'</button><button data-a="bcopy">'+t('bcopy')+'</button><button data-a="brest">'+t('brest')+'</button><button data-a="csv">'+t('csv')+'</button></div><div id="bm" class="mut"></div></details>';
 }
 function vAuth(){
@@ -643,6 +649,7 @@ document.addEventListener('click',e=>{
   else if(a==='eng'){d.eng=b.checked}
   else if(a==='supp'){d.supp=b.checked}
   else if(a==='csv'){dlCSV();return}
+  else if(a==='seen'){S.seen=VER;try{localStorage.setItem(KEY,JSON.stringify(S))}catch(z){}render();return}
   else if(a==='bshow'){$('#bk').value=JSON.stringify(S);$('#bm').textContent=t('bok');return}
   else if(a==='bcopy'){const x=$('#bk');x.select();let ok=false;try{ok=document.execCommand('copy')}catch(z){}try{navigator.clipboard.writeText(x.value)}catch(z){}$('#bm').textContent=ok?t('bcp'):t('bman');return}
   else if(a==='brest'){try{const o=JSON.parse($('#bk').value);if(!o||!o.days)throw 0;S=Object.assign({days:{},foods:[],dbx:[],t:{},gm:{},meals:[],tpl:null,lang:S.lang},o);Object.keys(S.days).forEach(k=>{S.days[k]._t=Date.now();dirty.add(k)});touchCfg();save();render();$('#bm').textContent=t('brok')}catch(x){$('#bm').textContent=t('bbad')}return}
