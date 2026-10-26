@@ -64,13 +64,13 @@ details summary{cursor:pointer;font-weight:600}
 <body>
 <div class="w"><div id="app"></div></div>
 <nav class="tabs" id="tabs"></nav>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js" crossorigin="anonymous"></script>
 <script src="config.js"></script>
 <script>
 const KEY='dl1',KCAL=2800,PROT=120;
-let S={days:{},foods:[],dbx:[],t:{},gm:{},lang:''};
+let S={days:{},foods:[],dbx:[],t:{},gm:{},meals:[],tpl:null,lang:''};
 try{const r=localStorage.getItem(KEY);if(r){const o=JSON.parse(r);if(o&&o.days)S=Object.assign(S,o)}}catch(e){}
-S.foods=S.foods||[];S.dbx=S.dbx||[];S.t=S.t||{};S.gm=S.gm||{};
+S.foods=S.foods||[];S.dbx=S.dbx||[];S.t=S.t||{};S.gm=S.gm||{};S.meals=S.meals||[];S.tpl=S.tpl||null;
 if(!S.lang)S.lang=(navigator.language||'').toLowerCase().indexOf('zh')===0?'zh':'en';
 const I={
 title:['Daily Life Log','每日生活记录'],authT:['Sign in to sync your log across phone and computer.','登录后可在手机和电脑间同步记录。'],pw:['Password (6+ characters)','密码（至少6位）'],signin:['Sign in','登录'],signup:['Create account','注册'],toup:['New here? Create account','新用户？注册'],toin:['Have an account? Sign in','已有账号？登录'],skip:['Use on this device only','仅在本设备使用'],signout:['Sign out','退出登录'],confirmMail:['Account created. Check your email to confirm, then sign in.','账号已创建。请查收邮件确认后再登录。'],authBad:['Enter your email and a password of at least 6 characters.','请输入邮箱和至少6位的密码。'],today:['Today','今天'],food:['Food','饮食'],act:['Activity','活动'],review:['Review','回顾'],
@@ -80,7 +80,7 @@ kleft:['kcal left','千卡还可吃'],over:['kcal over','千卡已超出'],left:
 plan:['Today’s plan','今日计划'],addplan:['Add a plan item','添加计划事项'],add:['Add','添加'],
 eng:['5 minutes of spoken English','口语练习5分钟'],supp:['Supplements taken','已服用补充剂'],
 noteT:['Night note','睡前小结'],winL:['One win today','今天的一个收获'],nextL:['Top 3 tasks for tomorrow','明天最重要的三件事'],plannedL:['Planned last night for today','昨晚为今天安排的事项'],
-search:['Search food (English or 中文)','搜索食物（中文或English）'],shelfT:['Quick add: tap once','快速添加：点一下'],
+search:['Search, or type a meal: 2 eggs, chicken rice','搜索，或输入一餐：两个鸡蛋，鸡饭'],shelfT:['Quick add: tap once','快速添加：点一下'],
 ask:['Search online food database','在线食品数据库搜索'],askWait:['Searching…','搜索中…'],askOk:['Data per 100 g from Open Food Facts. Check it looks sensible.','数据来自 Open Food Facts（每100克），请核对是否合理。'],askNo:['Nothing found online. Try another word, or use Other food.','没有找到。请换个词，或使用“其他食物”。'],askNA:['Search is not available.','无法搜索。'],
 per100:['per 100 g','每100克'],portion:['This portion','这一份'],qk:['Add by calories only','只按热量添加'],kc:['kcal','千卡'],other:['Other food','其他食物'],nameP:['Name','名称'],
 gprot:['g protein','蛋白质克'],gfat:['g fat','脂肪克'],gcarb:['g carbs','碳水克'],copyY:['Copy yesterday’s food','复制昨天的饮食'],eatenT:['Eaten today','今天已吃'],none:['Nothing logged yet','还没有记录'],
@@ -93,7 +93,18 @@ h0:['Keep logging weekly. A trend needs two entries at least 10 days apart.','�
 heatT:['Last 12 weeks','最近12周'],heatNote:['Darker squares mean more of the day was logged.','颜色越深，当天记录越多。'],
 targets:['Targets and body','目标与身体数据'],tk:['Calories target (kcal)','热量目标（千卡）'],tp:['Protein target (g)','蛋白质目标（克）'],tf:['Fat target (g)','脂肪目标（克）'],tc:['Carbs target (g)','碳水目标（克）'],th:['Height (cm)','身高（厘米）'],ta:['Age','年龄'],tNote:['Used for the bars and the energy balance, which assumes a male body.','用于进度条和能量平衡（按男性计算）。'],
 tips:['Open it like an app','像应用一样打开'],tipsT:['In Safari, tap Share, then Add to Home Screen. Sign in with the same account on each device to sync your data.','在 Safari 中点“分享”，再点“添加到主屏幕”。在每台设备上用同一账号登录即可同步数据。'],
-backup:['Backup and restore','备份与恢复'],bshow:['Show backup','显示备份'],bcopy:['Copy','复制'],brest:['Restore from text','从文本恢复'],bok:['Backup ready. Tap Copy.','备份已生成，请点“复制”。'],bcp:['Copied ✓','已复制 ✓'],bman:['Select the text and copy it manually.','请选中文字手动复制。'],brok:['Restored ✓','已恢复 ✓'],bbad:['That text is not a valid backup.','这段文字不是有效的备份。']
+backup:['Backup and restore','备份与恢复'],bshow:['Show backup','显示备份'],bcopy:['Copy','复制'],brest:['Restore from text','从文本恢复'],bok:['Backup ready. Tap Copy.','备份已生成，请点“复制”。'],bcp:['Copied ✓','已复制 ✓'],bman:['Select the text and copy it manually.','请选中文字手动复制。'],brok:['Restored ✓','已恢复 ✓'],bbad:['That text is not a valid backup.','这段文字不是有效的备份。'],
+addAll:['Add · {n} kcal','添加 · {n} 千卡'],lineHint:['Enter adds it. Separate foods with commas.','按回车添加，用逗号分隔多个食物。'],noMatch:['not found','没找到'],mealsT:['Recent meals: tap to repeat','最近的餐：点一下重复'],
+upd:['A new version is ready.','新版本已就绪。'],reload:['Reload','刷新'],offline:['Offline. Saved on this device, will sync later','离线中，已保存在本设备，稍后同步'],
+tplT:['Weekly plan template','每周计划模板'],tplNote:['Each new day starts with these items. Tap a weekday to turn it on or off for that item.','每天的计划由这里生成。点星期几来开启或关闭该事项。'],tplAdd:['Add item','添加事项'],tplNew:['New item','新事项'],tplReset:['Rebuild this day’s plan from the template','用模板重建这一天的计划'],tplDef:['Restore the original template','恢复默认模板'],tplOk:['Plan rebuilt ✓','计划已重建 ✓'],
+sumT:['This week at a glance','本周概览'],avgK:['Average calories','平均热量'],avgP:['Average protein','平均蛋白质'],protDays:['Protein target hit','蛋白质达标'],planDone:['Plan items done','计划完成'],wtCh:['Weight change','体重变化'],dys:['days','天'],sugT:['Suggestions','建议'],
+s_low:['You averaged {a} kcal, about {d} under your target. Add a snack such as milk and a banana.','平均每天 {a} 千卡，比目标少约 {d}。可以加一份加餐，例如牛奶加香蕉。'],
+s_high:['You averaged {a} kcal, about {d} over your target. Watch whether your weight rises faster than planned.','平均每天 {a} 千卡，比目标多约 {d}。留意体重是否涨得比计划快。'],
+s_prot:['Protein hit target on {n} of {m} logged days. Add eggs, Greek yogurt or whey at breakfast.','有记录的 {m} 天中只有 {n} 天蛋白质达标。早餐可以加鸡蛋、希腊酸奶或乳清蛋白。'],
+s_gym:['{n} gym days this week. Aim for 3 to 4.','本周健身 {n} 天，目标是 3 到 4 天。'],s_part:['Not trained this week: {p}.','本周没练：{p}。'],
+s_eng:['English practice on {n} of 7 days. Five minutes before bed is enough.','7天中有 {n} 天练了英语，睡前5分钟就够。'],s_ai:['No AI project time this week. Book one block for it.','本周没有 AI 项目时间，给它留一个时间段吧。'],
+s_log:['Food logged on only {n} of 7 days. Recent meals make it one tap.','7天中只有 {n} 天记录了饮食。用“最近的餐”可以一键记录。'],s_plan:['Only {r}% of plan items done. Try fewer items per day.','计划只完成了 {r}%。试试每天少安排几项。'],s_ok:['A solid week. Keep the same rhythm.','这周很扎实，保持这个节奏。'],
+csv:['Export CSV','导出 CSV'],csvOk:['CSV file created (all days).','已生成 CSV 文件（全部日期）。']
 };
 const L=()=>S.lang==='zh'?1:0;
 const t=(k,v)=>{const a=I[k];let s=a?a[L()]:k;if(v)for(const x in v)s=s.replace('{'+x+'}',v[x]);return s};
@@ -113,7 +124,7 @@ const W=()=>{const ws=Object.keys(S.days).filter(k=>parseFloat(S.days[k].wt)>0).
 const CATS=[['study','Study','学习'],['lab','Lab','实验'],['ai','AI project','AI项目'],['career','Career skills','职业技能']];
 const GYM=[['Legs','腿'],['Chest','胸'],['Shoulders','肩'],['Back','背'],['Arms','手臂'],['Abs','腹']];
 const ACT=[['Weight training, moderate','力量训练（中等）',4],['Weight training, hard','力量训练（高强度）',6],['Walking','步行',3.5],['Running','跑步',9],['Cycling','骑行',7],['Swimming','游泳',7],['HIIT','高强度间歇',8],['Ball sports','球类运动',7],['Other exercise','其他运动',5]];
-const UN={egg:['egg','个'],slice:['slice','片'],cup:['cup','杯'],bowl:['bowl','碗'],bun:['bun','个'],piece:['piece','个'],banana:['banana','根'],apple:['apple','个'],orange:['orange','个'],tbsp:['tbsp','勺'],sausage:['sausage','根'],serving:['serving','份'],scoop:['scoop','勺']};
+const UN={egg:['egg','个'],slice:['slice','片'],cup:['cup','杯'],bowl:['bowl','碗'],bun:['bun','个'],piece:['piece','个'],banana:['banana','根'],apple:['apple','个'],orange:['orange','个'],tbsp:['tbsp','勺'],sausage:['sausage','根'],serving:['serving','份'],scoop:['scoop','勺'],plate:['plate','盘'],stick:['stick','串'],roll:['roll','条'],glass:['glass','杯']};
 const PRE=[['Breakfast: eggs, bread, yogurt','早餐：鸡蛋、面包、酸奶',500,30,18,50],['Breakfast: oatmeal and eggs','早餐：燕麦和鸡蛋',800,40,24,105],['Meat, vegetables and rice','肉、蔬菜和米饭',600,40,15,70],['Extra half bowl of rice','加半碗米饭',150,3,0.3,33],['Peanut butter sandwich and banana','花生酱三明治和香蕉',400,12,16,52],['Milk 300 ml and banana','牛奶300毫升和香蕉',290,11,10,41],['Handful of nuts','一把坚果',180,6,16,6],['Chicken sausage','鸡肉肠',80,7,4,2],['Gainer powder 25 g','增肌粉25克',95,6,0.3,17]].map(a=>({b:a[0],z:a[1],k:a[2],p:a[3],f:a[4],c:a[5]}));
 const TPL=[['0123456','08:30','Breakfast with protein and supplements','早餐（含蛋白质）和补充剂'],['0123456','15:30','Afternoon snack','下午加餐'],['0123456','22:00','5 minutes of spoken English','口语练习5分钟'],['0123456','23:30','Night note and bed','睡前小结，准备睡觉'],['2460','20:00','Gym (dinner by 7 pm)','健身（7点前吃晚饭）'],['1','09:00','Class 9 am to 12 pm','上课 9:00–12:00'],['1','13:00','Review notes or English','复习笔记或练英语'],['1','15:00','Class 3 to 6 pm','上课 15:00–18:00'],['2','08:30','Deep work before lab','实验前专注学习'],['2','11:00','Lab until 6 pm','实验到18:00'],['3','09:00','Deep work and email a professor','专注学习，给一位教授发邮件'],['3','14:00','AI project time','AI项目时间'],['4','08:30','English and reading','英语与阅读'],['4','10:30','Lab until 3 pm','实验到15:00'],['4','16:00','Class 4 to 6 pm','上课 16:00–18:00'],['5','10:00','Reading or AI project','阅读或AI项目'],['5','13:00','Lab (afternoon)','实验（下午）'],['5','18:00','Class 6 to 9 pm','上课 18:00–21:00'],['6','14:00','Test the plugin with real people','请真实用户试用插件'],['0','09:00','Weekly weigh-in','每周称重'],['0','17:00','Plan the week and call family','规划下周，给家人打电话']];
 const DB=`Chicken breast, cooked;鸡胸肉 chicken;165;31;3.6;0
@@ -163,13 +174,65 @@ Cucumber;黄瓜;15;0.7;0.1;3.6
 Chicken sausage, low-fat;鸡肉肠;120;14;5;4;sausage;40
 Gainer powder (your tub);增肌粉 gainer;380;23;1.2;68;serving;25
 Whey protein powder;乳清蛋白粉;400;80;5;8;scoop;30`.split('\n').map(l=>{const a=l.split(';'),z=a[1].split(' ');return{b:a[0],z:z[0],al:a[1],k:+a[2],p:+a[3],f:+a[4],c:+a[5],u:a[6]?[a[6],+a[7]]:null}});
+/* Singapore hawker and Chinese dishes, per typical serving: kcal;protein;fat;carbs;unit;grams. Rough averages (HPB-style), converted to per 100 g below. */
+const DISH=`Chicken rice;鸡饭 海南鸡饭 hainanese;607;25;23;75;plate;380
+Roast chicken rice;烧鸡饭 roasted;650;28;27;75;plate;380
+Char siew rice;叉烧饭 charsiew;605;24;17;88;plate;330
+Duck rice;鸭饭 烧鸭饭;673;29;25;82;plate;400
+Nasi lemak;椰浆饭;674;20;31;80;plate;300
+Economy rice (2 veg, 1 meat);杂菜饭 经济饭 caifan cai fan mixed;650;25;25;80;plate;450
+Char kway teow;炒粿条 ckt;744;23;38;76;plate;385
+Hokkien mee;福建炒面 prawn;617;18;23;83;plate;400
+Laksa;叻沙;589;22;32;52;bowl;500
+Mee goreng;印度炒面 mamak;660;18;26;87;plate;380
+Mee rebus;卤汁面;556;19;15;82;bowl;500
+Wanton mee;云吞面 wonton noodles;409;15;12;59;plate;310
+Fishball noodles;鱼丸面 fish ball;330;16;4;56;bowl;520
+Bak chor mee;肉脞面 minced meat noodles;511;26;21;54;bowl;350
+Ban mian;板面 banmian;475;23;16;59;bowl;530
+Lor mee;卤面;383;18;13;48;bowl;450
+Sliced fish soup with bee hoon;鱼片米粉汤 鱼片汤 fish soup;350;28;8;40;bowl;600
+Yong tau foo, soup;酿豆腐 ytf;350;25;12;35;bowl;550
+Fried bee hoon;炒米粉;375;7;12;60;plate;220
+Fried carrot cake;菜头粿 炒萝卜糕 chai tow kway;500;12;30;47;plate;300
+Chicken briyani;印度香饭 biryani;877;38;34;100;plate;500
+Roti prata, plain;印度煎饼 prata;209;4.5;7.5;31;piece;75
+Roti prata, egg;鸡蛋煎饼 egg prata;281;9;13;32;piece;100
+Chicken satay;沙爹 沙嗲;39;3.5;2.3;1.2;stick;15
+Popiah;薄饼 spring roll;188;6;6;28;roll;130
+Kaya toast;咖椰吐司 kaya;300;5;14;38;serving;70
+Mala xiang guo;麻辣香锅 mala;900;35;60;55;bowl;500
+Malatang;麻辣烫;600;30;30;50;bowl;600
+Kopi (with condensed milk);咖啡 coffee;125;2;3.5;21;cup;250
+Kopi O (black, sugar);咖啡乌 黑咖啡 kopi-o kopio;70;0.3;0;18;cup;250
+Kopi C (evaporated milk, sugar);咖啡西 kopi-c kopic;100;2;3;16;cup;250
+Teh (with condensed milk);奶茶 茶 tea;125;2;3.5;21;cup;250
+Teh O (tea, sugar);茶乌 teh-o teho;65;0;0;17;cup;250
+Milo;美禄;170;5;5;27;cup;250
+Bubble tea;珍珠奶茶 奶茶 boba;335;2;9;63;cup;500
+Tomato and egg stir-fry;番茄炒蛋 西红柿炒鸡蛋;180;10;12;8;plate;200
+Kung pao chicken;宫保鸡丁;490;38;30;20;plate;250
+Mapo tofu;麻婆豆腐;350;20;25;10;plate;250
+Twice-cooked pork;回锅肉;600;24;52;10;plate;200
+Sweet and sour pork;糖醋里脊 咕噜肉;520;24;28;44;plate;200
+Stir-fried greens;炒青菜 炒菜心;120;4;9;8;plate;200
+Braised pork belly;红烧肉;675;15;66;6;plate;150
+Beef noodle soup;牛肉面;550;30;15;70;bowl;600
+Pork bun (baozi);包子 肉包;180;7;6.5;24;bun;80
+Xiaolongbao;小笼包;45;2;2;4.5;piece;25
+Jianbing;煎饼果子;450;15;18;57;serving;250
+Zongzi, meat;粽子 肉粽 rice dumpling;450;15;15;63;piece;200
+Hot dry noodles;热干面;520;14;20;72;bowl;300`.split('\n').map(l=>{const a=l.split(';'),z=a[1].split(' '),g=+a[7],r=v=>Math.round(v/g*1000)/10;return{b:a[0],z:z[0],al:a[1],k:Math.round(+a[2]/g*100),p:r(+a[3]),f:r(+a[4]),c:r(+a[5]),u:[a[6],g]}});
+DB.push.apply(DB,DISH);
 
 /* ---------- saving and syncing ---------- */
 let sb=null,user=null,ready=false,skip=false,authMode='in',authMsg='',authEmail='',dirty=new Set(),cfgDirty=false,st='local',tmr=null;
 const touchCfg=()=>{S._ct=Date.now();cfgDirty=true};
 function save(){const d=S.days[cur];if(d){d._t=Date.now();dirty.add(cur)}try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}schedule()}
 function schedule(){if(!user)return;clearTimeout(tmr);st='sync';updSync();tmr=setTimeout(flush,900)}
-function updSync(){const el=$('#sy');if(el)el.textContent=user?(st==='sync'?t('syncing'):st==='err'?t('syncerr'):t('synced')):t('local')}
+function updSync(){const el=$('#sy');if(el)el.textContent=user?(navigator.onLine===false?t('offline'):st==='sync'?t('syncing'):st==='err'?t('syncerr'):t('synced')):t('local')}
+let retry=null;
+const retryLater=()=>{clearTimeout(retry);retry=setTimeout(flush,20000)};
 async function flush(){
   if(!user)return;
   try{
@@ -180,11 +243,11 @@ async function flush(){
       keys.forEach(k=>dirty.delete(k));
     }
     if(cfgDirty){
-      const r=await sb.from('cfg').upsert({user_id:user.id,data:{foods:S.foods,dbx:S.dbx,t:S.t,gm:S.gm,lang:S.lang,_t:S._ct},updated_at:new Date().toISOString()},{onConflict:'user_id'});
+      const r=await sb.from('cfg').upsert({user_id:user.id,data:{foods:S.foods,dbx:S.dbx,t:S.t,gm:S.gm,meals:S.meals,tpl:S.tpl,lang:S.lang,_t:S._ct},updated_at:new Date().toISOString()},{onConflict:'user_id'});
       if(r.error)throw r.error;cfgDirty=false;
     }
     st='ok';
-  }catch(e){st='err';console.error(e)}
+  }catch(e){st='err';console.error(e);retryLater()}
   updSync();
 }
 async function pull(){
@@ -195,7 +258,7 @@ async function pull(){
   (dr.data||[]).forEach(r=>{have.add(r.day);const j=r.data||{},l=S.days[r.day];if(!l||(j._t||0)>(l._t||0))S.days[r.day]=j;else if((l._t||0)>(j._t||0))dirty.add(r.day)});
   Object.keys(S.days).forEach(k=>{if(!have.has(k))dirty.add(k)});
   const c=cr.data&&cr.data.data;
-  if(c&&c._t){if(c._t>(S._ct||0)){S.foods=c.foods||[];S.dbx=c.dbx||[];S.t=c.t||{};S.gm=c.gm||{};if(c.lang)S.lang=c.lang;S._ct=c._t}else if(c._t<(S._ct||0))cfgDirty=true}
+  if(c&&c._t){if(c._t>(S._ct||0)){S.foods=c.foods||[];S.dbx=c.dbx||[];S.t=c.t||{};S.gm=c.gm||{};S.meals=c.meals||[];S.tpl=c.tpl||null;if(c.lang)S.lang=c.lang;S._ct=c._t}else if(c._t<(S._ct||0))cfgDirty=true}
   else cfgDirty=true;
   try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}
 }
@@ -230,6 +293,13 @@ async function doAuth(){
   }catch(e){authMsg=e.message||String(e);render()}
 }
 async function signOut(){try{await sb.auth.signOut()}catch(e){}user=null;st='local';render()}
+window.addEventListener('online',()=>{updSync();if(user)flush()});
+window.addEventListener('offline',updSync);
+let updReady=false;
+if('serviceWorker' in navigator&&location.protocol!=='file:'){
+  navigator.serviceWorker.register('sw.js').catch(()=>{});
+  navigator.serviceWorker.addEventListener('message',e=>{if(e.data&&e.data.type==='update'&&!updReady){updReady=true;render()}});
+}
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&user&&!tm){const ae=document.activeElement;if(ae&&(ae.tagName==='TEXTAREA'||ae.tagName==='INPUT'))return;pull().then(()=>{st='ok';render()}).catch(()=>{})}});
 
 /* ---------- views ---------- */
@@ -239,14 +309,16 @@ function header(){
   const lbl=new Date(cur+'T00:00:00').toLocaleDateString(L()?'zh-CN':undefined,{weekday:'long',month:'short',day:'numeric'});
   return '<div class="nav"><button data-a="prev" aria-label="Previous day">‹</button><b>'+lbl+'</b><button data-a="next" aria-label="Next day">›</button></div><div class="row"><small id="sy"></small><span class="sp"></span>'+(cur!==ymd(new Date())?'<button class="sm" data-a="today">'+t('backToday')+'</button>':'')+'<button class="sm" data-a="lang">'+(L()?'EN':'中文')+'</button></div>';
 }
-const plan=(d,k)=>{if(!d.plan){const wd=new Date(k+'T00:00:00').getDay();d.plan=TPL.filter(x=>x[0].indexOf(wd)>=0).map(x=>({t:x[1],n:x[2],z:x[3],x:false}))}return d.plan};
+const tx=(n,z)=>L()?(z||n||''):(n||z||'');
+const tpl=()=>S.tpl||TPL;
+const plan=(d,k)=>{if(!d.plan){const wd=new Date(k+'T00:00:00').getDay();d.plan=tpl().filter(x=>x[0].indexOf(wd)>=0).map(x=>({t:x[1],n:x[2],z:x[3],x:false}))}return d.plan};
 function vToday(d,k,p,f,c){
   const T0=T(),r=T0.k-k;
   let h='<div class="c"><div class="kc"><b>'+Math.round(Math.abs(r))+'</b><span>'+(r>=0?t('kleft'):t('over'))+'</span></div>'+bar(k,T0.k)+'<div class="g3">'+mini(t('pro'),p,T0.p,'g')+mini(t('fat'),f,T0.f,'g')+mini(t('carb'),c,T0.c,'g')+'</div></div>';
   const pv=S.days[shift(cur,-1)];
   if(pv&&pv.next&&pv.next.trim())h+='<div class="c hl"><h2>'+t('plannedL')+'</h2><div style="white-space:pre-wrap">'+esc(pv.next)+'</div></div>';
   const pd=plan(d,cur),pl=pd.map((x,i)=>({x:x,i:i})).sort((a,b)=>a.x.t<b.x.t?-1:a.x.t>b.x.t?1:0);
-  h+='<div class="c"><h2>'+t('plan')+'</h2>'+pl.map(o=>'<div class="row"><label class="ck" style="flex:1;margin:0"><input type="checkbox" data-a="pdone" data-i="'+o.i+'"'+(o.x.x?' checked':'')+'><span><b>'+esc(o.x.t)+'</b> '+esc((L()&&o.x.z)?o.x.z:o.x.n)+'</span></label><button class="sm" data-a="pdel" data-i="'+o.i+'" aria-label="Remove">×</button></div>').join('')+'<div class="row"><input id="pt" type="time" style="width:120px"><input class="g" id="pn" placeholder="'+t('addplan')+'"><button data-a="padd">'+t('add')+'</button></div></div>';
+  h+='<div class="c"><h2>'+t('plan')+'</h2>'+pl.map(o=>'<div class="row"><label class="ck" style="flex:1;margin:0"><input type="checkbox" data-a="pdone" data-i="'+o.i+'"'+(o.x.x?' checked':'')+'><span><b>'+esc(o.x.t)+'</b> '+esc(tx(o.x.n,o.x.z))+'</span></label><button class="sm" data-a="pdel" data-i="'+o.i+'" aria-label="Remove">×</button></div>').join('')+'<div class="row"><input id="pt" type="time" style="width:120px"><input class="g" id="pn" placeholder="'+t('addplan')+'"><button data-a="padd">'+t('add')+'</button></div></div>';
   h+='<div class="c"><label class="ck"><input type="checkbox" data-a="eng"'+(d.eng?' checked':'')+'> '+t('eng')+'</label><label class="ck"><input type="checkbox" data-a="supp"'+(d.supp?' checked':'')+'> '+t('supp')+'</label></div>';
   h+='<div class="c"><h2>'+t('noteT')+'</h2><label for="win">'+t('winL')+'</label><textarea id="win" rows="2">'+esc(d.win)+'</textarea><label for="nx" style="display:block;margin-top:8px">'+t('nextL')+'</label><textarea id="nx" rows="3">'+esc(d.next)+'</textarea></div>';
   return h;
@@ -261,6 +333,8 @@ function shelf(){
 function vFood(d){
   shl=shelf();
   let h='<div class="c"><input id="fs" class="big" placeholder="'+t('search')+'" autocomplete="off"><div id="fr" style="margin-top:8px"></div><div id="fp"></div></div>';
+  const ml=mealsTop();
+  if(ml.length)h+='<div class="c"><h2>'+t('mealsT')+'</h2><div class="shelf">'+ml.map(m=>'<button data-a="meal" data-k="'+esc(m.key)+'">'+esc(m.it.map(nm).join(', '))+'<br><small>'+m.it.reduce((a,e)=>a+e.k,0)+' '+t('kc')+'</small></button>').join('')+'</div></div>';
   h+='<div class="c"><h2>'+t('shelfT')+'</h2><div class="shelf">'+shl.map((e,i)=>'<button data-a="shelf" data-i="'+i+'">'+esc(nm(e))+(e.g?' · '+e.g+'g':'')+'<br><small>'+Math.round(e.k)+' '+t('kc')+'</small></button>').join('')+'</div><div class="row"><button data-a="ycopy">'+t('copyY')+'</button></div><div class="row"><input class="s" id="qk" type="number" inputmode="numeric" placeholder="'+t('kc')+'"><button data-a="kadd">'+t('qk')+'</button></div>';
   h+='<details><summary>'+t('other')+'</summary><div class="row"><input class="g" id="cn" placeholder="'+t('nameP')+'"><input class="s" id="ck" type="number" inputmode="numeric" placeholder="'+t('kc')+'"><input class="s" id="cp" type="number" inputmode="numeric" placeholder="'+t('gprot')+'"><input class="s" id="cf" type="number" inputmode="numeric" placeholder="'+t('gfat')+'"><input class="s" id="cc" type="number" inputmode="numeric" placeholder="'+t('gcarb')+'"><button data-a="cadd">'+t('add')+'</button></div></details></div>';
   h+='<div class="c"><h2>'+t('eatenT')+' · '+Math.round(sum(d,'k'))+' '+t('kc')+'</h2>'+(d.food.length?d.food.map((e,i)=>'<div class="li"><span>'+esc(nm(e))+(e.g?' · '+e.g+'g':'')+'</span><span>'+Math.round(e.k)+' '+t('kc')+', '+(e.p||0)+'g <button class="sm" data-a="del" data-i="'+i+'" aria-label="Remove">×</button></span></div>').join(''):'<div class="mut">'+t('none')+'</div>')+'</div>';
@@ -288,6 +362,55 @@ function week(){
   }
   return '<div class="c"><h2>'+t('week')+'</h2><div class="wk">'+h+'</div><p>'+t('gd')+': <b>'+gy+'</b> · '+t('ed')+': <b>'+en+'</b> · '+t('wm')+': <b>'+mm+'</b></p><p>'+t('streak',{n:st2})+'</p></div>';
 }
+function weekSummary(k){
+  const T0=T(),mins={study:0,lab:0,ai:0,career:0},parts=new Set();
+  let fd=0,kc=0,pr=0,pd=0,gy=0,en=0,pt=0,px=0;
+  for(let i=0;i<7;i++){
+    const raw=S.days[shift(k,-i)];if(!raw)continue;const d=norm(raw);
+    if(d.food.length){fd++;kc+=sum(d,'k');const p=sum(d,'p');pr+=p;if(p>=T0.p)pd++}
+    if(d.gym.length){gy++;d.gym.forEach(g=>parts.add(g))}
+    if(d.eng)en++;
+    for(const c in mins)mins[c]+=d.min[c]||0;
+    if(d.plan){pt+=d.plan.length;px+=d.plan.filter(x=>x.x).length}
+  }
+  const ak=fd?Math.round(kc/fd):0,ap=fd?Math.round(pr/fd):0;
+  const wts=Object.keys(S.days).filter(x=>x<=k&&parseFloat(S.days[x].wt)>0).sort(),wk=shift(k,-7);
+  const wa=wts.length?wts[wts.length-1]:null,wb=wts.filter(x=>x<=wk).pop();
+  const wc=wa&&wb&&wa>wk?Math.round((parseFloat(S.days[wa].wt)-parseFloat(S.days[wb].wt))*10)/10:null;
+  const sug=[];
+  if(fd<5)sug.push(t('s_log',{n:fd}));
+  if(fd>=3&&ak<T0.k-300)sug.push(t('s_low',{a:ak,d:T0.k-ak}));else if(fd>=3&&ak>T0.k+300)sug.push(t('s_high',{a:ak,d:ak-T0.k}));
+  if(fd>=3&&pd<Math.ceil(fd*.7))sug.push(t('s_prot',{n:pd,m:fd}));
+  if(gy<3)sug.push(t('s_gym',{n:gy}));else{const miss=GYM.filter(g=>!parts.has(g[0])&&g[0]!=='Abs');if(miss.length)sug.push(t('s_part',{p:miss.map(g=>g[L()]).join(L()?'、':', ')}))}
+  if(en<5)sug.push(t('s_eng',{n:en}));
+  if(!mins.ai)sug.push(t('s_ai'));
+  if(pt>=7&&px/pt<.5)sug.push(t('s_plan',{r:Math.round(px/pt*100)}));
+  return {ak:ak,ap:ap,pd:pd,fd:fd,gy:gy,en:en,mins:mins,pt:pt,px:px,wc:wc,sug:sug.length?sug.slice(0,3):[t('s_ok')]};
+}
+function sumCard(){
+  const s=weekSummary(cur),T0=T(),row=(l,v)=>'<div class="li"><span>'+l+'</span><b>'+v+'</b></div>';
+  return '<div class="c"><h2>'+t('sumT')+'</h2>'+row(t('avgK'),s.fd?s.ak+' / '+T0.k+' '+t('kc'):'–')+row(t('avgP'),s.fd?s.ap+' / '+T0.p+' g':'–')+row(t('protDays'),s.pd+' / '+s.fd+' '+t('dys'))+row(t('planDone'),s.pt?Math.round(s.px/s.pt*100)+'%':'–')+(s.wc!=null?row(t('wtCh'),(s.wc>0?'+':'')+s.wc.toFixed(1)+' kg'):'')
+   +'<h2 style="margin-top:14px">'+t('sugT')+'</h2><ul style="margin:0;padding-left:20px">'+s.sug.map(x=>'<li style="margin:4px 0">'+esc(x)+'</li>').join('')+'</ul></div>';
+}
+function toCSV(){
+  const q=v=>{v=v==null?'':String(v);return /[",\n\r]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v},r1=v=>Math.round(v*10)/10;
+  const H=['date','kcal','protein_g','fat_g','carbs_g','foods','gym','study_min','lab_min','ai_min','career_min','exercise_kcal','english','supplements','weight_kg','plan_done','plan_total','win','tomorrow'];
+  const rows=Object.keys(S.days).sort().map(k=>{
+    const d=norm(S.days[k]),pl=d.plan||[];
+    if(!(d.food.length||d.gym.length||tot(d)||d.ex.length||d.eng||d.supp||d.wt||d.win||d.next||pl.some(x=>x.x)))return null;
+    return [k,Math.round(sum(d,'k')),r1(sum(d,'p')),r1(sum(d,'f')),r1(sum(d,'c')),d.food.map(e=>(e.b||e.n)+(e.g?' '+e.g+'g':'')).join(' | '),d.gym.join(' '),d.min.study,d.min.lab,d.min.ai,d.min.career,d.ex.reduce((a,x)=>a+x.k,0),d.eng?1:0,d.supp?1:0,d.wt,pl.filter(x=>x.x).length,pl.length,d.win,d.next];
+  }).filter(Boolean);
+  return '﻿'+[H].concat(rows).map(r=>r.map(q).join(',')).join('\n')+'\n';
+}
+async function dlCSV(){
+  const name='daily-life-log-'+ymd(new Date())+'.csv',blob=new Blob([toCSV()],{type:'text/csv;charset=utf-8'});
+  try{
+    const f=new File([blob],name,{type:'text/csv'});
+    if(/iPhone|iPad|Android/i.test(navigator.userAgent)&&navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f]});$('#bm').textContent=t('csvOk');return}
+  }catch(e){if(e&&e.name==='AbortError')return}
+  const u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();document.body.removeChild(a);setTimeout(()=>URL.revokeObjectURL(u),5000);
+  $('#bm').textContent=t('csvOk');
+}
 function trend(){
   const ws=Object.keys(S.days).filter(k=>parseFloat(S.days[k].wt)>0).sort().map(k=>({k:k,w:parseFloat(S.days[k].wt)}));
   if(ws.length<2)return '<div class="c"><h2>'+t('trendT')+'</h2><p class="mut">'+t('trendNone')+'</p></div>';
@@ -310,22 +433,33 @@ function heat(){
   }
   return '<div class="c"><h2>'+t('heatT')+'</h2><div class="hm">'+c+'</div><p class="mut">'+t('heatNote')+'</p></div>';
 }
+const WD=[1,2,3,4,5,6,0];
+const wdName=w=>new Date(2026,0,4+w).toLocaleDateString(L()?'zh-CN':undefined,{weekday:'narrow'});
+const ensureTpl=()=>S.tpl||(S.tpl=TPL.map(x=>x.slice()));
+let tplOpen=false;
+function tplCard(){
+  const L0=tpl(),ord=L0.map((x,i)=>i).sort((a,b)=>L0[a][1]<L0[b][1]?-1:L0[a][1]>L0[b][1]?1:a-b);
+  return '<details class="c" id="tplc"'+(tplOpen?' open':'')+'><summary>'+t('tplT')+'</summary><p class="mut">'+t('tplNote')+'</p>'
+   +ord.map(i=>{const x=L0[i];return '<div style="border-top:1px solid var(--bd);padding:6px 0"><div class="row"><input type="time" data-tp="t" data-i="'+i+'" value="'+esc(x[1])+'" style="width:120px"><input class="g" data-tp="n" data-i="'+i+'" value="'+esc(tx(x[2],x[3]))+'"><button class="sm" data-a="tdel" data-i="'+i+'" aria-label="Remove">×</button></div><div class="row" style="gap:4px">'+WD.map(w=>'<button class="sm'+(x[0].indexOf(w)>=0?' on':'')+'" data-a="twd" data-i="'+i+'" data-w="'+w+'" style="min-width:38px;padding:4px 0">'+wdName(w)+'</button>').join('')+'</div></div>'}).join('')
+   +'<div class="row"><button data-a="tadd">'+t('tplAdd')+'</button><button data-a="treset">'+t('tplReset')+'</button></div><div class="row"><button class="sm" data-a="tdef">'+t('tplDef')+'</button><small id="tmsg" class="mut"></small></div></details>';
+}
 function vRev(){
   const d=day(),tt=T(),f=(id,l,v)=>'<div class="row"><label for="t_'+id+'">'+l+'</label><span class="sp"></span><input class="s" id="t_'+id+'" type="number" value="'+v+'"></div>';
-  return week()+trend()+heat()+'<div class="c"><h2>'+t('weight')+'</h2><div class="row"><input class="s" id="wt" type="number" step="0.1" inputmode="decimal" value="'+esc(d.wt)+'"><small>'+t('weightHint')+'</small></div></div>'
-   +'<details class="c"><summary>'+t('targets')+'</summary>'+f('k',t('tk'),tt.k)+f('p',t('tp'),tt.p)+f('f',t('tf'),tt.f)+f('c',t('tc'),tt.c)+f('h',t('th'),tt.h)+f('a',t('ta'),tt.a)+'<p class="mut">'+t('tNote')+'</p></details>'
+  return week()+sumCard()+trend()+heat()+'<div class="c"><h2>'+t('weight')+'</h2><div class="row"><input class="s" id="wt" type="number" step="0.1" inputmode="decimal" value="'+esc(d.wt)+'"><small>'+t('weightHint')+'</small></div></div>'
+   +'<details class="c"><summary>'+t('targets')+'</summary>'+f('k',t('tk'),tt.k)+f('p',t('tp'),tt.p)+f('f',t('tf'),tt.f)+f('c',t('tc'),tt.c)+f('h',t('th'),tt.h)+f('a',t('ta'),tt.a)+'<p class="mut">'+t('tNote')+'</p></details>'+tplCard()
    +(user?'<div class="c"><div class="row"><small>'+esc(user.email||'')+'</small><span class="sp"></span><button data-a="signout">'+t('signout')+'</button></div></div>':'')+'<div class="c"><h2>'+t('tips')+'</h2><p class="mut">'+t('tipsT')+'</p></div>'
-   +'<details class="c"><summary>'+t('backup')+'</summary><textarea id="bk" rows="4"></textarea><div class="row"><button data-a="bshow">'+t('bshow')+'</button><button data-a="bcopy">'+t('bcopy')+'</button><button data-a="brest">'+t('brest')+'</button></div><div id="bm" class="mut"></div></details>';
+   +'<details class="c"><summary>'+t('backup')+'</summary><textarea id="bk" rows="4"></textarea><div class="row"><button data-a="bshow">'+t('bshow')+'</button><button data-a="bcopy">'+t('bcopy')+'</button><button data-a="brest">'+t('brest')+'</button><button data-a="csv">'+t('csv')+'</button></div><div id="bm" class="mut"></div></details>';
 }
 function vAuth(){
   return '<div class="c" style="margin-top:40px"><h2>'+t('title')+'</h2><p class="mut">'+t('authT')+'</p><input class="big" id="ae" type="email" autocomplete="email" placeholder="Email" value="'+esc(authEmail)+'"><div style="height:8px"></div><input class="big" id="ap" type="password" autocomplete="'+(authMode==='in'?'current-password':'new-password')+'" placeholder="'+t('pw')+'"><div class="row"><button class="on" data-a="auth">'+(authMode==='in'?t('signin'):t('signup'))+'</button><button data-a="amode">'+(authMode==='in'?t('toup'):t('toin'))+'</button></div><div class="mut" id="am">'+esc(authMsg)+'</div><div class="row"><button class="sm" data-a="skip">'+t('skip')+'</button><button class="sm" data-a="lang">'+(L()?'EN':'中文')+'</button></div></div>';
 }
 function render(){
   if(sb&&!ready){$('#app').innerHTML='';$('#tabs').innerHTML='';return}
-  if(sb&&!user&&!skip){$('#app').innerHTML=vAuth();$('#tabs').innerHTML='';return}
+  const ub=updReady?'<div class="c hl row" style="margin-top:0"><span class="sp">'+t('upd')+'</span><button class="on sm" data-a="reload">'+t('reload')+'</button></div>':'';
+  if(sb&&!user&&!skip){$('#app').innerHTML=ub+vAuth();$('#tabs').innerHTML='';return}
   const d=day(),k=sum(d,'k'),p=sum(d,'p'),f=sum(d,'f'),c=sum(d,'c');
   document.title=t('title');document.documentElement.lang=L()?'zh':'en';
-  let h=header();
+  let h=ub+header();
   h+=tab==='today'?vToday(d,k,p,f,c):tab==='food'?vFood(d):tab==='act'?vAct(d,k):vRev();
   $('#app').innerHTML=h;
   const TB=[['today','🏠',t('today')],['food','🍽',t('food')],['act','🏃',t('act')],['rev','📈',t('review')]];
@@ -336,13 +470,98 @@ function render(){
   if(tab==='food'&&focusFs){const x=$('#fs');if(x)x.focus();focusFs=false}
 }
 
+/* ---------- one-line meal entry: "2 eggs, chicken rice, kopi" or "两个鸡蛋，一碗米饭" ---------- */
+const NUM={'一':1,'二':2,'两':2,'俩':2,'三':3,'四':4,'五':5,'六':6,'七':7,'八':8,'九':9,'十':10,'半':.5,a:1,an:1,one:1,two:2,three:3,four:4,five:5,six:6,half:.5};
+const UA={g:'g',gram:'g',grams:'g','克':'g',ml:'g','毫升':'g',kg:'kg','公斤':'kg',bowl:'bowl',bowls:'bowl','碗':'bowl',cup:'cup',cups:'cup','杯':'cup',glass:'cup',glasses:'cup',slice:'slice',slices:'slice','片':'slice',piece:'piece',pieces:'piece',pc:'piece',pcs:'piece','个':'piece','只':'piece','块':'piece','颗':'piece','根':'piece',tbsp:'tbsp','勺':'tbsp',scoop:'scoop',scoops:'scoop',serving:'serving',servings:'serving','份':'serving',plate:'plate',plates:'plate','盘':'plate','碟':'plate',stick:'stick',sticks:'stick','串':'stick',roll:'roll',rolls:'roll','条':'roll',bun:'bun',buns:'bun'};
+const UG={bowl:250,cup:250,slice:30,piece:50,tbsp:15,scoop:30,serving:100,plate:350,stick:15,roll:130,bun:80};
+const UK=Object.keys(UA).sort((a,b)=>b.length-a.length).join('|');
+const QRE=new RegExp('^(\\d+(?:\\.\\d+)?|[一二两俩三四五六七八九十半]{1,2}|an?|one|two|three|four|five|six|half)\\s*(?:x\\s*)?('+UK+')?(?![a-z])\\s*(?:of\\s+|的)?');
+const TRE=new RegExp('\\s*(?:[x×*]\\s*)?(\\d+(?:\\.\\d+)?|[一二两俩三四五六七八九十半]{1,2})\\s*('+UK+')?$');
+const isZh=s=>/[一-鿿]/.test(s);
+const cnum=s=>{if(/^\d/.test(s))return +s;if(NUM[s]!=null)return NUM[s];if(s.length===2&&s[0]==='十')return 10+(NUM[s[1]]||0);if(s.length===2&&s[1]==='十')return (NUM[s[0]]||1)*10;return null};
+const sing=w=>w.length>4&&/ies$/.test(w)?w.slice(0,-3)+'y':w.length>4&&/(ches|shes|oes)$/.test(w)?w.slice(0,-2):w.length>3&&/s$/.test(w)&&!/ss$/.test(w)?w.slice(0,-1):w;
+const words=s=>s.toLowerCase().split(/[^a-z0-9一-鿿]+/).filter(Boolean);
+const POOL=()=>S.foods.map(x=>Object.assign({por:1},x)).concat(DB,S.dbx,PRE.map(x=>Object.assign({por:1},x)));
+function findFood(n){
+  n=n.trim().toLowerCase();if(!n)return {x:null,s:0};
+  const ws=words(n).map(sing),nn=ws.join(' '),zh=isZh(n);let best=null,bs=0;
+  POOL().forEach(x=>{
+    const b=(x.b||x.n||'').toLowerCase(),keys=[b].concat((x.al||x.z||'').toLowerCase().split(' ')).filter(Boolean),hw=words(b+' '+(x.al||'')+' '+(x.z||''));
+    let s=0;
+    keys.forEach(k=>{
+      if(k===n||k===nn||words(k).map(sing).join(' ')===nn)s=Math.max(s,100);
+      else if(zh&&k.indexOf(n)>=0)s=Math.max(s,60+n.length*2-(k.length-n.length));
+      else if(zh&&isZh(k)&&k.length>=2&&n.indexOf(k)>=0)s=Math.max(s,40+k.length*3);
+    });
+    if(s<100&&!zh&&ws.length&&ws.every(w=>hw.some(h=>h===w||sing(h)===w||(w.length>=3&&h.indexOf(w)===0))))
+      s=Math.max(s,70-Math.max(0,words(b).length-ws.length)*3+(b.indexOf(ws[0])===0?10:0));
+    if(s>bs){bs=s;best=x}
+  });
+  return {x:best,s:bs};
+}
+function parseItem(src){
+  let s=src.trim().toLowerCase().replace(/\s+/g,' '),q=null,u=null,m;
+  if(!s)return null;
+  m=s.match(/^(\d+(?:\.\d+)?)\s*(kcal|cal|千卡|大卡|卡)\s*(.*)$/);
+  if(m)return {src:src,e:{b:m[3]||'Quick add',z:m[3]?'':'快速添加',k:Math.round(+m[1]),p:0,f:0,c:0}};
+  m=s.match(QRE);
+  if(m&&(m[2]||!isZh(m[1]))&&m[0].length<s.length){q=cnum(m[1]);u=m[2]?UA[m[2]]:null;s=s.slice(m[0].length).trim()}
+  else{m=s.match(TRE);if(m&&m.index>0&&(m[2]||/^\d/.test(m[1])||/[x×*]/.test(m[0]))){q=cnum(m[1]);u=m[2]?UA[m[2]]:null;s=s.slice(0,m.index).trim()}}
+  const r=findFood(s),x=r.x;
+  if(!x)return {src:src,e:null,s:0};
+  let e;
+  if(x.por){const n=q||1;e={b:x.b||x.n,z:x.z||'',k:Math.round(x.k*n),p:Math.round((x.p||0)*n*10)/10,f:Math.round((x.f||0)*n*10)/10,c:Math.round((x.c||0)*n*10)/10}}
+  else{
+    const one=S.gm[x.b]||(x.u?x.u[1]:100);let g;
+    if(u==='g')g=q;else if(u==='kg')g=q*1000;
+    else if(u)g=(q==null?1:q)*(x.u&&(x.u[0]===u||u==='piece'||u==='serving'||!UG[u])?x.u[1]:UG[u]);
+    else if(q!=null)g=q>=20?q:q*one;else g=one;
+    g=Math.round(g);const rr=g/100,f1=v=>Math.round(v*rr*10)/10;
+    e={b:x.b,z:x.z||'',g:g,k:Math.round(x.k*rr),p:f1(x.p),f:f1(x.f),c:f1(x.c)};
+  }
+  return {src:src,e:e,s:r.s,q:q,u:u,x:x};
+}
+function parseLine(line){
+  const out=[];
+  line.split(/[,，、;；\n+＋]|和|\bthen\b/).forEach(ch=>{
+    if(!ch.trim())return;
+    let r=parseItem(ch);
+    if(r&&!(r.e&&r.s>=70)&&/ and /i.test(ch)){const parts=ch.split(/ and /i).map(parseItem);if(parts.every(p=>p&&p.e))return parts.forEach(p=>out.push(p))}
+    if(r)out.push(r);
+  });
+  return out;
+}
+let lp=[];
+function lineBox(q){
+  lp=parseLine(q);
+  const ok=lp.filter(r=>r.e);
+  if(!ok.length||(lp.length===1&&lp[0].q==null&&lp[0].x&&lp[0].s<70)){lp=[];return ''}
+  const tk=ok.reduce((a,r)=>a+r.e.k,0);
+  return '<div class="hl" style="padding:10px;border-radius:8px;margin-bottom:8px">'+lp.map(r=>r.e?'<div class="li"><span>'+esc(nm(r.e))+(r.e.g?' · '+r.e.g+'g':'')+'</span><span>'+r.e.k+' '+t('kc')+(r.e.p?', '+r.e.p+'g':'')+'</span></div>':'<div class="li mut"><span>'+esc(r.src.trim())+'</span><span>'+t('noMatch')+'</span></div>').join('')+'<div class="row"><button class="on" data-a="ladd">'+t('addAll',{n:tk})+'</button><small>'+t('lineHint')+'</small></div></div>';
+}
+function addLine(d){
+  const ok=lp.filter(r=>r.e);if(!ok.length)return false;
+  const it=ok.map(r=>Object.assign({},r.e));
+  it.forEach(e=>d.food.push(Object.assign({},e)));
+  ok.forEach(r=>{if(r.u==='g'&&r.x&&!r.x.por)S.gm[r.x.b]=r.e.g});
+  remember(it);lp=[];return true;
+}
+function remember(it){
+  if(it.length<2)return;
+  const key=it.map(e=>e.b+':'+(e.g||e.k)).join('|'),i=S.meals.findIndex(m=>m.key===key);
+  const m=i>=0?S.meals.splice(i,1)[0]:{key:key,it:it,n:0};
+  m.n++;m.t=Date.now();S.meals.unshift(m);S.meals=S.meals.slice(0,12);touchCfg();
+}
+const mealsTop=()=>S.meals.slice().sort((a,b)=>(b.n-a.n)||(b.t-a.t)).slice(0,6);
+
 /* ---------- food search ---------- */
 function showRes(){
   const q=$('#fs').value.trim().toLowerCase(),box=$('#fr');
-  if(!q){box.innerHTML='';return}
+  if(!q){box.innerHTML='';lp=[];return}
+  const lb=lineBox(q);
   const ts=q.split(/\s+/);
   fq=DB.concat(S.dbx).filter(x=>{const s=(x.b+' '+(x.al||x.z||'')+' '+(x.z||'')).toLowerCase();return ts.every(w=>s.indexOf(w)>=0)}).slice(0,6);
-  box.innerHTML=fq.map((x,i)=>'<button class="ch" data-a="pick" data-i="'+i+'">'+esc(nm(x))+'</button>').join('')+'<button class="ch" data-a="fask">'+t('ask')+'</button><div id="fa" class="mut"></div>';
+  box.innerHTML=lb+fq.map((x,i)=>'<button class="ch" data-a="pick" data-i="'+i+'">'+esc(nm(x))+'</button>').join('')+'<button class="ch" data-a="fask">'+t('ask')+'</button><div id="fa" class="mut"></div>';
 }
 function calc(){const g=parseFloat($('#fg').value)||0,r=g/100,q=v=>Math.round(v*r*10)/10;return{g:g,k:Math.round(sel.k*r),p:q(sel.p),f:q(sel.f),c:q(sel.c)}}
 function updPrev(){if(!sel||!$('#fv'))return;const x=calc();$('#fv').textContent=t('portion')+': '+x.k+' '+t('kc')+' · '+t('pro')+' '+x.p+'g · '+t('fat')+' '+x.f+'g · '+t('carb')+' '+x.c+'g'}
@@ -380,6 +599,7 @@ document.addEventListener('click',e=>{
   else if(a==='amode'){authMode=authMode==='in'?'up':'in';authMsg='';render();return}
   else if(a==='skip'){skip=true;render();return}
   else if(a==='signout'){signOut();return}
+  else if(a==='reload'){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(z){}location.reload();return}
   else if(a==='tab'){tab=b.dataset.t;sel=null;focusFs=(tab==='food')}
   else if(a==='prev'){cur=shift(cur,-1)}
   else if(a==='next'){cur=shift(cur,1)}
@@ -396,6 +616,8 @@ document.addEventListener('click',e=>{
     touchCfg();sel=null;
   }
   else if(a==='fask'){ask();return}
+  else if(a==='ladd'){if(!addLine(d))return;sel=null;focusFs=true}
+  else if(a==='meal'){const m=S.meals.find(x=>x.key===b.dataset.k);if(!m)return;m.it.forEach(e=>d.food.push(Object.assign({},e)));m.n++;m.t=Date.now();touchCfg()}
   else if(a==='kadd'){const kk=parseInt($('#qk').value,10);if(!(kk>0))return;d.food.push({b:'Quick add',z:'快速添加',k:kk,p:0,f:0,c:0})}
   else if(a==='cadd'){
     const n=$('#cn').value.trim(),kk=parseInt($('#ck').value,10),pp=parseFloat($('#cp').value)||0,ff=parseFloat($('#cf').value)||0,cc=parseFloat($('#cc').value)||0;
@@ -413,11 +635,17 @@ document.addEventListener('click',e=>{
   else if(a==='padd'){const nn=$('#pn').value.trim();if(!nn)return;plan(d,cur).push({t:$('#pt').value||'12:00',n:nn,z:'',x:false})}
   else if(a==='pdel'){plan(d,cur).splice(+b.dataset.i,1)}
   else if(a==='pdone'){plan(d,cur)[+b.dataset.i].x=b.checked}
+  else if(a==='tadd'){ensureTpl().push(['0123456','12:00',L()?'':t('tplNew'),L()?t('tplNew'):'']);touchCfg()}
+  else if(a==='tdel'){ensureTpl().splice(+b.dataset.i,1);touchCfg()}
+  else if(a==='twd'){const x=ensureTpl()[+b.dataset.i],w=b.dataset.w;if(!x)return;x[0]=x[0].indexOf(w)>=0?x[0].replace(w,''):x[0]+w;touchCfg()}
+  else if(a==='tdef'){S.tpl=null;touchCfg()}
+  else if(a==='treset'){delete d.plan;plan(d,cur);save();render();const m=$('#tmsg');if(m)m.textContent=t('tplOk');return}
   else if(a==='eng'){d.eng=b.checked}
   else if(a==='supp'){d.supp=b.checked}
+  else if(a==='csv'){dlCSV();return}
   else if(a==='bshow'){$('#bk').value=JSON.stringify(S);$('#bm').textContent=t('bok');return}
   else if(a==='bcopy'){const x=$('#bk');x.select();let ok=false;try{ok=document.execCommand('copy')}catch(z){}try{navigator.clipboard.writeText(x.value)}catch(z){}$('#bm').textContent=ok?t('bcp'):t('bman');return}
-  else if(a==='brest'){try{const o=JSON.parse($('#bk').value);if(!o||!o.days)throw 0;S=Object.assign({days:{},foods:[],dbx:[],t:{},gm:{},lang:S.lang},o);Object.keys(S.days).forEach(k=>{S.days[k]._t=Date.now();dirty.add(k)});touchCfg();save();render();$('#bm').textContent=t('brok')}catch(x){$('#bm').textContent=t('bbad')}return}
+  else if(a==='brest'){try{const o=JSON.parse($('#bk').value);if(!o||!o.days)throw 0;S=Object.assign({days:{},foods:[],dbx:[],t:{},gm:{},meals:[],tpl:null,lang:S.lang},o);Object.keys(S.days).forEach(k=>{S.days[k]._t=Date.now();dirty.add(k)});touchCfg();save();render();$('#bm').textContent=t('brok')}catch(x){$('#bm').textContent=t('bbad')}return}
   save();render();
 });
 document.addEventListener('input',e=>{
@@ -430,6 +658,20 @@ document.addEventListener('input',e=>{
   else if(id.indexOf('t_')===0){const v=parseFloat(e.target.value);if(!(v>0))return;S.t[id.slice(2)]=v;touchCfg()}
   else return;
   save();
+});
+document.addEventListener('change',e=>{
+  const tp=e.target.dataset&&e.target.dataset.tp;if(!tp)return;
+  const x=ensureTpl()[+e.target.dataset.i];if(!x)return;
+  if(tp==='t')x[1]=e.target.value||'12:00';
+  else{const v=e.target.value.trim();if(!v)return;x[2]=L()?'':v;x[3]=L()?v:''}
+  touchCfg();save();
+});
+document.addEventListener('toggle',e=>{if(e.target.id==='tplc')tplOpen=e.target.open},true);
+document.addEventListener('keydown',e=>{
+  if(e.key!=='Enter'||e.isComposing||e.target.id!=='fs')return;
+  e.preventDefault();
+  if(addLine(day())){sel=null;focusFs=true;save();render()}
+  else if(fq.length===1){sel=fq[0];showSel()}
 });
 initSync();
 render();
