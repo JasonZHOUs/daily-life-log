@@ -13,7 +13,7 @@ A mobile-first personal tracker for one user (Xin Zhou, MSc student in Singapore
 - `public.days(user_id uuid, day date, data jsonb, updated_at)`, primary key (user_id, day). One row per day.
 - `public.cfg(user_id uuid primary key, data jsonb, updated_at)`: foods (saved custom foods), dbx (foods found online), t (targets and body), gm (remembered portions in grams), meals (recent multi-food meals: {key, it[], n, t}), tpl (user's weekly plan template, same shape as `TPL`; null means use `TPL`), lang.
 - RLS: each user can only read and write rows where `user_id = auth.uid()`.
-- Day object fields: food[], gym[], min{study,lab,ai,career}, eng, supp, win, next, wt, ex[], plan[], `_t` (last-modified ms). Food entry: {b (English name), z (Chinese name), g, k, p, f, c}.
+- Day object fields: food[], gym[], min{study,lab,ai,career}, eng, supp, win, next, wt, ex[], plan[], mood (1–5, 0 = unset), nrg (energy 1–5), sl (sleep hours, string), h2o (cups of 250 ml), stp (steps, string), wk[] (workout: {x: exercise key, s:[{r reps, kg}]}; x is the English name from `EXS` when known), `_t` (last-modified ms). Food entry: {b (English name), z (Chinese name), g, k, p, f, c}.
 - Sync is local-first: state `S` lives in localStorage (key `dl1`) and in memory; per-day rows are upserted 0.9 s after a change; newer `_t` wins on pull.
 
 ## UI structure
@@ -22,6 +22,10 @@ Four bottom tabs: Today (kcal/protein/fat/carbs left, plan, habits, night note),
 ### Key pieces
 - One-line meal entry: `parseLine()` splits on commas (also `，、;+和`), `parseItem()` reads a quantity and unit (digits, Chinese numerals, `half`, `x2`, `200g`, `一碗`), `findFood()` scores matches across custom foods, `DB` (per 100 g, includes `DISH`: Singapore hawker and Chinese dishes stored per serving and converted), online finds and presets. A Chinese numeral only counts as a quantity when a unit follows it (so 三文鱼 stays salmon). Meals with 2+ foods are remembered in `S.meals`.
 - Offline: `sw.js` serves the shell (index, config, icons, the pinned supabase-js build) from cache, then refreshes it in the background. If index.html or a script changed, it messages the page, which shows a Reload banner. Supabase and Open Food Facts requests always go to the network. Bump the supabase-js version in both `index.html` and `sw.js` together. Failed syncs retry after 20 s and when the device comes back online.
+- Workout log: `EXS` lists exercises [en, zh, body part]; adding one ticks its gym part. Each block shows the last session (`lastEx`) and marks a PR when a set's estimated 1RM (Epley) beats every earlier set (`bestBefore`).
+- Adaptive calories (`adaptive`, MacroFactor-style): real burn = average intake on logged days − weight slope (least squares over the last 28 days) × 7700. Needs 10+ food days and 2 weigh-ins 10+ days apart. Target = burn + 275 (≈ +0.25 kg a week).
+- Patterns (`patterns`, Exist-style): compares mood, work minutes and energy between groups (sleep 7h+, gym day, 8,000+ steps) over 60 days, shown only when both groups have 5+ days.
+- Research on similar products and open-source options: `docs/research.md`.
 - Weekly review: `weekSummary(day)` returns averages and up to 3 rule-based suggestions; `toCSV()` exports all non-empty days (UTF-8 BOM for Excel).
 All UI strings live in the `I` dictionary as [English, 中文]; use `t('key')`. Every new string must have both languages.
 

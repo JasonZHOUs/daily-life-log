@@ -145,4 +145,41 @@ ok('what is new card shows once', () => {
   env0.run(`S.seen=VER;render()`);
   assert.ok(!env0.els.app.innerHTML.includes('data-a="seen"'));
 });
+ok('adaptive calories from intake and weight trend', () => {
+  // 28 days at 3000 kcal, weight rising 0.5 kg over 21 days => slope ~0.0238 kg/day => burn ~ 3000-183 = ~2820
+  env0.run(`S.days={};for(let i=0;i<28;i++){const k=shift('2026-10-26',-i);S.days[k]=norm({food:[{b:'x',k:3000,p:0,f:0,c:0}]})}
+    S.days['2026-10-26'].wt='65.5';S.days['2026-10-05'].wt='65.0'`);
+  const a = env.run(`adaptive('2026-10-26')`);
+  assert.equal(a.ok, true); assert.equal(a.ai, 3000);
+  assert.ok(Math.abs(a.burn - 2820) <= 10, 'burn ' + a.burn);
+  assert.equal(a.target, 3100);
+  env0.run(`delete S.days['2026-10-05'].wt`);
+  assert.equal(env.run(`adaptive('2026-10-26').ok`), false);
+});
+ok('patterns compare sleep groups', () => {
+  env0.run(`S.days={};for(let i=0;i<12;i++){const k=shift('2026-10-26',-i);S.days[k]=norm({sl:i<6?'8':'5',mood:i<6?5:2,min:{study:i<6?120:30}})}`);
+  const p = env.run(`patterns('2026-10-26')`);
+  assert.equal(p.length, 2);
+  assert.ok(p[0].includes('5') && p[0].includes('2'));
+  assert.ok(p[1].includes('120') && p[1].includes('30'));
+});
+ok('workout log: canonical names, last time, PR', () => {
+  env0.run(`S.lang='en';S.days={};S.days['2026-10-20']=norm({wk:[{x:'Bench press',s:[{r:8,kg:60},{r:8,kg:60}]}]});
+    S.days['2026-10-26']=norm({wk:[{x:'Bench press',s:[{r:8,kg:62.5}]}]});cur='2026-10-26';tab='act';render()`);
+  const h = env0.els.app.innerHTML;
+  assert.ok(h.includes('Last time (10-20): 8×60, 8×60'));
+  assert.ok(h.includes('🏆'));
+  assert.equal(env.run(`exF('卧推')[0]`), 'Bench press');
+  env0.run(`S.lang='zh';render()`);
+  assert.ok(env0.els.app.innerHTML.includes('卧推'));
+  const s = env.run(`weekSummary('2026-10-26').vol`);
+  assert.equal(s.Chest, 3);
+});
+ok('check-in renders and csv has new columns', () => {
+  env0.run(`S.lang='en';S.days={'2026-10-26':norm({mood:4,nrg:3,sl:'7.5',h2o:5,stp:'9000'})};cur='2026-10-26';tab='today';render()`);
+  const h = env0.els.app.innerHTML;
+  assert.ok(h.includes('data-a="mood" data-v="4"') && h.includes('5 / 8'));
+  const row = env.run('toCSV()').trim().split('\n')[1];
+  assert.ok(row.endsWith('4,3,7.5,5,9000,'), row);
+});
 console.log(`\n${n} checks passed`);
