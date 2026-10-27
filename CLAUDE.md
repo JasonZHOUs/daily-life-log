@@ -34,7 +34,7 @@ Fewest taps for repeated actions; frequent-foods shelf and remembered portions; 
 
 ## Rules for working here
 - Keep the app usable on a 390 px wide iPhone screen. Inputs at least 16 px font. Respect safe-area insets.
-- Keep light and dark themes working (CSS variables).
+- Keep light and dark themes working (CSS variables). Visual system: warm paper background with soft glows and grain (`body::before/::after`), 22 px cards with layered shadow `--sh`, accent gradient `--ac`→`--ac2`, macro colours `--fat` and `--carb`, rounded numerals (ui-rounded), floating frosted tab bar with inline SVG icons, calorie progress ring on Today. Reuse these tokens instead of hard-coded colours.
 - Do not break existing user data: old days may lack newer fields, so always normalise with `norm()`.
 - Each release: bump `VER` in index.html and rewrite the `new1`–`new4` strings. Users see a one-time "New in this version" card on Today, and the version is shown in Review. iPhone Home Screen apps keep the old page in memory until the app is swiped away, so tell the user to fully close and reopen it after a deploy.
 - Run `node tests/run.mjs` after every change. It runs the inline script in a stubbed DOM and checks the parser, summary, CSV, i18n completeness and that every tab renders in both languages. Add a check for each new feature.
