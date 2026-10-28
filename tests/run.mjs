@@ -189,4 +189,22 @@ ok('photo results rescale with grams and render', () => {
   assert.ok(env0.els.app.innerHTML.includes('data-a="phadd"'));
   env0.run(`ph={st:''}`);
 });
+ok('AI app replies are parsed: lines, joined lines, units, numbering, headers', () => {
+  const P = s => env.run(`parsePipe(${JSON.stringify(s)}).map(x=>[x.b,x.g,x.k,x.p,x.f,x.c])`);
+  const lines = '名称 | 克数 | 热量 | 蛋白质 | 脂肪 | 碳水\n鸡饭 | 380 | 607 | 25 | 23 | 75\n冰柠檬茶 | 400 | 160 | 0 | 0 | 40';
+  assert.deepEqual(P(lines), [['鸡饭', 380, 607, 25, 23, 75], ['冰柠檬茶', 400, 160, 0, 0, 40]]);
+  assert.deepEqual(P(lines.replace(/\n/g, ' ')), P(lines));           // pasted into a one-line input
+  assert.deepEqual(P('1. Chicken rice ｜ 380g ｜ 607 kcal ｜ 25g ｜ 23g ｜ 75g\n- Kopi | 250 | 125 | 2 | 3.5 | 21'),
+    [['Chicken rice', 380, 607, 25, 23, 75], ['Kopi', 250, 125, 2, 3.5, 21]]);
+  assert.deepEqual(P('hello, no table here'), []);
+  assert.equal(env.run(`parsePipe('鸡饭 | 380 | 607 | 25 | 23 | 75')[0].z`), '鸡饭');
+});
+ok('pasting an AI reply into the search box opens the editable list', () => {
+  env0.run(`S.lang='zh';tab='food';ph={st:''};render();aiLoad('鸡饭 | 380 | 607 | 25 | 23 | 75');render()`);
+  const h = env0.els.app.innerHTML;
+  assert.ok(h.includes('data-a="phadd"') && h.includes('鸡饭') && h.includes('607'));
+  env0.run(`ph={st:'err',msg:'x'};render()`);
+  assert.ok(env0.els.app.innerHTML.includes('data-a="aicopy"'));
+  env0.run(`ph={st:''}`);
+});
 console.log(`\n${n} checks passed`);

@@ -166,9 +166,18 @@ p_step:['On days with 8,000+ steps your mood averaged {a}, versus {b} otherwise.
 avgS:['Average sleep','平均睡眠'],avgM:['Average mood','平均心情'],h:['h','小时'],nextL:['Next','下一项'],
 s_sleep:['You slept {a} h a night on average. Muscle growth and focus both need 7 to 9 hours.','平均每晚睡 {a} 小时。增肌和专注都需要 7 到 9 小时。'],
 s_vol:['Few sets this week for {p}. About 10 sets per muscle a week works well for growth.','本周 {p} 的训练组数偏少。每个肌群每周约10组更利于增长。'],
+aiCopy:['Use an AI app (free)','用 AI App 识别（免费）'],aiT:['Free photo logging with an AI app','用 AI App 免费拍照识别'],
+ai1:['Open 豆包, Claude or ChatGPT. Take or choose the photo there.','打开豆包、Claude 或 ChatGPT，在里面拍照或选择照片。'],
+ai2:['Paste the copied prompt with the photo and send it.','粘贴已复制的指令，和照片一起发送。'],
+ai3:['Copy the whole reply, come back, and tap Paste reply (or paste it into the search box).','复制整段回复，回到这里点“粘贴结果”（或粘贴到搜索框）。'],
+aiCopied:['Prompt copied ✓','指令已复制 ✓'],aiManual:['Copying was blocked. Select and copy the prompt below.','无法自动复制，请手动选中并复制下面的指令。'],
+aiPaste:['Paste reply','粘贴结果'],aiPasteHint:['Nothing to paste. Copy the AI reply first, or paste it into the search box.','剪贴板是空的。请先复制 AI 的回复，或直接粘贴到搜索框。'],
+aiBad:['No foods found in that text. Each line should look like: Chicken rice | 380 | 607 | 25 | 23 | 75','没有在文字里找到食物。每行应类似：鸡饭 | 380 | 607 | 25 | 23 | 75'],
+aiNote:['From your AI app. Check the grams before adding.','来自 AI App 的结果，添加前请核对克数。'],aiAlt:['Free alternative:','免费替代办法：'],
+aiPrompt:['List every food and drink in this photo and estimate the amount I am eating, using typical Singapore portions. Write one line per item in exactly this format: name | grams | kcal | protein g | fat g | carbs g. Numbers only, no units, no header, no other text. Example: Chicken rice | 380 | 607 | 25 | 23 | 75','请识别这张照片里的每一种食物和饮料，按新加坡常见分量估算我实际吃的量。每种一行，严格按这个格式：名称 | 克数 | 热量千卡 | 蛋白质克 | 脂肪克 | 碳水克。只写数字，不写单位，不要表头，不要其他文字。例如：鸡饭 | 380 | 607 | 25 | 23 | 75'],
 photo:['Log food from a photo','拍照识别食物'],phWait:['Reading your photo… about 10 to 20 seconds','正在识别照片…约10到20秒'],phNote:['Estimated from the photo. Check the grams before adding.','根据照片估算，添加前请核对克数。'],phSignIn:['Sign in to use photo logging.','登录后才能使用拍照识别。'],phOff:['Photo logging is not set up yet: the server has no API key.','拍照识别尚未配置：服务器缺少 API 密钥。'],phErr:['Could not read the photo. Try again, or type the meal.','无法识别这张照片，请重试或直接输入。'],phNone:['No food found in the photo.','照片中没有识别到食物。'],phOffline:['Photo logging needs an internet connection.','拍照识别需要联网。'],cancel:['Cancel','取消'],
 newT:['New in this version','本次更新'],newOk:['Got it','知道了'],verL:['Version','版本'],
-new0:['New: tap the camera button on the Food tab to log a meal from a photo. Check the grams, then tap Add.','新功能：在“饮食”页点相机按钮，拍照即可记录一餐。核对克数后点“添加”。'],
+new0:['New: log a meal from a photo. Tap the camera button on the Food tab, or use “Use an AI app (free)” with 豆包, Claude or ChatGPT and paste the reply. Check the grams, then tap Add.','新功能：拍照记录一餐。在“饮食”页点相机按钮；或点“用 AI App 识别（免费）”，用豆包、Claude 或 ChatGPT 识别后粘贴结果。核对克数后点“添加”。'],
 new1:['Food: type a whole meal, like “2 eggs, chicken rice, kopi”, then press Enter. About 50 Singapore and Chinese dishes added.','饮食：直接输入一餐，例如“两个鸡蛋，鸡饭，咖啡”，按回车即可。新增约50种新加坡和中式菜品。'],
 new2:['Today: a quick check-in for mood, energy, sleep, water and steps. Your plan highlights what is next.','今天：快速记录心情、精力、睡眠、饮水和步数。计划会高亮下一项。'],
 new3:['Activity: a workout log with sets, reps and kg. It shows what you lifted last time and marks new records.','活动：训练记录（组数、次数、重量），显示上次成绩并标出新纪录。'],
@@ -418,7 +427,7 @@ function vFood(d){
   let h='<div class="c"><div class="row" style="margin:0;flex-wrap:nowrap"><input id="fs" class="big" placeholder="'+t('search')+'" autocomplete="off" style="flex:1;min-width:0"><button class="on" data-a="photo" aria-label="'+t('photo')+'" style="min-height:50px;min-width:50px;padding:0 12px;border-radius:14px"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" style="fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round"><path d="M4 8h3l2-2.5h6L17 8h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13" r="3.5"/></svg></button></div><input type="file" id="phf" accept="image/*" hidden>'+phBox()+'<div id="fr" style="margin-top:8px"></div><div id="fp"></div></div>';
   const ml=mealsTop();
   if(ml.length)h+='<div class="c"><h2>'+t('mealsT')+'</h2><div class="shelf">'+ml.map(m=>'<button data-a="meal" data-k="'+esc(m.key)+'">'+esc(m.it.map(nm).join(', '))+'<br><small>'+m.it.reduce((a,e)=>a+e.k,0)+' '+t('kc')+'</small></button>').join('')+'</div></div>';
-  h+='<div class="c"><h2>'+t('shelfT')+'</h2><div class="shelf">'+shl.map((e,i)=>'<button data-a="shelf" data-i="'+i+'">'+esc(nm(e))+(e.g?' · '+e.g+'g':'')+'<br><small>'+Math.round(e.k)+' '+t('kc')+'</small></button>').join('')+'</div><div class="row"><button data-a="ycopy">'+t('copyY')+'</button></div><div class="row"><input class="s" id="qk" type="number" inputmode="numeric" placeholder="'+t('kc')+'"><button data-a="kadd">'+t('qk')+'</button></div>';
+  h+='<div class="c"><h2>'+t('shelfT')+'</h2><div class="shelf">'+shl.map((e,i)=>'<button data-a="shelf" data-i="'+i+'">'+esc(nm(e))+(e.g?' · '+e.g+'g':'')+'<br><small>'+Math.round(e.k)+' '+t('kc')+'</small></button>').join('')+'</div><div class="row"><button data-a="ycopy">'+t('copyY')+'</button><button data-a="aicopy">'+t('aiCopy')+'</button></div><div class="row"><input class="s" id="qk" type="number" inputmode="numeric" placeholder="'+t('kc')+'"><button data-a="kadd">'+t('qk')+'</button></div>';
   h+='<details><summary>'+t('other')+'</summary><div class="row"><input class="g" id="cn" placeholder="'+t('nameP')+'"><input class="s" id="ck" type="number" inputmode="numeric" placeholder="'+t('kc')+'"><input class="s" id="cp" type="number" inputmode="numeric" placeholder="'+t('gprot')+'"><input class="s" id="cf" type="number" inputmode="numeric" placeholder="'+t('gfat')+'"><input class="s" id="cc" type="number" inputmode="numeric" placeholder="'+t('gcarb')+'"><button data-a="cadd">'+t('add')+'</button></div></details></div>';
   h+='<div class="c"><h2>'+t('eatenT')+' · '+Math.round(sum(d,'k'))+' '+t('kc')+'</h2>'+(d.food.length?d.food.map((e,i)=>'<div class="li"><span>'+esc(nm(e))+(e.g?' · '+e.g+'g':'')+'</span><span>'+Math.round(e.k)+' '+t('kc')+', '+(e.p||0)+'g <button class="sm" data-a="del" data-i="'+i+'" aria-label="Remove">×</button></span></div>').join(''):'<div class="mut">'+t('none')+'</div>')+'</div>';
   return h;
@@ -727,12 +736,39 @@ async function sendPhoto(file){
   }catch(e){ph={st:'err',msg:t('phErr')}}
   render();
 }
+/* Free route: the user asks any AI app (豆包, Claude, ChatGPT) with aiPrompt and pastes the reply.
+   Rows look like "名称 | 克数 | 热量 | 蛋白质 | 脂肪 | 碳水"; pasting into a one-line input joins the rows,
+   so rows are found by pattern rather than by line. */
+const NUMF='\\s*(\\d+(?:\\.\\d+)?)\\s*(?:g|ml|kcal|克|毫升|千卡|大卡)?\\s*';
+const PIPE=new RegExp('([^|｜\\n]*?)\\s*[|｜]'+NUMF+'[|｜]'+NUMF+'[|｜]'+NUMF+'[|｜]'+NUMF+'[|｜]'+NUMF,'g');
+function parsePipe(txt){
+  const out=[];let m;PIPE.lastIndex=0;
+  while((m=PIPE.exec(String(txt||'')))){
+    const n=m[1].replace(/^\s*(?:碳水(?:化合物)?\s*(?:[（(]?\s*(?:克|g)\s*[)）]?)?|carb(?:ohydrate)?s?\s*(?:[(]?\s*g\s*[)]?)?)\s+/i,'').replace(/^[\s\-*•·、,，;；]+|^\d+[.、)）]\s*/g,'').trim(),v=m.slice(2,7).map(Number);
+    if(!n||!(v[0]>0))continue;
+    const o={g:Math.round(v[0]),k:Math.round(v[1]),p:v[2],f:v[3],c:v[4]};
+    out.push({b:n,z:isZh(n)?n:'',g:o.g,k:o.k,p:o.p,f:o.f,c:o.c,o:o});
+  }
+  return out.slice(0,12);
+}
+function aiLoad(txt){const it=parsePipe(txt);if(!it.length)return false;ph={st:'done',img:'',note:t('aiNote'),it:it};return true}
+async function aiCopy(){
+  let ok=false;try{await navigator.clipboard.writeText(t('aiPrompt'));ok=true}catch(e){}
+  ph={st:'ai',msg:ok?t('aiCopied'):t('aiManual'),show:!ok};render();
+}
+async function aiPaste(){
+  let txt='';try{txt=await navigator.clipboard.readText()}catch(e){}
+  if(!aiLoad(txt))ph={st:'ai',msg:txt?t('aiBad'):t('aiPasteHint'),show:ph.show};
+  render();
+}
 function phScale(x,g){const o=x.o,r=o.g>0?g/o.g:0,q=v=>Math.round(v*r*10)/10;x.g=g;x.k=Math.round(o.k*r);x.p=q(o.p);x.f=q(o.f);x.c=q(o.c)}
 function phBox(){
   if(!ph.st)return '';
   const th=ph.img?'<img src="'+ph.img+'" alt="" style="width:64px;height:64px;object-fit:cover;border-radius:14px;flex:0 0 auto">':'';
   if(ph.st==='wait')return '<div class="row hl" style="padding:10px;border-radius:14px;flex-wrap:nowrap">'+th+'<span>'+t('phWait')+'</span></div>';
-  if(ph.st==='err')return '<div class="row hl" style="padding:10px;border-radius:14px;flex-wrap:nowrap">'+th+'<span style="flex:1">'+esc(ph.msg)+'</span><button class="sm" data-a="phx" aria-label="Close">×</button></div>';
+  if(ph.st==='err')return '<div class="hl" style="padding:10px;border-radius:14px;margin-top:10px"><div class="row" style="margin:0;flex-wrap:nowrap">'+th+'<span style="flex:1">'+esc(ph.msg)+'</span><button class="sm" data-a="phx" aria-label="Close">×</button></div><div class="row"><small style="flex:1">'+t('aiAlt')+'</small><button class="sm on" data-a="aicopy">'+t('aiCopy')+'</button></div></div>';
+  if(ph.st==='ai')return '<div class="hl" style="padding:12px;border-radius:14px;margin-top:10px"><div class="row" style="margin:0"><b style="flex:1">'+t('aiT')+'</b><button class="sm" data-a="phx" aria-label="Close">×</button></div><ol style="margin:6px 0;padding-left:20px;font-size:14px"><li>'+t('ai1')+'</li><li>'+t('ai2')+'</li><li>'+t('ai3')+'</li></ol>'
+   +(ph.msg?'<small style="display:block;margin-bottom:6px">'+esc(ph.msg)+'</small>':'')+(ph.show?'<textarea rows="4" readonly style="font-size:13px">'+esc(t('aiPrompt'))+'</textarea>':'')+'<div class="row"><button class="on sm" data-a="aipaste">'+t('aiPaste')+'</button><button class="sm" data-a="aicopy">'+t('aiCopy')+'</button></div></div>';
   const tk=ph.it.reduce((a,x)=>a+x.k,0);
   return '<div class="hl" style="padding:12px;border-radius:14px;margin-top:10px"><div class="row" style="margin-top:0;flex-wrap:nowrap">'+th+'<small style="flex:1">'+esc(ph.note||t('phNote'))+'</small></div>'
    +ph.it.map((x,i)=>'<div class="li"><span style="flex:1;min-width:0">'+esc(nm(x))+'<br><small>'+x.k+' '+t('kc')+' · '+x.p+'g '+t('pro')+'</small></span><input class="s" data-pg="'+i+'" type="number" min="1" inputmode="numeric" value="'+x.g+'" style="width:76px" aria-label="grams"><span>g</span><button class="sm" data-a="phdel" data-i="'+i+'" aria-label="Remove">×</button></div>').join('')
@@ -804,6 +840,8 @@ document.addEventListener('click',e=>{
   else if(a==='ladd'){if(!addLine(d))return;sel=null;focusFs=true}
   else if(a==='photo'){const f=$('#phf');if(f){f.value='';f.click()}return}
   else if(a==='phx'){ph={st:''};render();return}
+  else if(a==='aicopy'){aiCopy();return}
+  else if(a==='aipaste'){aiPaste();return}
   else if(a==='phdel'){if(ph.it){ph.it.splice(+b.dataset.i,1);if(!ph.it.length)ph={st:''}}render();return}
   else if(a==='phadd'){if(!ph.it||!ph.it.length)return;const it=ph.it.map(x=>({b:x.b,z:x.z,g:x.g,k:x.k,p:x.p,f:x.f,c:x.c}));it.forEach(e=>d.food.push(Object.assign({},e)));remember(it);ph={st:''}}
   else if(a==='meal'){const m=S.meals.find(x=>x.key===b.dataset.k);if(!m)return;m.it.forEach(e=>d.food.push(Object.assign({},e)));m.n++;m.t=Date.now();touchCfg()}
@@ -852,7 +890,7 @@ document.addEventListener('input',e=>{
   else if(id==='wt')d.wt=e.target.value;
   else if(id==='sl')d.sl=e.target.value;
   else if(id==='stp')d.stp=e.target.value;
-  else if(id==='fs'){showRes();return}
+  else if(id==='fs'){if(/[|｜]/.test(e.target.value)&&aiLoad(e.target.value)){render();return}showRes();return}
   else if(id==='fg'){updPrev();return}
   else if(id.indexOf('t_')===0){const v=parseFloat(e.target.value);if(!(v>0))return;S.t[id.slice(2)]=v;touchCfg()}
   else return;
