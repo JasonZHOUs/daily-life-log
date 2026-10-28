@@ -74,8 +74,23 @@ await ok('Gemini errors map to friendly codes', async () => {
   const d = (await analyzeGemini('k', 'B', 'en', f(403))).body;
   assert.equal(d.error, 'not_configured');
   assert.equal(d.detail, 'Gemini 403 PERMISSION_DENIED: Key [key] is blocked');
-  assert.equal((await analyzeGemini('k', 'B', 'en', f(429))).status, 429);
-  assert.equal((await analyzeGemini('k', 'B', 'en', f(500))).status, 502);
+  assert.equal((await analyzeGemini('k', 'B', 'en', f(429))).body.error, 'busy');
+  assert.equal((await analyzeGemini('k', 'B', 'en', f(502))).status, 502);
   console.error = orig;
+});
+await ok('a busy model falls through to the next one', async () => {
+  const reply = JSON.stringify({ items: [{ name_en: 'Egg', name_zh: '鸡蛋', grams: 50, kcal: 72, protein_g: 6, fat_g: 5, carbs_g: 0 }], note: '' });
+  const tried = [];
+  const f = async (url, opt) => {
+    const m = JSON.parse(opt.body).model; tried.push(m);
+    if (m === 'gemini-3.8-flash') return { ok: false, status: 503, text: async () => JSON.stringify([{ error: { status: 'UNAVAILABLE', message: 'high demand' } }]) };
+    return { ok: true, json: async () => ({ output_text: reply }) };
+  };
+  const orig = console.error; console.error = () => {};
+  const out = await analyzeGemini('k', 'B', 'en', f);
+  console.error = orig;
+  assert.equal(out.status, 200); assert.equal(out.body.items[0].name_en, 'Egg');
+  assert.deepEqual(tried, ['gemini-3.8-flash', 'gemini-3.6-flash']);
+  assert.ok(!('retry' in out));
 });
 console.log(`\n${n} api checks passed`);

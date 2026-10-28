@@ -87,7 +87,21 @@ export function geminiText(j) {
   return found.length ? found[found.length - 1] : "";
 }
 
-export async function analyzeGemini(key, image, lang, fetchFn = fetch, model = process.env.GEMINI_MODEL || "gemini-3.8-flash") {
+// Free-tier models get overloaded or hit per-model quotas; try the next model when that happens.
+export const GEMINI_MODELS = () =>
+  [...new Set([process.env.GEMINI_MODEL, "gemini-3.8-flash", "gemini-3.6-flash", "gemini-2.5-flash"].filter(Boolean))];
+
+export async function analyzeGemini(key, image, lang, fetchFn = fetch, models = GEMINI_MODELS()) {
+  let out;
+  for (const model of [].concat(models)) {
+    out = await geminiOnce(key, image, lang, fetchFn, model);
+    if (!out.retry) break;
+  }
+  delete out.retry;
+  return out;
+}
+
+async function geminiOnce(key, image, lang, fetchFn, model) {
   const r = await fetchFn("https://generativelanguage.googleapis.com/v1beta/interactions", {
     method: "POST",
     headers: { "x-goog-api-key": key, "Content-Type": "application/json" },
@@ -110,7 +124,8 @@ export async function analyzeGemini(key, image, lang, fetchFn = fetch, model = p
     detail = `Gemini ${r.status}${detail ? " " + detail.replace(/AIza[\w-]+/g, "[key]").slice(0, 240) : ""}`;
     const keyProblem = r.status === 401 || r.status === 403 || /API_KEY|api key/i.test(detail);
     if (keyProblem) return { status: 503, body: { error: "not_configured", detail } };
-    if (r.status === 429) return { status: 429, body: { error: "busy", detail } };
+    // overloaded (503/500), quota (429) or model unavailable to this key (404): try the next model
+    if ([429, 500, 503, 504, 404].includes(r.status)) return { status: 429, body: { error: "busy", detail }, retry: true };
     if (r.status === 400) return { status: 400, body: { error: "image", detail } };
     return { status: 502, body: { error: "upstream", detail } };
   }
@@ -164,6 +179,9 @@ export async function checkUser(authHeader, fetchFn = fetch) {
   if (allowed.length && !allowed.includes(String(u.email || "").toLowerCase())) return null;
   return u;
 }
+
+// Up to three model attempts can take a while; allow time for them.
+export const maxDuration = 60;
 
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).json({ error: "method" });
