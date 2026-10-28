@@ -2,9 +2,12 @@
 // Header: Authorization: Bearer <Supabase access token>
 // Returns { items: [{ name_en, name_zh, grams, kcal, protein_g, fat_g, carbs_g }], note }
 //
-// Environment (Vercel → Project → Settings → Environment Variables):
-//   ANTHROPIC_API_KEY  required
-//   ALLOWED_EMAILS     optional, comma-separated; when set, only these accounts may use it
+// Environment (Vercel → Project → Settings → Environment Variables), one of:
+//   GEMINI_API_KEY     Google Gemini (has a free tier). Used first when present.
+//   ANTHROPIC_API_KEY  Claude. A Gemini key (starts with "AIza") placed here is treated as Gemini.
+// Optional:
+//   GEMINI_MODEL       defaults to gemini-3.8-flash
+//   ALLOWED_EMAILS     comma-separated; when set, only these accounts may use it
 import Anthropic from "@anthropic-ai/sdk";
 
 // Public values (same as config.js); used only to check the caller's login.
@@ -67,9 +70,59 @@ export async function analyze(client, image, lang) {
   if (response.stop_reason === "refusal") return { status: 422, body: { error: "refused" } };
   if (response.stop_reason === "max_tokens") return { status: 502, body: { error: "too_long" } };
   const text = response.content.find((b) => b.type === "text");
+  return clean(text ? text.text : "");
+}
+
+// Gemini Interactions API (REST). The response shape is read defensively: the SDKs expose
+// output_text, and the raw resource carries the model output inside its steps/outputs.
+export function geminiText(j) {
+  if (j && typeof j.output_text === "string") return j.output_text;
+  const found = [];
+  const walk = (v) => {
+    if (typeof v === "string") { if (/^\s*\{[\s\S]*"items"/.test(v)) found.push(v); }
+    else if (Array.isArray(v)) v.forEach(walk);
+    else if (v && typeof v === "object") Object.values(v).forEach(walk);
+  };
+  walk(j);
+  return found.length ? found[found.length - 1] : "";
+}
+
+export async function analyzeGemini(key, image, lang, fetchFn = fetch, model = process.env.GEMINI_MODEL || "gemini-3.8-flash") {
+  const r = await fetchFn("https://generativelanguage.googleapis.com/v1beta/interactions", {
+    method: "POST",
+    headers: { "x-goog-api-key": key, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model,
+      store: false,
+      input: [
+        { type: "text", text: PROMPT.replace("{LANG}", lang === "zh" ? "Chinese" : "English") },
+        { type: "image", data: image, mime_type: "image/jpeg" },
+      ],
+      response_format: { type: "text", mime_type: "application/json", schema: SCHEMA },
+    }),
+  });
+  if (!r.ok) {
+    console.error("gemini", r.status, (await r.text().catch(() => "")).slice(0, 300));
+    if (r.status === 401 || r.status === 403) return { status: 503, body: { error: "not_configured" } };
+    if (r.status === 429) return { status: 429, body: { error: "busy" } };
+    if (r.status === 400) return { status: 400, body: { error: "image" } };
+    return { status: 502, body: { error: "upstream" } };
+  }
+  return clean(geminiText(await r.json()));
+}
+
+export function pickProvider(env = process.env) {
+  const a = (env.ANTHROPIC_API_KEY || "").trim(), g = (env.GEMINI_API_KEY || "").trim();
+  if (g) return { kind: "gemini", key: g };
+  if (a.startsWith("AIza")) return { kind: "gemini", key: a };
+  if (a) return { kind: "claude" };
+  return null;
+}
+
+function clean(raw) {
   let parsed;
   try {
-    parsed = JSON.parse(text ? text.text : "");
+    parsed = JSON.parse(String(raw || "").replace(/^\s*```(?:json)?|```\s*$/g, ""));
   } catch {
     return { status: 502, body: { error: "bad_output" } };
   }
@@ -107,7 +160,8 @@ export async function checkUser(authHeader, fetchFn = fetch) {
 
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).json({ error: "method" });
-  if (!process.env.ANTHROPIC_API_KEY) return res.status(503).json({ error: "not_configured" });
+  const provider = pickProvider();
+  if (!provider) return res.status(503).json({ error: "not_configured" });
   const user = await checkUser(req.headers.authorization).catch(() => null);
   if (!user) return res.status(401).json({ error: "sign_in" });
   const { image, lang } = req.body || {};
@@ -115,7 +169,9 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: "image" });
   }
   try {
-    const out = await analyze(new Anthropic(), image, lang);
+    const out = provider.kind === "gemini"
+      ? await analyzeGemini(provider.key, image, lang)
+      : await analyze(new Anthropic(), image, lang);
     return res.status(out.status).json(out.body);
   } catch (error) {
     if (error instanceof Anthropic.RateLimitError) return res.status(429).json({ error: "busy" });

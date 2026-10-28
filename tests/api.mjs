@@ -1,7 +1,7 @@
 // Checks api/food-photo.js without calling the real Claude API or Supabase.
 // Usage: node tests/api.mjs
 import assert from 'node:assert/strict';
-import handler, { analyze, checkUser } from '../api/food-photo.js';
+import handler, { analyze, analyzeGemini, checkUser, geminiText, pickProvider } from '../api/food-photo.js';
 
 let n = 0;
 const ok = async (name, fn) => { await fn(); n++; console.log('ok -', name); };
@@ -46,5 +46,33 @@ await ok('handler rejects bad requests before calling Claude', async () => {
   r = resMock(); await handler({ method: 'POST', headers: {}, body: {} }, r); assert.equal(r.code, 503);
   process.env.ANTHROPIC_API_KEY = 'test';
   r = resMock(); await handler({ method: 'POST', headers: {}, body: { image: 'AAAA' } }, r); assert.equal(r.code, 401);
+});
+await ok('provider choice: Gemini key wins, AIza key in ANTHROPIC_API_KEY counts as Gemini', async () => {
+  assert.equal(pickProvider({}), null);
+  assert.deepEqual(pickProvider({ ANTHROPIC_API_KEY: ' AIzaXYZ ' }), { kind: 'gemini', key: 'AIzaXYZ' });
+  assert.deepEqual(pickProvider({ ANTHROPIC_API_KEY: 'sk-ant-1' }), { kind: 'claude' });
+  assert.deepEqual(pickProvider({ ANTHROPIC_API_KEY: 'sk-ant-1', GEMINI_API_KEY: 'AIzaG' }), { kind: 'gemini', key: 'AIzaG' });
+});
+await ok('Gemini request shape and response parsing', async () => {
+  const reply = JSON.stringify({ items: [{ name_en: 'Laksa', name_zh: '叻沙', grams: 500, kcal: 589, protein_g: 22, fat_g: 32, carbs_g: 52 }], note: 'ok' });
+  let sent;
+  const f = async (url, opt) => { sent = { url, opt, body: JSON.parse(opt.body) }; return { ok: true, json: async () => ({ id: 'i1', status: 'completed', steps: [{ type: 'thought' }, { type: 'model_output', content: [{ type: 'text', text: reply }] }] }) }; };
+  const out = await analyzeGemini('AIzaK', 'BBBB', 'zh', f, 'gemini-3.8-flash');
+  assert.equal(out.status, 200); assert.equal(out.body.items[0].name_zh, '叻沙');
+  assert.equal(sent.url, 'https://generativelanguage.googleapis.com/v1beta/interactions');
+  assert.equal(sent.opt.headers['x-goog-api-key'], 'AIzaK');
+  assert.equal(sent.body.store, false);
+  assert.deepEqual(sent.body.input[1], { type: 'image', data: 'BBBB', mime_type: 'image/jpeg' });
+  assert.equal(sent.body.response_format.mime_type, 'application/json');
+  assert.equal(geminiText({ output_text: reply }), reply);
+  assert.equal(geminiText({ outputs: [{ type: 'text', text: reply }] }), reply);
+});
+await ok('Gemini errors map to friendly codes', async () => {
+  const f = (status) => async () => ({ ok: false, status, text: async () => 'x' });
+  const orig = console.error; console.error = () => {};
+  assert.equal((await analyzeGemini('k', 'B', 'en', f(403))).body.error, 'not_configured');
+  assert.equal((await analyzeGemini('k', 'B', 'en', f(429))).status, 429);
+  assert.equal((await analyzeGemini('k', 'B', 'en', f(500))).status, 502);
+  console.error = orig;
 });
 console.log(`\n${n} api checks passed`);
