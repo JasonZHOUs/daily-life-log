@@ -118,7 +118,7 @@ details[open] summary{margin-bottom:10px}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js" crossorigin="anonymous"></script>
 <script src="config.js"></script>
 <script>
-const KEY='dl1',KCAL=2800,PROT=120,VER='2026-10-28';
+const KEY='dl1',KCAL=2800,PROT=120,VER='2026-10-28b';
 let S={days:{},foods:[],dbx:[],t:{},gm:{},meals:[],tpl:null,lang:''};
 try{const r=localStorage.getItem(KEY);if(r){const o=JSON.parse(r);if(o&&o.days)S=Object.assign(S,o)}}catch(e){}
 S.foods=S.foods||[];S.dbx=S.dbx||[];S.t=S.t||{};S.gm=S.gm||{};S.meals=S.meals||[];S.tpl=S.tpl||null;
@@ -177,6 +177,9 @@ aiNote:['From your AI app. Check the grams before adding.','来自 AI App 的结
 aiPrompt:['List every food and drink in this photo and estimate the amount I am eating, using typical Singapore portions. Write one line per item in exactly this format: name | grams | kcal | protein g | fat g | carbs g. Numbers only, no units, no header, no other text. Example: Chicken rice | 380 | 607 | 25 | 23 | 75','请识别这张照片里的每一种食物和饮料，按新加坡常见分量估算我实际吃的量。每种一行，严格按这个格式：名称 | 克数 | 热量千卡 | 蛋白质克 | 脂肪克 | 碳水克。只写数字，不写单位，不要表头，不要其他文字。例如：鸡饭 | 380 | 607 | 25 | 23 | 75'],
 phRej:['The AI service refused the request. Details:','AI 服务拒绝了请求。详情：'],phBusy:['The free AI models are busy right now. Try again in a minute.','免费 AI 模型现在太忙，请过一分钟再试。'],phAgain:['Try again','重试'],
 photo:['Log food from a photo','拍照识别食物'],phWait:['Reading your photo… about 10 to 20 seconds','正在识别照片…约10到20秒'],phNote:['Estimated from the photo. Check the grams before adding.','根据照片估算，添加前请核对克数。'],phSignIn:['Sign in to use photo logging.','登录后才能使用拍照识别。'],phOff:['Photo logging is not set up yet: the server has no API key.','拍照识别尚未配置：服务器缺少 API 密钥。'],phErr:['Could not read the photo. Try again, or type the meal.','无法识别这张照片，请重试或直接输入。'],phNone:['No food found in the photo.','照片中没有识别到食物。'],phOffline:['Photo logging needs an internet connection.','拍照识别需要联网。'],cancel:['Cancel','取消'],
+spT:['Supplements','补剂'],spAm:['Morning','早上'],spPm:['Evening','晚上'],spOpt:['As you like','看心情'],spAll:['All taken','全部吃了'],planTab:['Plan','计划'],spDays:['Supplements complete','补剂吃齐'],
+s_sup:['All supplements taken on {n} of {m} logged days. Keeping them next to your toothbrush helps.','有记录的 {m} 天中只有 {n} 天吃齐了补剂。把补剂放在牙刷旁边更容易记住。'],
+newS:['Food is now the first page and Plan the second. Supplements have their own card on the Food page: morning, evening and as you like.','“饮食”改为第一页，“计划”为第二页。补剂单独成一栏，在“饮食”页：早上、晚上和看心情。'],
 newT:['New in this version','本次更新'],newOk:['Got it','知道了'],verL:['Version','版本'],
 new0:['New: log a meal from a photo. Tap the camera button on the Food tab, or use “Use an AI app (free)” with 豆包, Claude or ChatGPT and paste the reply. Check the grams, then tap Add.','新功能：拍照记录一餐。在“饮食”页点相机按钮；或点“用 AI App 识别（免费）”，用豆包、Claude 或 ChatGPT 识别后粘贴结果。核对克数后点“添加”。'],
 new1:['Food: type a whole meal, like “2 eggs, chicken rice, kopi”, then press Enter. About 50 Singapore and Chinese dishes added.','饮食：直接输入一餐，例如“两个鸡蛋，鸡饭，咖啡”，按回车即可。新增约50种新加坡和中式菜品。'],
@@ -193,8 +196,8 @@ const pad=n=>String(n).padStart(2,'0');
 const ymd=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const shift=(k,n)=>{const d=new Date(k+'T00:00:00');d.setDate(d.getDate()+n);return ymd(d)};
-const norm=d=>{d.food=d.food||[];d.gym=d.gym||[];d.min=Object.assign({study:0,lab:0,ai:0,career:0},d.min);d.win=d.win||'';d.next=d.next||'';d.wt=d.wt||'';d.ex=d.ex||[];d.wk=d.wk||[];return d};
-let cur=ymd(new Date()),tab='today',tm=null,note='',sel=null,fq=[],shl=[],focusFs=false;
+const norm=d=>{d.food=d.food||[];d.gym=d.gym||[];d.min=Object.assign({study:0,lab:0,ai:0,career:0},d.min);d.win=d.win||'';d.next=d.next||'';d.wt=d.wt||'';d.ex=d.ex||[];d.wk=d.wk||[];d.sp=d.sp||{};return d};
+let cur=ymd(new Date()),tab='food',tm=null,note='',sel=null,fq=[],shl=[],focusFs=false;
 const day=k=>norm(S.days[k||cur]||(S.days[k||cur]={}));
 const sum=(d,x)=>d.food.reduce((a,f)=>a+(f[x]||0),0);
 const tot=d=>Object.values(d.min).reduce((a,b)=>a+b,0);
@@ -399,20 +402,40 @@ function checkin(d){
    +'<div class="row"><span style="flex:1">'+t('waterL')+'</span><button class="sm" data-a="h2o" data-v="-1" aria-label="-1">−</button><b style="min-width:52px;text-align:center">'+(d.h2o||0)+' / 8</b><button class="sm" data-a="h2o" data-v="1" aria-label="+1">+</button></div>'
    +'<div class="row"><label for="stp" style="flex:1">'+t('stepsL')+'</label><input class="s" id="stp" type="number" min="0" inputmode="numeric" value="'+esc(d.stp||'')+'" style="width:110px"></div></div>';
 }
-function vToday(d,k,p,f,c){
+/* ---------- supplements: [id, group, English, 中文, dose en, dose zh]; group am / pm / opt (as you like) ---------- */
+const SUPS=[['multi','am','Multivitamin & mineral','复合维生素矿物质片','1 tablet','1 粒'],['fo_am','am','Fish oil','鱼油','1 capsule','1 粒'],['crea','am','Creatine','肌酸','6 g','6 克'],
+['fo_pm','pm','Fish oil','鱼油','1 capsule','1 粒'],['mg','pm','Magnesium','镁片','1 tablet','1 粒'],
+['berry','opt','Berry powder','莓粉','',''],['goji','opt','Goji berry water','枸杞水','',''],['liver','opt','Liver support tea','护肝茶','','']];
+const SUPG=[['am','spAm'],['pm','spPm'],['opt','spOpt']];
+const supReq=SUPS.filter(s=>s[1]!=='opt');
+const supSync=d=>{d.supp=supReq.every(s=>d.sp[s[0]])};
+function supCard(d){
+  let h='<div class="c"><h2>'+t('spT')+'</h2>';
+  SUPG.forEach(g=>{
+    const it=SUPS.filter(s=>s[1]===g[0]),n=it.filter(s=>d.sp[s[0]]).length,req=g[0]!=='opt';
+    h+='<div class="row" style="margin:12px 0 6px"><b style="flex:1;font-size:14px">'+t(g[1])+(req?' <small>'+n+' / '+it.length+'</small>':'')+'</b>'+(req&&n<it.length?'<button class="sm" data-a="spall" data-g="'+g[0]+'">'+t('spAll')+'</button>':'')+'</div>'
+     +'<div class="row" style="margin-top:0;gap:6px">'+it.map(s=>{const on=!!d.sp[s[0]];return '<button class="sm'+(on?' on':'')+'" data-a="sp" data-id="'+s[0]+'" aria-pressed="'+on+'">'+(on?'✓ ':'')+(L()?s[3]:s[2])+(s[4]?' <small style="color:inherit;opacity:.75">'+(L()?s[5]:s[4])+'</small>':'')+'</button>'}).join('')+'</div>';
+  });
+  return h+'</div>';
+}
+function hero(k,p,f,c){
   const T0=T(),r=T0.k-k;
-  let h=S.seen!==VER?'<div class="c hl"><h2>'+t('newT')+'</h2><ul style="margin:0 0 8px;padding-left:20px">'+['new0','new1','new2','new3','new4','new5'].map(x=>'<li style="margin:4px 0">'+t(x)+'</li>').join('')+'</ul><button class="on sm" data-a="seen">'+t('newOk')+'</button></div>':'';
+  let h=S.seen!==VER?'<div class="c hl"><h2>'+t('newT')+'</h2><ul style="margin:0 0 8px;padding-left:20px">'+['newS','new0','new1','new2','new3','new4','new5'].map(x=>'<li style="margin:4px 0">'+t(x)+'</li>').join('')+'</ul><button class="on sm" data-a="seen">'+t('newOk')+'</button></div>':'';
   const C=2*Math.PI*52,pc=T0.k>0?Math.min(1,k/T0.k):0;
   const mac=(l,v,x,cl)=>'<div><div class="mh"><span>'+l+'</span><span><b>'+Math.round(v)+'</b> / '+x+'g</span></div><div class="m '+cl+'"><i style="width:'+Math.min(100,x>0?v/x*100:0)+'%"></i></div></div>';
   h+='<div class="c hero"><div class="ring"><svg viewBox="0 0 120 120" aria-hidden="true"><defs><linearGradient id="rg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" style="stop-color:var(--ac)"/><stop offset="1" style="stop-color:var(--ac2)"/></linearGradient></defs><circle class="trk" cx="60" cy="60" r="52"/><circle class="val'+(r<0?' over':'')+'" cx="60" cy="60" r="52" stroke="url(#rg)" stroke-dasharray="'+C.toFixed(1)+'" stroke-dashoffset="'+(C*(1-pc)).toFixed(1)+'"/></svg><div class="rc"><b>'+Math.round(Math.abs(r))+'</b><small>'+(r>=0?t('kleft'):t('over'))+'</small></div></div>'
    +'<div class="macros">'+mac(t('pro'),p,T0.p,'')+mac(t('fat'),f,T0.f,'f')+mac(t('carb'),c,T0.c,'cb')+'</div></div>';
+  return h;
+}
+function vToday(d){
+  let h='';
   const pv=S.days[shift(cur,-1)];
   if(pv&&pv.next&&pv.next.trim())h+='<div class="c hl"><h2>'+t('plannedL')+'</h2><div style="white-space:pre-wrap">'+esc(pv.next)+'</div></div>';
   const pd=plan(d,cur),pl=pd.map((x,i)=>({x:x,i:i})).sort((a,b)=>a.x.t<b.x.t?-1:a.x.t>b.x.t?1:0);
   const nw=new Date(),hm=pad(nw.getHours())+':'+pad(nw.getMinutes()),nx=cur===ymd(nw)?pl.find(o=>!o.x.x&&o.x.t>=hm):null;
   h+='<div class="c"><h2>'+t('plan')+'</h2>'+pl.map(o=>'<div class="row'+(o===nx?' hl" style="border-radius:8px;padding:0 6px':'')+'"><label class="ck" style="flex:1;margin:0">'+(o===nx?'<small style="color:var(--ac);font-weight:600">'+t('nextL')+'</small>':'')+'<input type="checkbox" data-a="pdone" data-i="'+o.i+'"'+(o.x.x?' checked':'')+'><span><b>'+esc(o.x.t)+'</b> '+esc(tx(o.x.n,o.x.z))+'</span></label><button class="sm" data-a="pdel" data-i="'+o.i+'" aria-label="Remove">×</button></div>').join('')+'<div class="row"><input id="pt" type="time" style="width:120px"><input class="g" id="pn" placeholder="'+t('addplan')+'"><button data-a="padd">'+t('add')+'</button></div></div>';
   h+=checkin(d);
-  h+='<div class="c"><label class="ck"><input type="checkbox" data-a="eng"'+(d.eng?' checked':'')+'> '+t('eng')+'</label><label class="ck"><input type="checkbox" data-a="supp"'+(d.supp?' checked':'')+'> '+t('supp')+'</label></div>';
+  h+='<div class="c"><label class="ck"><input type="checkbox" data-a="eng"'+(d.eng?' checked':'')+'> '+t('eng')+'</label></div>';
   h+='<div class="c"><h2>'+t('noteT')+'</h2><label for="win">'+t('winL')+'</label><textarea id="win" rows="2">'+esc(d.win)+'</textarea><label for="nx" style="display:block;margin-top:8px">'+t('nextL')+'</label><textarea id="nx" rows="3">'+esc(d.next)+'</textarea></div>';
   return h;
 }
@@ -423,9 +446,10 @@ function shelf(){
   const have=new Set(fr.map(e=>e.b||e.n));
   return fr.concat(PRE.concat(S.foods).filter(e=>!have.has(e.b||e.n))).slice(0,16);
 }
-function vFood(d){
+function vFood(d,k,p,f,c){
   shl=shelf();
-  let h='<div class="c"><div class="row" style="margin:0;flex-wrap:nowrap"><input id="fs" class="big" placeholder="'+t('search')+'" autocomplete="off" style="flex:1;min-width:0"><button class="on" data-a="photo" aria-label="'+t('photo')+'" style="min-height:50px;min-width:50px;padding:0 12px;border-radius:14px"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" style="fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round"><path d="M4 8h3l2-2.5h6L17 8h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13" r="3.5"/></svg></button></div><input type="file" id="phf" accept="image/*" hidden>'+phBox()+'<div id="fr" style="margin-top:8px"></div><div id="fp"></div></div>';
+  let h=hero(k,p,f,c)+'<div class="c"><div class="row" style="margin:0;flex-wrap:nowrap"><input id="fs" class="big" placeholder="'+t('search')+'" autocomplete="off" style="flex:1;min-width:0"><button class="on" data-a="photo" aria-label="'+t('photo')+'" style="min-height:50px;min-width:50px;padding:0 12px;border-radius:14px"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" style="fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round"><path d="M4 8h3l2-2.5h6L17 8h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13" r="3.5"/></svg></button></div><input type="file" id="phf" accept="image/*" hidden>'+phBox()+'<div id="fr" style="margin-top:8px"></div><div id="fp"></div></div>';
+  h+=supCard(d);
   const ml=mealsTop();
   if(ml.length)h+='<div class="c"><h2>'+t('mealsT')+'</h2><div class="shelf">'+ml.map(m=>'<button data-a="meal" data-k="'+esc(m.key)+'">'+esc(m.it.map(nm).join(', '))+'<br><small>'+m.it.reduce((a,e)=>a+e.k,0)+' '+t('kc')+'</small></button>').join('')+'</div></div>';
   h+='<div class="c"><h2>'+t('shelfT')+'</h2><div class="shelf">'+shl.map((e,i)=>'<button data-a="shelf" data-i="'+i+'">'+esc(nm(e))+(e.g?' · '+e.g+'g':'')+'<br><small>'+Math.round(e.k)+' '+t('kc')+'</small></button>').join('')+'</div><div class="row"><button data-a="ycopy">'+t('copyY')+'</button><button data-a="aicopy">'+t('aiCopy')+'</button></div><div class="row"><input class="s" id="qk" type="number" inputmode="numeric" placeholder="'+t('kc')+'"><button data-a="kadd">'+t('qk')+'</button></div>';
@@ -483,7 +507,7 @@ function week(){
 }
 function weekSummary(k){
   const T0=T(),mins={study:0,lab:0,ai:0,career:0},parts=new Set();
-  let fd=0,kc=0,pr=0,pd=0,gy=0,en=0,pt=0,px=0;const sls=[],mds=[],vol={},ts={n:0};
+  let fd=0,kc=0,pr=0,pd=0,gy=0,en=0,pt=0,px=0,spl=0,spc=0;const sls=[],mds=[],vol={},ts={n:0};
   for(let i=0;i<7;i++){
     const raw=S.days[shift(k,-i)];if(!raw)continue;const d=norm(raw);
     if(parseFloat(d.sl)>0)sls.push(parseFloat(d.sl));if(d.mood)mds.push(d.mood);
@@ -491,6 +515,7 @@ function weekSummary(k){
     if(d.food.length){fd++;kc+=sum(d,'k');const p=sum(d,'p');pr+=p;if(p>=T0.p)pd++}
     if(d.gym.length){gy++;d.gym.forEach(g=>parts.add(g))}
     if(d.eng)en++;
+    if(Object.keys(d.sp).length||d.supp){spl++;if(d.supp)spc++}
     for(const c in mins)mins[c]+=d.min[c]||0;
     if(d.plan){pt+=d.plan.length;px+=d.plan.filter(x=>x.x).length}
   }
@@ -506,14 +531,15 @@ function weekSummary(k){
   if(sls.length>=3&&as<7)sug.push(t('s_sleep',{a:as}));
   if(ts.n>=6){const low=['Legs','Chest','Back','Shoulders'].filter(p=>(vol[p]||0)<6);if(low.length)sug.push(t('s_vol',{p:GYM.filter(g=>low.indexOf(g[0])>=0).map(g=>g[L()]).join(L()?'、':', ')}))}
   if(gy<3)sug.push(t('s_gym',{n:gy}));else if(ts.n<6){const miss=GYM.filter(g=>!parts.has(g[0])&&g[0]!=='Abs');if(miss.length)sug.push(t('s_part',{p:miss.map(g=>g[L()]).join(L()?'、':', ')}))}
+  if(spl>=3&&spc<spl)sug.push(t('s_sup',{n:spc,m:spl}));
   if(en<5)sug.push(t('s_eng',{n:en}));
   if(!mins.ai)sug.push(t('s_ai'));
   if(pt>=7&&px/pt<.5)sug.push(t('s_plan',{r:Math.round(px/pt*100)}));
-  return {ak:ak,ap:ap,pd:pd,fd:fd,gy:gy,en:en,mins:mins,pt:pt,px:px,wc:wc,as:as,am:am,vol:vol,sug:sug.length?sug.slice(0,3):[t('s_ok')]};
+  return {ak:ak,ap:ap,pd:pd,fd:fd,gy:gy,en:en,mins:mins,pt:pt,px:px,spl:spl,spc:spc,wc:wc,as:as,am:am,vol:vol,sug:sug.length?sug.slice(0,3):[t('s_ok')]};
 }
 function sumCard(){
   const s=weekSummary(cur),T0=T(),row=(l,v)=>'<div class="li"><span>'+l+'</span><b>'+v+'</b></div>';
-  return '<div class="c"><h2>'+t('sumT')+'</h2>'+row(t('avgK'),s.fd?s.ak+' / '+T0.k+' '+t('kc'):'–')+row(t('avgP'),s.fd?s.ap+' / '+T0.p+' g':'–')+row(t('protDays'),s.pd+' / '+s.fd+' '+t('dys'))+row(t('planDone'),s.pt?Math.round(s.px/s.pt*100)+'%':'–')+(s.wc!=null?row(t('wtCh'),(s.wc>0?'+':'')+s.wc.toFixed(1)+' kg'):'')+(s.as?row(t('avgS'),s.as+' '+t('h')):'')+(s.am?row(t('avgM'),MOOD[Math.round(s.am)-1]+' '+s.am+' / 5'):'')
+  return '<div class="c"><h2>'+t('sumT')+'</h2>'+row(t('avgK'),s.fd?s.ak+' / '+T0.k+' '+t('kc'):'–')+row(t('avgP'),s.fd?s.ap+' / '+T0.p+' g':'–')+row(t('protDays'),s.pd+' / '+s.fd+' '+t('dys'))+row(t('planDone'),s.pt?Math.round(s.px/s.pt*100)+'%':'–')+(s.spl?row(t('spDays'),s.spc+' / '+s.spl+' '+t('dys')):'')+(s.wc!=null?row(t('wtCh'),(s.wc>0?'+':'')+s.wc.toFixed(1)+' kg'):'')+(s.as?row(t('avgS'),s.as+' '+t('h')):'')+(s.am?row(t('avgM'),MOOD[Math.round(s.am)-1]+' '+s.am+' / 5'):'')
    +(Object.keys(s.vol).length?row(t('wkT'),GYM.filter(g=>s.vol[g[0]]).map(g=>g[L()]+' '+s.vol[g[0]]).join(' · ')+' '+t('setsL')):'')
    +'<h2 style="margin-top:14px">'+t('sugT')+'</h2><ul style="margin:0;padding-left:20px">'+s.sug.map(x=>'<li style="margin:4px 0">'+esc(x)+'</li>').join('')+'</ul></div>';
 }
@@ -554,7 +580,7 @@ function toCSV(){
   const rows=Object.keys(S.days).sort().map(k=>{
     const d=norm(S.days[k]),pl=d.plan||[];
     if(!(d.food.length||d.gym.length||tot(d)||d.ex.length||d.eng||d.supp||d.wt||d.win||d.next||pl.some(x=>x.x)||d.mood||d.nrg||d.sl||d.h2o||d.stp||d.wk.length))return null;
-    return [k,Math.round(sum(d,'k')),r1(sum(d,'p')),r1(sum(d,'f')),r1(sum(d,'c')),d.food.map(e=>(e.b||e.n)+(e.g?' '+e.g+'g':'')).join(' | '),d.gym.join(' '),d.min.study,d.min.lab,d.min.ai,d.min.career,d.ex.reduce((a,x)=>a+x.k,0),d.eng?1:0,d.supp?1:0,d.wt,pl.filter(x=>x.x).length,pl.length,d.win,d.next,d.mood||'',d.nrg||'',d.sl||'',d.h2o||'',d.stp||'',d.wk.map(w=>w.x+' '+w.s.map(s=>s.r+'x'+s.kg).join(' ')).join(' | ')];
+    return [k,Math.round(sum(d,'k')),r1(sum(d,'p')),r1(sum(d,'f')),r1(sum(d,'c')),d.food.map(e=>(e.b||e.n)+(e.g?' '+e.g+'g':'')).join(' | '),d.gym.join(' '),d.min.study,d.min.lab,d.min.ai,d.min.career,d.ex.reduce((a,x)=>a+x.k,0),d.eng?1:0,Object.keys(d.sp).filter(x=>d.sp[x]).join(' ')||(d.supp?1:0),d.wt,pl.filter(x=>x.x).length,pl.length,d.win,d.next,d.mood||'',d.nrg||'',d.sl||'',d.h2o||'',d.stp||'',d.wk.map(w=>w.x+' '+w.s.map(s=>s.r+'x'+s.kg).join(' ')).join(' | ')];
   }).filter(Boolean);
   return '﻿'+[H].concat(rows).map(r=>r.map(q).join(',')).join('\n')+'\n';
 }
@@ -616,9 +642,9 @@ function render(){
   const d=day(),k=sum(d,'k'),p=sum(d,'p'),f=sum(d,'f'),c=sum(d,'c');
   document.title=t('title');document.documentElement.lang=L()?'zh':'en';
   let h=ub+header();
-  h+=tab==='today'?vToday(d,k,p,f,c):tab==='food'?vFood(d):tab==='act'?vAct(d,k):vRev();
+  h+=tab==='today'?vToday(d):tab==='food'?vFood(d,k,p,f,c):tab==='act'?vAct(d,k):vRev();
   $('#app').innerHTML=h;
-  const TB=[['today','<path d="M3.5 10.5 12 3.5l8.5 7V20a1 1 0 0 1-1 1H15v-6H9v6H4.5a1 1 0 0 1-1-1z"/>',t('today')],['food','<path d="M7 3v18M4.5 3v5a2.5 2.5 0 0 0 5 0V3M17.5 21V3c-2 0-3.5 2.5-3.5 6s1.5 4.5 3.5 4.5"/>',t('food')],['act','<path d="M3 12h4l3-8 4 16 3-8h4"/>',t('act')],['rev','<path d="M5 20v-8M12 20V5M19 20v-5M3 20.5h18"/>',t('review')]];
+  const TB=[['food','<path d="M7 3v18M4.5 3v5a2.5 2.5 0 0 0 5 0V3M17.5 21V3c-2 0-3.5 2.5-3.5 6s1.5 4.5 3.5 4.5"/>',t('food')],['today','<path d="M9.5 6.5H20M9.5 12H20M9.5 17.5H20M3.5 6.5l1.3 1.3L7.3 5.3M3.5 12l1.3 1.3 2.5-2.5M3.5 17.5l1.3 1.3 2.5-2.5"/>',t('planTab')],['act','<path d="M3 12h4l3-8 4 16 3-8h4"/>',t('act')],['rev','<path d="M5 20v-8M12 20V5M19 20v-5M3 20.5h18"/>',t('review')]];
   $('#tabs').innerHTML=TB.map(x=>'<button data-a="tab" data-t="'+x[0]+'" class="'+(tab===x[0]?'on':'')+'"'+(tab===x[0]?' aria-current="page"':'')+'><svg viewBox="0 0 24 24" aria-hidden="true">'+x[1]+'</svg>'+x[2]+'</button>').join('');
   updSync();
   if(tm)tick();
@@ -876,7 +902,8 @@ document.addEventListener('click',e=>{
   else if(a==='mood'||a==='nrg'){const v=+b.dataset.v;d[a]=d[a]===v?0:v}
   else if(a==='h2o'){d.h2o=Math.max(0,(d.h2o||0)+(+b.dataset.v))}
   else if(a==='eng'){d.eng=b.checked}
-  else if(a==='supp'){d.supp=b.checked}
+  else if(a==='sp'){const id=b.dataset.id;d.sp[id]=!d.sp[id];if(!d.sp[id])delete d.sp[id];supSync(d)}
+  else if(a==='spall'){SUPS.filter(s=>s[1]===b.dataset.g).forEach(s=>{d.sp[s[0]]=true});supSync(d)}
   else if(a==='csv'){dlCSV();return}
   else if(a==='aduse'){const v=+b.dataset.v;if(!(v>0))return;S.t.k=v;touchCfg();save();render();const m=$('#adm');if(m)m.textContent=t('adOk');return}
   else if(a==='seen'){S.seen=VER;try{localStorage.setItem(KEY,JSON.stringify(S))}catch(z){}render();return}

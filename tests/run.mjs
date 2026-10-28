@@ -140,7 +140,7 @@ ok('every tab renders in both languages without throwing', () => {
   }
 });
 ok('what is new card shows once', () => {
-  env0.run(`S.lang='en';S.seen=undefined;tab='today';render()`);
+  env0.run(`S.lang='en';S.seen=undefined;tab='food';render()`);
   assert.ok(env0.els.app.innerHTML.includes('data-a="seen"'));
   env0.run(`S.seen=VER;render()`);
   assert.ok(!env0.els.app.innerHTML.includes('data-a="seen"'));
@@ -206,5 +206,21 @@ ok('pasting an AI reply into the search box opens the editable list', () => {
   env0.run(`ph={st:'err',msg:'x'};render()`);
   assert.ok(env0.els.app.innerHTML.includes('data-a="aicopy"'));
   env0.run(`ph={st:''}`);
+});
+ok('supplements: toggle, group all, completion flag, summary, csv', () => {
+  env0.run(`S.lang='zh';S.days={};cur='2026-10-28';tab='food';render()`);
+  let h = env0.els.app.innerHTML;
+  assert.ok(h.includes('复合维生素矿物质片') && h.includes('肌酸') && h.includes('6 克') && h.includes('护肝茶'));
+  assert.ok(h.indexOf('class="c hero"') < h.indexOf('补剂'), 'ring above supplements');
+  env0.run(`{const d=day();['multi','fo_am','crea'].forEach(id=>{d.sp[id]=true});supSync(d)}`);
+  assert.equal(env.run(`day().supp`), false);
+  env0.run(`{const d=day();SUPS.filter(s=>s[1]==='pm').forEach(s=>{d.sp[s[0]]=true});d.sp.goji=true;supSync(d)}`);
+  assert.equal(env.run(`day().supp`), true);
+  assert.ok(env.run('toCSV()').includes('multi fo_am crea fo_pm mg goji'));
+  const w = env.run(`weekSummary('2026-10-28')`);
+  assert.equal(w.spl, 1); assert.equal(w.spc, 1);
+  env0.run(`render()`);
+  assert.ok(env0.els.tabs.innerHTML.indexOf('data-t="food"') < env0.els.tabs.innerHTML.indexOf('data-t="today"'));
+  assert.ok(env0.els.tabs.innerHTML.includes('计划'));
 });
 console.log(`\n${n} checks passed`);
