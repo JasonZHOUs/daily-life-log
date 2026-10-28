@@ -102,11 +102,17 @@ export async function analyzeGemini(key, image, lang, fetchFn = fetch, model = p
     }),
   });
   if (!r.ok) {
-    console.error("gemini", r.status, (await r.text().catch(() => "")).slice(0, 300));
-    if (r.status === 401 || r.status === 403) return { status: 503, body: { error: "not_configured" } };
-    if (r.status === 429) return { status: 429, body: { error: "busy" } };
-    if (r.status === 400) return { status: 400, body: { error: "image" } };
-    return { status: 502, body: { error: "upstream" } };
+    const raw = await r.text().catch(() => "");
+    console.error("gemini", r.status, raw.slice(0, 300));
+    // Google's own explanation (e.g. API disabled, key restricted, quota, model name), shown in the app.
+    let detail = "";
+    try { const o = JSON.parse(raw), e = (Array.isArray(o) ? o[0] : o).error || {}; detail = [e.status, e.message].filter(Boolean).join(": "); } catch { detail = raw; }
+    detail = `Gemini ${r.status}${detail ? " " + detail.replace(/AIza[\w-]+/g, "[key]").slice(0, 240) : ""}`;
+    const keyProblem = r.status === 401 || r.status === 403 || /API_KEY|api key/i.test(detail);
+    if (keyProblem) return { status: 503, body: { error: "not_configured", detail } };
+    if (r.status === 429) return { status: 429, body: { error: "busy", detail } };
+    if (r.status === 400) return { status: 400, body: { error: "image", detail } };
+    return { status: 502, body: { error: "upstream", detail } };
   }
   return clean(geminiText(await r.json()));
 }
@@ -114,7 +120,8 @@ export async function analyzeGemini(key, image, lang, fetchFn = fetch, model = p
 export function pickProvider(env = process.env) {
   const a = (env.ANTHROPIC_API_KEY || "").trim(), g = (env.GEMINI_API_KEY || "").trim();
   if (g) return { kind: "gemini", key: g };
-  if (a.startsWith("AIza")) return { kind: "gemini", key: a };
+  // Claude keys always start with "sk-ant-"; anything else saved here is taken to be a Gemini key.
+  if (a && !a.startsWith("sk-ant-")) return { kind: "gemini", key: a };
   if (a) return { kind: "claude" };
   return null;
 }
@@ -175,7 +182,7 @@ export default async function handler(req, res) {
     return res.status(out.status).json(out.body);
   } catch (error) {
     if (error instanceof Anthropic.RateLimitError) return res.status(429).json({ error: "busy" });
-    if (error instanceof Anthropic.AuthenticationError) return res.status(503).json({ error: "not_configured" });
+    if (error instanceof Anthropic.AuthenticationError) return res.status(503).json({ error: "not_configured", detail: "Claude 401: the key in ANTHROPIC_API_KEY was rejected" });
     if (error instanceof Anthropic.BadRequestError) return res.status(400).json({ error: "image" });
     if (error instanceof Anthropic.APIError) return res.status(502).json({ error: "upstream" });
     return res.status(500).json({ error: "server" });

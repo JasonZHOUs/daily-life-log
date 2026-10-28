@@ -51,6 +51,7 @@ await ok('provider choice: Gemini key wins, AIza key in ANTHROPIC_API_KEY counts
   assert.equal(pickProvider({}), null);
   assert.deepEqual(pickProvider({ ANTHROPIC_API_KEY: ' AIzaXYZ ' }), { kind: 'gemini', key: 'AIzaXYZ' });
   assert.deepEqual(pickProvider({ ANTHROPIC_API_KEY: 'sk-ant-1' }), { kind: 'claude' });
+  assert.deepEqual(pickProvider({ ANTHROPIC_API_KEY: 'AQ.newstyle' }), { kind: 'gemini', key: 'AQ.newstyle' });
   assert.deepEqual(pickProvider({ ANTHROPIC_API_KEY: 'sk-ant-1', GEMINI_API_KEY: 'AIzaG' }), { kind: 'gemini', key: 'AIzaG' });
 });
 await ok('Gemini request shape and response parsing', async () => {
@@ -68,9 +69,11 @@ await ok('Gemini request shape and response parsing', async () => {
   assert.equal(geminiText({ outputs: [{ type: 'text', text: reply }] }), reply);
 });
 await ok('Gemini errors map to friendly codes', async () => {
-  const f = (status) => async () => ({ ok: false, status, text: async () => 'x' });
+  const f = (status) => async () => ({ ok: false, status, text: async () => JSON.stringify([{ error: { code: status, status: 'PERMISSION_DENIED', message: 'Key AIzaSECRET is blocked' } }]) });
   const orig = console.error; console.error = () => {};
-  assert.equal((await analyzeGemini('k', 'B', 'en', f(403))).body.error, 'not_configured');
+  const d = (await analyzeGemini('k', 'B', 'en', f(403))).body;
+  assert.equal(d.error, 'not_configured');
+  assert.equal(d.detail, 'Gemini 403 PERMISSION_DENIED: Key [key] is blocked');
   assert.equal((await analyzeGemini('k', 'B', 'en', f(429))).status, 429);
   assert.equal((await analyzeGemini('k', 'B', 'en', f(500))).status, 502);
   console.error = orig;
