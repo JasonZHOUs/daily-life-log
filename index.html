@@ -118,7 +118,7 @@ details[open] summary{margin-bottom:10px}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js" crossorigin="anonymous"></script>
 <script src="config.js"></script>
 <script>
-const KEY='dl1',KCAL=2800,PROT=120,VER='2026-10-27';
+const KEY='dl1',KCAL=2800,PROT=120,VER='2026-10-28';
 let S={days:{},foods:[],dbx:[],t:{},gm:{},meals:[],tpl:null,lang:''};
 try{const r=localStorage.getItem(KEY);if(r){const o=JSON.parse(r);if(o&&o.days)S=Object.assign(S,o)}}catch(e){}
 S.foods=S.foods||[];S.dbx=S.dbx||[];S.t=S.t||{};S.gm=S.gm||{};S.meals=S.meals||[];S.tpl=S.tpl||null;
@@ -166,7 +166,9 @@ p_step:['On days with 8,000+ steps your mood averaged {a}, versus {b} otherwise.
 avgS:['Average sleep','平均睡眠'],avgM:['Average mood','平均心情'],h:['h','小时'],nextL:['Next','下一项'],
 s_sleep:['You slept {a} h a night on average. Muscle growth and focus both need 7 to 9 hours.','平均每晚睡 {a} 小时。增肌和专注都需要 7 到 9 小时。'],
 s_vol:['Few sets this week for {p}. About 10 sets per muscle a week works well for growth.','本周 {p} 的训练组数偏少。每个肌群每周约10组更利于增长。'],
+photo:['Log food from a photo','拍照识别食物'],phWait:['Reading your photo… about 10 to 20 seconds','正在识别照片…约10到20秒'],phNote:['Estimated from the photo. Check the grams before adding.','根据照片估算，添加前请核对克数。'],phSignIn:['Sign in to use photo logging.','登录后才能使用拍照识别。'],phOff:['Photo logging is not set up yet: the server has no API key.','拍照识别尚未配置：服务器缺少 API 密钥。'],phErr:['Could not read the photo. Try again, or type the meal.','无法识别这张照片，请重试或直接输入。'],phNone:['No food found in the photo.','照片中没有识别到食物。'],phOffline:['Photo logging needs an internet connection.','拍照识别需要联网。'],cancel:['Cancel','取消'],
 newT:['New in this version','本次更新'],newOk:['Got it','知道了'],verL:['Version','版本'],
+new0:['New: tap the camera button on the Food tab to log a meal from a photo. Check the grams, then tap Add.','新功能：在“饮食”页点相机按钮，拍照即可记录一餐。核对克数后点“添加”。'],
 new1:['Food: type a whole meal, like “2 eggs, chicken rice, kopi”, then press Enter. About 50 Singapore and Chinese dishes added.','饮食：直接输入一餐，例如“两个鸡蛋，鸡饭，咖啡”，按回车即可。新增约50种新加坡和中式菜品。'],
 new2:['Today: a quick check-in for mood, energy, sleep, water and steps. Your plan highlights what is next.','今天：快速记录心情、精力、睡眠、饮水和步数。计划会高亮下一项。'],
 new3:['Activity: a workout log with sets, reps and kg. It shows what you lifted last time and marks new records.','活动：训练记录（组数、次数、重量），显示上次成绩并标出新纪录。'],
@@ -389,7 +391,7 @@ function checkin(d){
 }
 function vToday(d,k,p,f,c){
   const T0=T(),r=T0.k-k;
-  let h=S.seen!==VER?'<div class="c hl"><h2>'+t('newT')+'</h2><ul style="margin:0 0 8px;padding-left:20px">'+['new1','new2','new3','new4','new5'].map(x=>'<li style="margin:4px 0">'+t(x)+'</li>').join('')+'</ul><button class="on sm" data-a="seen">'+t('newOk')+'</button></div>':'';
+  let h=S.seen!==VER?'<div class="c hl"><h2>'+t('newT')+'</h2><ul style="margin:0 0 8px;padding-left:20px">'+['new0','new1','new2','new3','new4','new5'].map(x=>'<li style="margin:4px 0">'+t(x)+'</li>').join('')+'</ul><button class="on sm" data-a="seen">'+t('newOk')+'</button></div>':'';
   const C=2*Math.PI*52,pc=T0.k>0?Math.min(1,k/T0.k):0;
   const mac=(l,v,x,cl)=>'<div><div class="mh"><span>'+l+'</span><span><b>'+Math.round(v)+'</b> / '+x+'g</span></div><div class="m '+cl+'"><i style="width:'+Math.min(100,x>0?v/x*100:0)+'%"></i></div></div>';
   h+='<div class="c hero"><div class="ring"><svg viewBox="0 0 120 120" aria-hidden="true"><defs><linearGradient id="rg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" style="stop-color:var(--ac)"/><stop offset="1" style="stop-color:var(--ac2)"/></linearGradient></defs><circle class="trk" cx="60" cy="60" r="52"/><circle class="val'+(r<0?' over':'')+'" cx="60" cy="60" r="52" stroke="url(#rg)" stroke-dasharray="'+C.toFixed(1)+'" stroke-dashoffset="'+(C*(1-pc)).toFixed(1)+'"/></svg><div class="rc"><b>'+Math.round(Math.abs(r))+'</b><small>'+(r>=0?t('kleft'):t('over'))+'</small></div></div>'
@@ -413,7 +415,7 @@ function shelf(){
 }
 function vFood(d){
   shl=shelf();
-  let h='<div class="c"><input id="fs" class="big" placeholder="'+t('search')+'" autocomplete="off"><div id="fr" style="margin-top:8px"></div><div id="fp"></div></div>';
+  let h='<div class="c"><div class="row" style="margin:0;flex-wrap:nowrap"><input id="fs" class="big" placeholder="'+t('search')+'" autocomplete="off" style="flex:1;min-width:0"><button class="on" data-a="photo" aria-label="'+t('photo')+'" style="min-height:50px;min-width:50px;padding:0 12px;border-radius:14px"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" style="fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round"><path d="M4 8h3l2-2.5h6L17 8h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13" r="3.5"/></svg></button></div><input type="file" id="phf" accept="image/*" hidden>'+phBox()+'<div id="fr" style="margin-top:8px"></div><div id="fp"></div></div>';
   const ml=mealsTop();
   if(ml.length)h+='<div class="c"><h2>'+t('mealsT')+'</h2><div class="shelf">'+ml.map(m=>'<button data-a="meal" data-k="'+esc(m.key)+'">'+esc(m.it.map(nm).join(', '))+'<br><small>'+m.it.reduce((a,e)=>a+e.k,0)+' '+t('kc')+'</small></button>').join('')+'</div></div>';
   h+='<div class="c"><h2>'+t('shelfT')+'</h2><div class="shelf">'+shl.map((e,i)=>'<button data-a="shelf" data-i="'+i+'">'+esc(nm(e))+(e.g?' · '+e.g+'g':'')+'<br><small>'+Math.round(e.k)+' '+t('kc')+'</small></button>').join('')+'</div><div class="row"><button data-a="ycopy">'+t('copyY')+'</button></div><div class="row"><input class="s" id="qk" type="number" inputmode="numeric" placeholder="'+t('kc')+'"><button data-a="kadd">'+t('qk')+'</button></div>';
@@ -698,6 +700,45 @@ function remember(it){
 }
 const mealsTop=()=>S.meals.slice().sort((a,b)=>(b.n-a.n)||(b.t-a.t)).slice(0,6);
 
+/* ---------- photo logging: the photo is read by Claude via api/food-photo.js ---------- */
+let ph={st:''};
+async function shrink(file){
+  const url=URL.createObjectURL(file);
+  try{
+    const img=await new Promise((ok,no)=>{const i=new Image();i.onload=()=>ok(i);i.onerror=no;i.src=url});
+    const s=Math.min(1,1280/Math.max(img.naturalWidth,img.naturalHeight)),cv=document.createElement('canvas');
+    cv.width=Math.round(img.naturalWidth*s);cv.height=Math.round(img.naturalHeight*s);
+    cv.getContext('2d').drawImage(img,0,0,cv.width,cv.height);
+    return cv.toDataURL('image/jpeg',.82);
+  }finally{URL.revokeObjectURL(url)}
+}
+async function sendPhoto(file){
+  if(navigator.onLine===false){ph={st:'err',msg:t('phOffline')};render();return}
+  if(!sb||!user){ph={st:'err',msg:t('phSignIn')};render();return}
+  ph={st:'wait'};render();
+  try{
+    const data=await shrink(file);ph.img=data;render();
+    const ses=(await sb.auth.getSession()).data.session;
+    const r=await fetch('api/food-photo',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+(ses?ses.access_token:'')},body:JSON.stringify({image:data.split(',')[1],lang:S.lang})});
+    const j=await r.json().catch(()=>({}));
+    if(!r.ok){ph={st:'err',img:data,msg:r.status===401?t('phSignIn'):r.status===503?t('phOff'):t('phErr')};render();return}
+    const it=(j.items||[]).map(x=>({b:x.name_en,z:x.name_zh,g:x.grams,k:x.kcal,p:x.protein_g,f:x.fat_g,c:x.carbs_g,o:{g:x.grams,k:x.kcal,p:x.protein_g,f:x.fat_g,c:x.carbs_g}}));
+    ph=it.length?{st:'done',img:data,note:j.note||'',it:it}:{st:'err',img:data,msg:j.note||t('phNone')};
+  }catch(e){ph={st:'err',msg:t('phErr')}}
+  render();
+}
+function phScale(x,g){const o=x.o,r=o.g>0?g/o.g:0,q=v=>Math.round(v*r*10)/10;x.g=g;x.k=Math.round(o.k*r);x.p=q(o.p);x.f=q(o.f);x.c=q(o.c)}
+function phBox(){
+  if(!ph.st)return '';
+  const th=ph.img?'<img src="'+ph.img+'" alt="" style="width:64px;height:64px;object-fit:cover;border-radius:14px;flex:0 0 auto">':'';
+  if(ph.st==='wait')return '<div class="row hl" style="padding:10px;border-radius:14px;flex-wrap:nowrap">'+th+'<span>'+t('phWait')+'</span></div>';
+  if(ph.st==='err')return '<div class="row hl" style="padding:10px;border-radius:14px;flex-wrap:nowrap">'+th+'<span style="flex:1">'+esc(ph.msg)+'</span><button class="sm" data-a="phx" aria-label="Close">×</button></div>';
+  const tk=ph.it.reduce((a,x)=>a+x.k,0);
+  return '<div class="hl" style="padding:12px;border-radius:14px;margin-top:10px"><div class="row" style="margin-top:0;flex-wrap:nowrap">'+th+'<small style="flex:1">'+esc(ph.note||t('phNote'))+'</small></div>'
+   +ph.it.map((x,i)=>'<div class="li"><span style="flex:1;min-width:0">'+esc(nm(x))+'<br><small>'+x.k+' '+t('kc')+' · '+x.p+'g '+t('pro')+'</small></span><input class="s" data-pg="'+i+'" type="number" min="1" inputmode="numeric" value="'+x.g+'" style="width:76px" aria-label="grams"><span>g</span><button class="sm" data-a="phdel" data-i="'+i+'" aria-label="Remove">×</button></div>').join('')
+   +'<div class="row"><button class="on" data-a="phadd">'+t('addAll',{n:tk})+'</button><button class="sm" data-a="phx">'+t('cancel')+'</button></div><small>'+t('phNote')+'</small></div>';
+}
+
 /* ---------- food search ---------- */
 function showRes(){
   const q=$('#fs').value.trim().toLowerCase(),box=$('#fr');
@@ -761,6 +802,10 @@ document.addEventListener('click',e=>{
   }
   else if(a==='fask'){ask();return}
   else if(a==='ladd'){if(!addLine(d))return;sel=null;focusFs=true}
+  else if(a==='photo'){const f=$('#phf');if(f){f.value='';f.click()}return}
+  else if(a==='phx'){ph={st:''};render();return}
+  else if(a==='phdel'){if(ph.it){ph.it.splice(+b.dataset.i,1);if(!ph.it.length)ph={st:''}}render();return}
+  else if(a==='phadd'){if(!ph.it||!ph.it.length)return;const it=ph.it.map(x=>({b:x.b,z:x.z,g:x.g,k:x.k,p:x.p,f:x.f,c:x.c}));it.forEach(e=>d.food.push(Object.assign({},e)));remember(it);ph={st:''}}
   else if(a==='meal'){const m=S.meals.find(x=>x.key===b.dataset.k);if(!m)return;m.it.forEach(e=>d.food.push(Object.assign({},e)));m.n++;m.t=Date.now();touchCfg()}
   else if(a==='kadd'){const kk=parseInt($('#qk').value,10);if(!(kk>0))return;d.food.push({b:'Quick add',z:'快速添加',k:kk,p:0,f:0,c:0})}
   else if(a==='cadd'){
@@ -814,6 +859,8 @@ document.addEventListener('input',e=>{
   save();
 });
 document.addEventListener('change',e=>{
+  if(e.target.id==='phf'){const f=e.target.files&&e.target.files[0];if(f)sendPhoto(f);return}
+  if(e.target.dataset&&e.target.dataset.pg!=null){const x=ph.it&&ph.it[+e.target.dataset.pg],g=parseFloat(e.target.value);if(x&&g>0){phScale(x,Math.round(g));render()}return}
   const tp=e.target.dataset&&e.target.dataset.tp;if(!tp)return;
   const x=ensureTpl()[+e.target.dataset.i];if(!x)return;
   if(tp==='t')x[1]=e.target.value||'12:00';

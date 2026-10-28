@@ -182,4 +182,11 @@ ok('check-in renders and csv has new columns', () => {
   const row = env.run('toCSV()').trim().split('\n')[1];
   assert.ok(row.endsWith('4,3,7.5,5,9000,'), row);
 });
+ok('photo results rescale with grams and render', () => {
+  env0.run(`S.lang='en';tab='food';ph={st:'done',img:'',note:'',it:[{b:'Chicken rice',z:'鸡饭',g:380,k:607,p:25,f:23,c:75,o:{g:380,k:607,p:25,f:23,c:75}}]};phScale(ph.it[0],190);render()`);
+  const x = env.run('ph.it[0]');
+  assert.equal(x.k, 304); assert.equal(x.p, 12.5);
+  assert.ok(env0.els.app.innerHTML.includes('data-a="phadd"'));
+  env0.run(`ph={st:''}`);
+});
 console.log(`\n${n} checks passed`);

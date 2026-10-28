@@ -7,6 +7,7 @@ A mobile-first personal tracker for one user (Xin Zhou, MSc student in Singapore
 - Static site on Vercel (GitHub repo auto-deploys on push to main). Files: `index.html` (all HTML, CSS, JS), `config.js`, `manifest.webmanifest`, `icon-180.png`, `icon-512.png`, `sw.js` (service worker). `tests/` and docs are excluded from deploys by `.vercelignore`.
 - Supabase (project ref `krsixzjzdwmxtxsybcsm`, region ap-southeast-1): email and password login, Postgres with row level security.
 - `config.js` holds the Supabase URL and the public anon key. Never commit service-role keys or any secret.
+- `api/food-photo.js` is a Vercel Node function (the only server code). It checks the caller's Supabase login, sends the photo to Claude (`claude-opus-5-5`, structured JSON output, `fallbacks: "default"`), and returns food items with grams and macros. Needs `ANTHROPIC_API_KEY` in Vercel env; optional `ALLOWED_EMAILS` limits who can use it. `package.json` pins `@anthropic-ai/sdk`; there is still no build step. The client shrinks photos to 1280 px JPEG before upload.
 - supabase-js v2 loaded from jsdelivr CDN. Open Food Facts public API is used as a fallback food search.
 
 ## Data model
@@ -37,7 +38,7 @@ Fewest taps for repeated actions; frequent-foods shelf and remembered portions; 
 - Keep light and dark themes working (CSS variables). Visual system: warm paper background with soft glows and grain (`body::before/::after`), 22 px cards with layered shadow `--sh`, accent gradient `--ac`→`--ac2`, macro colours `--fat` and `--carb`, rounded numerals (ui-rounded), floating frosted tab bar with inline SVG icons, calorie progress ring on Today. Reuse these tokens instead of hard-coded colours.
 - Do not break existing user data: old days may lack newer fields, so always normalise with `norm()`.
 - Each release: bump `VER` in index.html and rewrite the `new1`–`new4` strings. Users see a one-time "New in this version" card on Today, and the version is shown in Review. iPhone Home Screen apps keep the old page in memory until the app is swiped away, so tell the user to fully close and reopen it after a deploy.
-- Run `node tests/run.mjs` after every change. It runs the inline script in a stubbed DOM and checks the parser, summary, CSV, i18n completeness and that every tab renders in both languages. Add a check for each new feature.
+- Run `npm test` after every change (`tests/run.mjs` for the page, `tests/api.mjs` for the photo endpoint with a fake Claude client). It runs the inline script in a stubbed DOM and checks the parser, summary, CSV, i18n completeness and that every tab renders in both languages. Add a check for each new feature.
 - Service workers do not run in the Claude desktop browser pane. Test `sw.js` with headless Chrome (CDP) or a real phone.
 - Energy balance assumes a male body (Mifflin-St Jeor BMR x 1.2 plus MET-based exercise).
 
