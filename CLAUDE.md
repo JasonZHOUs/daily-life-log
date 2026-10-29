@@ -15,7 +15,14 @@ A mobile-first personal tracker for one user (Xin Zhou, MSc student in Singapore
 - `public.cfg(user_id uuid primary key, data jsonb, updated_at)`: foods (saved custom foods), dbx (foods found online), t (targets and body), gm (remembered portions in grams), meals (recent multi-food meals: {key, it[], n, t}), tpl (user's weekly plan template, same shape as `TPL`; null means use `TPL`), lang.
 - RLS: each user can only read and write rows where `user_id = auth.uid()`.
 - Day object fields: food[], gym[], min{study,lab,ai,career}, eng, supp, win, next, wt, ex[], plan[], sp {supplement id: true} (ids in `SUPS`; `supp` is derived = all morning and evening ones taken), mood (1–5, 0 = unset), nrg (energy 1–5), sl (sleep hours, string), h2o (cups of 250 ml), stp (steps, string), wk[] (workout: {x: exercise key, s:[{r reps, kg}]}; x is the English name from `EXS` when known), `_t` (last-modified ms). Food entry: {b (English name), z (Chinese name), g, k, p, f, c}.
-- Sync is local-first: state `S` lives in localStorage (key `dl1`) and in memory; per-day rows are upserted 0.9 s after a change; newer `_t` wins on pull.
+- Storage slots: `dl1:local` (this device only) and `dl1:u:<user id>` (per account) never mix; the old single key `dl1` is copied into the first slot opened and kept as `dl1:legacy`. `dl1:mode` remembers local mode, `dl1:lang` the UI language (default Chinese). Details: `docs/data-model.md`.
+- Sync is local-first: state `S` lives in its slot in localStorage and in memory; per-day rows are upserted 0.9 s after a change; newer `_t` wins on pull.
+
+## Plan ↔ records (Phase 1)
+Plan items get kinds from their text (`kindsOf`: breakfast, snack, morning/evening supplements, gym, spoken English, night note, weigh-in, lab, AI project). The tick `x` is the only done state; records are evidence (`itemEv`). `linkPlan` runs after user actions only: a record appearing ticks the item (`auto:true`), its removal unticks only auto ticks, with a toast. Viewing a day never changes it; recorded-but-unticked items show amber. Food entries logged for today carry `at` (ms) so meals can be matched to breakfast (before 11:30) or snack (14:00–18:00); older entries without `at` show "time unknown, confirm".
+
+## Roadmap
+`docs/roadmap.md` is the user's phased checklist. Done: Phase 0, Phase 1, Phase 6 sign-in errors, password reset and mode explanation. Next: Phase 2 (reminders).
 
 ## UI structure
 Four bottom tabs, in order: Food (opens first: calorie ring and macros, search box that also parses a whole meal, recent meals, supplements card in three groups morning / evening / as you like, one-tap shelf of frequent foods, quick kcal add, custom food), Plan (internal tab key `today`: last night's tasks, daily plan, body-and-mind check-in, English habit, night note), Activity (gym parts, study/lab minutes with 10-minute timer, exercise and energy balance), Review (week bars, weekly summary with suggestions, weight trend, 12-week heatmap, targets, weekly plan template editor, backup and CSV export).

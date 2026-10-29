@@ -8,13 +8,12 @@ const html = fs.readFileSync(new URL('../index.html', import.meta.url), 'utf8');
 const scripts = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(m => m[1]);
 const app = scripts[scripts.length - 1];
 
-function makeEnv(lang = 'en-SG') {
+function makeEnv(lang = 'en-SG', store = {}) {
   const els = {};
   const el = id => els[id] || (els[id] = { id, innerHTML: '', textContent: '', value: '', focus() {}, select() {} });
-  const store = {};
   const ctx = {
     console, Date, Math, JSON, setTimeout: () => 0, clearTimeout() {}, setInterval: () => 0, clearInterval() {},
-    localStorage: { getItem: k => store[k] ?? null, setItem: (k, v) => { store[k] = String(v); } },
+    localStorage: { getItem: k => store[k] ?? null, setItem: (k, v) => { store[k] = String(v); }, removeItem: k => { delete store[k]; } },
     navigator: { language: lang },
     document: {
       querySelector: s => el(s.replace('#', '')), addEventListener() {}, documentElement: {}, hidden: false,
@@ -222,5 +221,99 @@ ok('supplements: toggle, group all, completion flag, summary, csv', () => {
   env0.run(`render()`);
   assert.ok(env0.els.tabs.innerHTML.indexOf('data-t="food"') < env0.els.tabs.innerHTML.indexOf('data-t="today"'));
   assert.ok(env0.els.tabs.innerHTML.includes('计划'));
+});
+
+/* ---------- Phase 0 / 1 / 6 ---------- */
+const okA = async (name, fn) => { await fn(); n++; console.log('ok -', name); };
+const J = (e, code) => JSON.parse(e.run(`JSON.stringify((()=>{return ${code}})())`));
+
+await okA('old single-key data moves into the first slot and is kept as a backup', async () => {
+  const legacy = JSON.stringify({ days: { '2026-10-01': { food: [{ b: 'Old egg', k: 70 }] } }, foods: [], lang: 'zh' });
+  const store = { dl1: legacy };
+  const e = makeEnv('en', store);        // no Supabase config in tests, so the local slot opens
+  assert.equal(J(e, `S.days['2026-10-01'].food[0].b`), 'Old egg');
+  assert.ok(store['dl1:local'] && store['dl1:legacy'] === legacy && !('dl1' in store));
+  assert.equal(J(e, 'SK'), 'dl1:local');
+});
+await okA('default language is Chinese', async () => {
+  const e = makeEnv('en-US', {});
+  assert.equal(J(e, 'S.lang'), 'zh');
+});
+await okA('local and account slots never overwrite each other (mocked Supabase)', async () => {
+  const store = {};
+  const e = makeEnv('en', store);
+  e.run(`S.days['2026-10-02']=norm({food:[{b:'Local only',k:10}]});persist()`);
+  const server = { days: [{ day: '2026-10-03', data: { food: [{ b: 'Account food', k: 20 }], _t: 5 } }], cfg: null, up: [] };
+  e.run(`globalThis.__srv=${JSON.stringify(server)}`);
+  e.run(`sb={from:tb=>({select:()=>({eq:()=>tb==='days'?Promise.resolve({data:__srv.days}):{maybeSingle:()=>Promise.resolve({data:__srv.cfg})}}),upsert:rows=>{__srv.up.push(...[].concat(rows));return Promise.resolve({})}}),auth:{signOut:async()=>({})}}`);
+  await e.run(`user={id:'u1',email:'me@x.com'};afterLogin()`);
+  assert.equal(J(e, 'SK'), 'dl1:u:u1');
+  assert.ok(J(e, `!!S.days['2026-10-03'] && !S.days['2026-10-02']`), 'account slot has account data only');
+  assert.ok(!J(e, `__srv.up.some(r=>r.day==='2026-10-02')`), 'local day was not uploaded to the account');
+  await e.run('signOut()');
+  assert.equal(J(e, 'SK'), null);
+  e.run(`skip=true;loadSlot('dl1:local')`);
+  assert.ok(J(e, `!!S.days['2026-10-02'] && !S.days['2026-10-03']`), 'local slot has local data only');
+  assert.ok(JSON.parse(store['dl1:u:u1']).days['2026-10-03']);
+});
+ok('backup file round trip restores days and keeps others', () => {
+  env0.run(`loadSlot('dl1:local');S.days={};S.days['2026-09-01']=norm({food:[{b:'A',k:1}]});S.days['2026-09-02']=norm({win:'kept'})`);
+  const backup = env.run('JSON.stringify(S)');
+  env0.run(`S.days['2026-09-01'].food=[];S.days['2026-09-03']=norm({win:'new day'})`);
+  assert.equal(env.run(`restoreFrom(${JSON.stringify(backup)})`), true);
+  assert.equal(env.run(`S.days['2026-09-01'].food[0].b`), 'A');
+  assert.equal(env.run(`S.days['2026-09-03'].win`), 'new day');
+  assert.equal(env.run(`restoreFrom('not json')`), false);
+});
+ok('after midnight the app follows to the new day only if you were on today', () => {
+  env0.run(`lastToday='2026-01-01';cur='2026-01-01'`);
+  assert.equal(env.run('rollDay()'), true);
+  assert.equal(env.run('cur'), env.run('ymd(new Date())'));
+  env0.run(`lastToday='2026-01-01';cur='2025-12-25'`);
+  env.run('rollDay()');
+  assert.equal(env.run('cur'), '2025-12-25');
+});
+ok('plan items get kinds from their text', () => {
+  const K = (t, n, z) => env.run(`kindsOf(${JSON.stringify({ t, n, z })})`);
+  assert.deepEqual(K('08:30', 'Breakfast with protein and supplements', '早餐（含蛋白质）和补充剂'), ['meal_b', 'sup_am']);
+  assert.deepEqual(K('23:00', 'Evening supplements', '晚上补剂'), ['sup_pm']);
+  assert.deepEqual(K('08:30', 'Deep work before lab', '实验前专注学习'), []);
+  assert.deepEqual(K('11:00', 'Lab until 6 pm', '实验到18:00'), ['lab']);
+  assert.deepEqual(K('20:00', 'Gym (dinner by 7 pm)', '健身（7点前吃晚饭）'), ['gym']);
+});
+ok('logging breakfast ticks the task; deleting it unticks it (with a message)', () => {
+  env0.run(`S.lang='zh';S.tpl=[['0123456','08:30','Breakfast with protein','早餐（含蛋白质）'],['0123456','08:30','Morning supplements','早上补剂'],['0123456','23:00','Evening supplements','晚上补剂']];
+    cur=ymd(new Date());delete S.days[cur];globalThis.__d=day();globalThis.__ev=evMap(__d,cur);
+    __d.food.push({b:'Egg',k:72,p:6,f:5,c:0,at:new Date(cur+'T08:05:00').getTime()});linkPlan(__d,cur,__ev)`);
+  assert.deepEqual(env.run('__d.plan.map(x=>[x.z,!!x.x,!!x.auto])'), [['早餐（含蛋白质）', true, true], ['早上补剂', false, false], ['晚上补剂', false, false]]);
+  assert.ok(env0.els.toast.textContent.includes('已自动勾选'));
+  env0.run(`__ev=evMap(__d,cur);__d.food=[];linkPlan(__d,cur,__ev)`);
+  assert.equal(env.run('__d.plan[0].x'), false);
+  assert.ok(env0.els.toast.textContent.includes('已取消勾选'));
+});
+ok('supplements: morning and evening tick separately', () => {
+  env0.run(`__ev=evMap(__d,cur);['multi','fo_am','crea'].forEach(id=>{__d.sp[id]=true});linkPlan(__d,cur,__ev)`);
+  assert.deepEqual(env.run('__d.plan.map(x=>!!x.x)'), [false, true, false]);
+  env0.run(`__ev=evMap(__d,cur);__d.sp.fo_pm=true;linkPlan(__d,cur,__ev)`);
+  assert.equal(env.run('__d.plan[2].x'), false, 'one of two evening supplements is not enough');
+});
+ok('manual ticks are never undone by records, and viewing never changes history', () => {
+  env0.run(`__d.plan[2].x=true;delete __d.plan[2].auto;__ev=evMap(__d,cur);__d.sp={};linkPlan(__d,cur,__ev)`);
+  assert.equal(env.run('__d.plan[2].x'), true);
+  // a past day with records but no ticks shows amber "recorded, please confirm" and stays unticked
+  env0.run(`cur='2026-10-20';S.days[cur]=norm({food:[{b:'Egg',k:72,at:new Date('2026-10-20T08:00:00').getTime()}],plan:[{t:'08:30',n:'Breakfast',z:'早餐',x:false}]});tab='today';render()`);
+  const h = env0.els.app.innerHTML;
+  assert.ok(h.includes('pill amb') && h.includes('有记录') && h.includes('1 项待确认'));
+  assert.equal(env.run(`S.days['2026-10-20'].plan[0].x`), false);
+  // older food without a time stamp is shown as "time unknown", not ticked
+  env0.run(`S.days[cur].food=[{b:'Egg',k:72}];render()`);
+  assert.ok(env0.els.app.innerHTML.includes('时间未知'));
+});
+ok('sign-in errors become next steps', () => {
+  env0.run(`S.lang='zh'`);
+  assert.ok(env.run(`authErr({message:'Invalid login credentials'})`).includes('忘记密码'));
+  assert.ok(env.run(`authErr({message:'User already registered'})`).includes('已经注册'));
+  assert.ok(env.run(`authErr({message:'Failed to fetch'})`).includes('网络'));
+  assert.ok(env.run(`authErr({message:'weird'})`).includes('weird'));
 });
 console.log(`\n${n} checks passed`);
