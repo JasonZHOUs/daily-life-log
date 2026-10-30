@@ -14,9 +14,23 @@ self.addEventListener('activate',e=>{
 const send=()=>self.clients.matchAll({includeUncontrolled:true}).then(cs=>cs.forEach(c=>c.postMessage({type:'update'})));
 const notify=()=>send().then(()=>new Promise(r=>setTimeout(r,2500))).then(send);
 
+// Reminders from api/push-tick.js: { title, body, tag, url }
+self.addEventListener('push',e=>{
+  let p={};try{p=e.data?e.data.json():{}}catch(x){p={body:e.data&&e.data.text()}}
+  e.waitUntil(self.registration.showNotification(p.title||'Daily Life Log',{body:p.body||'',tag:p.tag||undefined,icon:'icon-180.png',badge:'icon-180.png',data:{url:p.url||'/'}}));
+});
+self.addEventListener('notificationclick',e=>{
+  e.notification.close();
+  const url=(e.notification.data&&e.notification.data.url)||'/';
+  e.waitUntil(self.clients.matchAll({type:'window',includeUncontrolled:true}).then(cs=>{
+    for(const c of cs){if('focus' in c){c.navigate&&c.navigate(url);return c.focus()}}
+    return self.clients.openWindow(url);
+  }));
+});
+
 self.addEventListener('fetch',e=>{
   const r=e.request,u=new URL(r.url),nav=r.mode==='navigate';
-  if(r.method!=='GET')return;
+  if(r.method!=='GET'||u.pathname.startsWith('/api/'))return;
   // Supabase API, Open Food Facts and anything else always go to the network.
   if(!(nav||u.origin===location.origin||u.href===SUPA))return;
   const key=nav?'./':r,watch=nav||(u.origin===location.origin&&u.pathname.endsWith('.js'));

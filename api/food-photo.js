@@ -9,11 +9,9 @@
 //   GEMINI_MODEL       defaults to gemini-3.8-flash
 //   ALLOWED_EMAILS     comma-separated; when set, only these accounts may use it
 import Anthropic from "@anthropic-ai/sdk";
+import { checkUser } from "./_lib.js";
+export { checkUser };
 
-// Public values (same as config.js); used only to check the caller's login.
-const SUPABASE_URL = "https://krsixzjzdwmxtxsybcsm.supabase.co";
-const SUPABASE_ANON =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtyc2l4emp6ZHdteHR4c3liY3NtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI5MzQ0NzQsImV4cCI6MjEwODUxMDQ3NH0.GoCZQY_dnUD6krMoqjf-cb_qvo9bKUKiiY0mCdx8PD0";
 const MAX_IMAGE_CHARS = 4_000_000; // base64 length; the app sends ~200-400 KB
 
 const SCHEMA = {
@@ -162,22 +160,6 @@ function clean(raw) {
       carbs_g: num(x.carbs_g),
     }));
   return { status: 200, body: { items, note: String(parsed.note || "").slice(0, 300) } };
-}
-
-export async function checkUser(authHeader, fetchFn = fetch) {
-  const token = (authHeader || "").replace(/^Bearer\s+/i, "");
-  if (!token) return null;
-  const r = await fetchFn(`${SUPABASE_URL}/auth/v1/user`, {
-    headers: { Authorization: `Bearer ${token}`, apikey: SUPABASE_ANON },
-  });
-  if (!r.ok) return null;
-  const u = await r.json();
-  const allowed = (process.env.ALLOWED_EMAILS || "")
-    .split(",")
-    .map((s) => s.trim().toLowerCase())
-    .filter(Boolean);
-  if (allowed.length && !allowed.includes(String(u.email || "").toLowerCase())) return null;
-  return u;
 }
 
 // Up to three model attempts can take a while; allow time for them.

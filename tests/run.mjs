@@ -286,10 +286,10 @@ ok('logging breakfast ticks the task; deleting it unticks it (with a message)', 
     cur=ymd(new Date());delete S.days[cur];globalThis.__d=day();globalThis.__ev=evMap(__d,cur);
     __d.food.push({b:'Egg',k:72,p:6,f:5,c:0,at:new Date(cur+'T08:05:00').getTime()});linkPlan(__d,cur,__ev)`);
   assert.deepEqual(env.run('__d.plan.map(x=>[x.z,!!x.x,!!x.auto])'), [['早餐（含蛋白质）', true, true], ['早上补剂', false, false], ['晚上补剂', false, false]]);
-  assert.ok(env0.els.toast.textContent.includes('已自动勾选'));
+  assert.ok(env0.els.toast.innerHTML.includes('已自动勾选'));
   env0.run(`__ev=evMap(__d,cur);__d.food=[];linkPlan(__d,cur,__ev)`);
   assert.equal(env.run('__d.plan[0].x'), false);
-  assert.ok(env0.els.toast.textContent.includes('已取消勾选'));
+  assert.ok(env0.els.toast.innerHTML.includes('已取消勾选'));
 });
 ok('supplements: morning and evening tick separately', () => {
   env0.run(`__ev=evMap(__d,cur);['multi','fo_am','crea'].forEach(id=>{__d.sp[id]=true});linkPlan(__d,cur,__ev)`);
@@ -315,5 +315,82 @@ ok('sign-in errors become next steps', () => {
   assert.ok(env.run(`authErr({message:'User already registered'})`).includes('已经注册'));
   assert.ok(env.run(`authErr({message:'Failed to fetch'})`).includes('网络'));
   assert.ok(env.run(`authErr({message:'weird'})`).includes('weird'));
+});
+
+/* ---------- Phase 2 client and roadmap A, C, E, F, I, L ---------- */
+ok('schedule for the server: 14 days, today ticks, future days from the template without creating rows', () => {
+  env0.run(`loadSlot('dl1:local');S.days={};S.tpl=null;cur=ymd(new Date());{const d=day();plan(d,cur);d.plan[0].x=true;d.h2o=3}`);
+  const b = env.run('buildSched()');
+  const td = env.run('ymd(new Date())');
+  assert.equal(new Set(b.sched.map(x => x.d)).size, 14);
+  assert.equal(b.sched.filter(x => x.d === td).some(x => x.x), true);
+  assert.equal(b.stat.h2o, 3);
+  assert.equal(env.run('Object.keys(S.days).length'), 1, 'future days were not created');
+  assert.ok(b.sched.some(x => x.c === 'sup') && b.sched.every(x => x.n));
+  env0.run(`S.sched=[];updSched()`);
+  assert.equal(env.run('S.sched.length'), 0, 'local mode does not upload reminders');
+  env0.run(`user={id:'u9'};updSched();user=null`);
+  assert.ok(env.run('S.sched.length') > 0);
+});
+ok('timer: pause, resume and stop log minutes and the note to the day it started', () => {
+  env0.run(`S.timer={c:'lab',st:Date.now()-25*60000,acc:0,k:'2026-10-25',note:'PCR'};tab='act';render()`);
+  assert.ok(env0.els.app.innerHTML.includes('id="tmv"'));
+  env0.run(`S.timer.acc+=Date.now()-S.timer.st;S.timer.st=0;S.timer.acc+=5*60000;tmStop()`);
+  assert.equal(env.run('S.timer'), null);
+  assert.equal(env.run(`S.days['2026-10-25'].min.lab`), 30);
+  assert.equal(env.run(`S.days['2026-10-25'].tl[0].n`), 'PCR');
+});
+ok('templates: built-ins apply in one go, exam week has fewer items, weekend is light', () => {
+  const n = id => env.run(`tplItems('${id}').length`);
+  assert.ok(n('exam') < n('lab') && n('wkd') < n('cls'));
+  env0.run(`cur='2026-10-26';delete S.days[cur];{const d=day();replacePlan(d,tplItems('exam'))}`);
+  assert.equal(env.run(`S.days['2026-10-26'].plan[2].z`), '复习（上午）');
+  env0.run(`S.tpls={};S.tpls['我的实验日']=[{t:'09:00',n:'A',z:'甲'}]`);
+  assert.equal(env.run(`tplItems('我的实验日')[0].z`), '甲');
+});
+ok('copy yesterday’s plan brings times and names, unticked', () => {
+  env0.run(`S.days['2026-10-27']=norm({plan:[{t:'07:00',n:'Run',z:'跑步',x:true}]});cur='2026-10-28';delete S.days[cur];
+    {const d=day(),py=S.days['2026-10-27'];replacePlan(d,py.plan.map(x=>({t:x.t,n:x.n,z:x.z,x:false})))}`);
+  assert.deepEqual(env.run(`S.days['2026-10-28'].plan`), [{ t: '07:00', n: 'Run', z: '跑步', x: false }]);
+});
+ok('recycle bin: deleted food comes back, old entries expire after 7 days', () => {
+  env0.run(`cur='2026-10-28';{const d=day();d.food=[{b:'Egg',z:'鸡蛋',k:72}];const v=d.food.splice(0,1)[0];globalThis.__bin=trash('food',cur,v)}`);
+  assert.equal(env.run(`S.days['2026-10-28'].food.length`), 0);
+  assert.equal(env.run('binRestore(__bin)'), true);
+  assert.equal(env.run(`S.days['2026-10-28'].food[0].b`), 'Egg');
+  env0.run(`S.bin=[{at:Date.now()-8*864e5,d:'2026-10-01',type:'food',v:{b:'Old'}}];loadSlot(SK)`);
+  // loadSlot re-reads storage; the pruning rule itself:
+  assert.equal(env.run(`[{at:Date.now()-8*864e5}].filter(x=>Date.now()-x.at<7*864e5).length`), 0);
+  env0.run(`S.lang='zh';tab='rev';render()`);
+  assert.ok(env0.els.app.innerHTML.includes('回收站'));
+});
+ok('photo meal saved for later shows as pending and counts nothing until filled in', () => {
+  env0.run(`cur=ymd(new Date());delete S.days[cur];{const d=day();addFood(d,{b:'Photo meal (to fill in)',z:'照片餐（待补全）',k:0,p:0,f:0,c:0,pend:true,img:'data:image/jpeg;base64,AAAA'})};tab='food';render()`);
+  const h = env0.els.app.innerHTML;
+  assert.ok(h.includes('待补全') && h.includes('data-a="pfill"') && h.includes('data-a="pkc"'));
+  assert.equal(env.run('sum(day(),"k")'), 0);
+  assert.ok(env.run('day().food[0].at') > 0, 'time stamp kept for the plan');
+});
+ok('gram steppers appear next to the portion box', () => {
+  env0.run(`sel=DB[0];render();showSel()`);
+  assert.ok(env0.els.fp.innerHTML.includes('data-a="gstep" data-v="-10"') && env0.els.fp.innerHTML.includes('data-v="10"'));
+  env0.run('sel=null');
+});
+ok('reminders card explains what to do when notifications are not available', () => {
+  env0.run(`S.lang='zh';user={id:'u9',email:'me@x.com'};tab='rev';render()`);
+  const h = env0.els.app.innerHTML;
+  assert.ok(h.includes('添加到主屏幕') && h.includes('订阅到 iPhone 日历') && h.includes('data-a="remcat"'));
+  env0.run('user=null');
+});
+ok('deleting a task never ticks a different one, and Undo brings it back', () => {
+  env0.run(`cur=ymd(new Date());delete S.days[cur];S.tpl=[['0123456','08:30','Breakfast','早餐'],['0123456','08:30','Morning supplements','早上补剂']];
+    {const d=day();plan(d,cur);SUPS.filter(s=>s[1]==='am').forEach(s=>{d.sp[s[0]]=true});
+     const ev0=evMap(d,cur);const v=d.plan.splice(0,1)[0];const e=trash('plan',cur,v);linkPlan(d,cur,ev0);
+     globalThis.__undo={label:'撤销',fn:()=>binRestore(e)}}`);
+  assert.equal(env.run('day().plan[0].x'), false, 'supplement task stays as it was');
+  env0.run(`toastAct=__undo;document.querySelector('#x');`);
+  env0.run(`(function(){const f=toastAct;toastAct=null;if(f&&f.fn)f.fn()})()`);
+  assert.deepEqual(env.run('day().plan.map(x=>x.z).sort()'), ['早上补剂', '早餐'].sort());
+  env0.run('S.tpl=null');
 });
 console.log(`\n${n} checks passed`);

@@ -21,8 +21,14 @@ A mobile-first personal tracker for one user (Xin Zhou, MSc student in Singapore
 ## Plan ↔ records (Phase 1)
 Plan items get kinds from their text (`kindsOf`: breakfast, snack, morning/evening supplements, gym, spoken English, night note, weigh-in, lab, AI project). The tick `x` is the only done state; records are evidence (`itemEv`). `linkPlan` runs after user actions only: a record appearing ticks the item (`auto:true`), its removal unticks only auto ticks, with a toast. Viewing a day never changes it; recorded-but-unticked items show amber. Food entries logged for today carry `at` (ms) so meals can be matched to breakfast (before 11:30) or snack (14:00–18:00); older entries without `at` show "time unknown, confirm".
 
+## Reminders (Phase 2)
+- The app writes `sched` (today + 13 days of plan items, future days from the template without creating day rows), `stat` (today's water, dinner logged), `rem` (settings) and `tz` into the cfg row (`updSched()` on every save, accounts only).
+- `api/_reminders.js` has the pure rules: 15 min before (skipped when `rem.calPre`, i.e. the calendar does it), one follow-up 10–90 min after if not ticked, dinner before gym only if no dinner logged, water at 11/15/19 when behind, 22:45 wrap-up. `api/push-tick.js` sends them via Web Push (`web-push`), logging each key in `public.push_log` so nothing is sent twice; called every 5 min by Supabase pg_cron + pg_net. `api/calendar.js?t=<cal_tok>` serves an ICS feed with 15-minute alarms.
+- Tables: `public.push_subs` (RLS: own rows), `public.push_log` (server only). Env: `SUPABASE_SERVICE_ROLE_KEY`, `VAPID_PRIVATE_KEY` (public key is in `api/_lib.js` and index.html). The generated private key is in the git-ignored `secrets.local.txt`.
+- The service worker shows pushes and never caches `/api/`. An in-app banner shows items due within 15 min or overdue when the app is open.
+
 ## Roadmap
-`docs/roadmap.md` is the user's phased checklist. Done: Phase 0, Phase 1, Phase 6 sign-in errors, password reset and mode explanation. Next: Phase 2 (reminders).
+`docs/roadmap.md` is the user's phased checklist. Done: Phase 0, Phase 1, Phase 2, Phase 6 (sign-in errors, reset, modes), extras A (timer with pause/note, `S.timer` stored locally), C (7-day recycle bin `S.bin` + Undo toast), E (built-in day templates `BTPL` + saved `S.tpls`), F (copy yesterday's plan), I (photo-first pending meals with a 640 px thumbnail), L (±10 g steppers). Next: Phase 3.
 
 ## UI structure
 Four bottom tabs, in order: Food (opens first: calorie ring and macros, search box that also parses a whole meal, recent meals, supplements card in three groups morning / evening / as you like, one-tap shelf of frequent foods, quick kcal add, custom food), Plan (internal tab key `today`: last night's tasks, daily plan, body-and-mind check-in, English habit, night note), Activity (gym parts, study/lab minutes with 10-minute timer, exercise and energy balance), Review (week bars, weekly summary with suggestions, weight trend, 12-week heatmap, targets, weekly plan template editor, backup and CSV export).

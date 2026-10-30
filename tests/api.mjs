@@ -93,4 +93,70 @@ await ok('a busy model falls through to the next one', async () => {
   assert.deepEqual(tried, ['gemini-3.8-flash', 'gemini-3.6-flash']);
   assert.ok(!('retry' in out));
 });
+
+/* ---------- Phase 2 reminders ---------- */
+const { dueReminders, icsFeed, localNow } = await import('../api/_reminders.js');
+const { sendAll } = await import('../api/push-tick.js');
+const day0 = '2026-10-30';
+const DATA = { lang: 'zh', tz: 'Asia/Singapore', rem: { push: true },
+  sched: [
+    { d: day0, t: '15:30', n: '下午加餐', c: 'plan', k: ['meal_s'], x: false, nx: '16:00 上课' },
+    { d: day0, t: '20:00', n: '健身', c: 'plan', k: ['gym'], x: false, nx: '' },
+    { d: day0, t: '23:00', n: '晚上补剂', c: 'sup', k: ['sup_pm'], x: false, nx: '' },
+    { d: day0, t: '08:30', n: '早餐', c: 'plan', k: ['meal_b'], x: true, nx: '' },
+    { d: '2026-10-31', t: '08:30', n: '早餐', c: 'plan', k: ['meal_b'], x: false, nx: '' },
+  ],
+  stat: { d: day0, h2o: 1, dinner: false } };
+const at = (h, m) => ({ d: day0, m: h * 60 + m });
+const DW = { ...DATA, rem: { push: true, water: false } }; // plan-timing checks without water nudges
+await ok('15 minutes before, then once more if still not done', async () => {
+  const pre = dueReminders(DW, at(15, 15));
+  assert.equal(pre.length, 1); assert.equal(pre[0].title, '15:30 下午加餐'); assert.ok(pre[0].body.includes('16:00 上课'));
+  assert.equal(dueReminders(DW, at(15, 35)).length, 0, 'nothing between the two');
+  const late = dueReminders(DW, at(15, 40));
+  assert.equal(late.length, 1); assert.ok(late[0].key.endsWith('|late'));
+  assert.equal(dueReminders(DW, at(15, 40), new Set([late[0].key])).length, 0, 'never twice');
+  assert.equal(dueReminders(DW, at(17, 30)).length, 0, 'no endless follow-ups');
+});
+await ok('done items, disabled categories and calendar-handled alerts are skipped', async () => {
+  const done = { ...DW, sched: DATA.sched.map(x => ({ ...x, x: true })) };
+  assert.equal(dueReminders(done, at(15, 15)).length, 0);
+  assert.equal(dueReminders({ ...DATA, rem: { plan: false, water: false } }, at(15, 15)).length, 0);
+  const cal = dueReminders({ ...DATA, rem: { calPre: true, water: false } }, at(15, 15));
+  assert.equal(cal.length, 0, 'calendar gives the 15-minute alert');
+  assert.equal(dueReminders({ ...DATA, rem: { calPre: true, water: false } }, at(15, 45)).length, 1, 'follow-up still comes from push');
+});
+await ok('dinner before the gym only when dinner is not logged', async () => {
+  assert.ok(dueReminders(DATA, at(18, 10)).some(r => r.key.endsWith('|dinner')));
+  assert.ok(!dueReminders({ ...DATA, stat: { ...DATA.stat, dinner: true } }, at(18, 10)).some(r => r.key.endsWith('|dinner')));
+});
+await ok('water nudges only when behind; evening wrap-up lists what is open and tomorrow', async () => {
+  assert.ok(dueReminders(DATA, at(15, 5)).some(r => r.key.includes('|water|900')));
+  assert.ok(!dueReminders({ ...DATA, stat: { ...DATA.stat, h2o: 5 } }, at(15, 5)).some(r => r.key.includes('water')));
+  const sum = dueReminders(DATA, at(22, 50)).find(r => r.key.endsWith('|summary'));
+  assert.ok(sum.body.includes('下午加餐') && sum.body.includes('明天第一件事：08:30 早餐'));
+});
+await ok('local time follows the stored time zone', async () => {
+  const n = localNow('Asia/Singapore', new Date('2026-10-30T16:30:00Z'));
+  assert.deepEqual(n, { d: '2026-10-31', m: 30 });
+});
+await ok('calendar feed has events with 15-minute alarms for open items', async () => {
+  const ics = icsFeed(DATA, new Date('2026-10-30T00:00:00Z'));
+  assert.ok(ics.startsWith('BEGIN:VCALENDAR') && ics.includes('DTSTART:20261030T153000') && ics.includes('TRIGGER:-PT15M'));
+  assert.ok(ics.includes('SUMMARY:✓ 早餐'), 'done items are marked');
+  assert.equal((ics.match(/BEGIN:VEVENT/g) || []).length, 5);
+});
+await ok('sender sends each due reminder once, logs it, and drops expired devices', async () => {
+  const calls = { posts: [], dels: [] };
+  const db = {
+    get: async (p) => p.startsWith('cfg') ? [{ user_id: 'u1', data: DW }] : p.startsWith('push_subs') ? [{ endpoint: 'e1', user_id: 'u1', sub: {} }, { endpoint: 'e2', user_id: 'u1', sub: {} }] : [],
+    post: async (p, b) => { calls.posts.push([p, b]); }, del: async (p) => { calls.dels.push(p); },
+  };
+  const sent = [];
+  const send = async (sub, payload) => { sent.push(payload.title); return sent.length === 2 ? 'gone' : 'ok'; };
+  const n = await sendAll(db, send, new Date('2026-10-30T07:15:00Z')); // 15:15 in Singapore
+  assert.equal(n, 1); assert.deepEqual(sent, ['15:30 下午加餐', '15:30 下午加餐']);
+  assert.equal(calls.posts[0][0], 'push_log'); assert.ok(calls.posts[0][1].key.endsWith('|pre'));
+  assert.ok(calls.dels.some(p => p.includes('endpoint=eq.e2')));
+});
 console.log(`\n${n} api checks passed`);
