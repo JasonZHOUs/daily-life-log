@@ -106,12 +106,16 @@ details[open] summary{margin-bottom:10px}
 /* floating frosted tab bar */
 .tabs{position:fixed;left:12px;right:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 10px);max-width:536px;margin:0 auto;display:flex;padding:6px;gap:4px;border-radius:24px;background:var(--card);border:1px solid var(--bd);box-shadow:0 12px 40px -12px rgba(0,0,0,.28);-webkit-backdrop-filter:blur(22px) saturate(180%);backdrop-filter:blur(22px) saturate(180%);z-index:5}
 .tabs:empty{display:none}
+.tabs{transition:transform .2s,opacity .2s}
+body.kb .tabs{transform:translateY(160%);opacity:0;pointer-events:none}
+input,textarea,select{scroll-margin:96px 0 140px}
 .tabs button{flex:1;border:0;border-radius:18px;background:none;min-height:54px;font-size:11px;font-weight:600;display:flex;flex-direction:column;gap:3px;align-items:center;justify-content:center;color:var(--mut);box-shadow:none}
 .tabs button svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .tabs button.on,.tabs button.on:hover{background:var(--hi);color:var(--ac);box-shadow:none}
 .toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 96px);transform:translate(-50%,8px);width:max-content;max-width:min(92vw,480px);background:var(--tx);color:var(--bg);padding:10px 16px;border-radius:14px;font-size:14px;box-shadow:0 10px 30px -10px rgba(0,0,0,.4);opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:6}
 .toast.show{opacity:1;transform:translate(-50%,0);pointer-events:auto}
 .toast button{background:rgba(255,255,255,.18);color:inherit}
+.chip{display:inline-flex;align-items:center;gap:2px;padding:4px 10px;border-radius:12px;background:var(--chip);font-size:14px;white-space:nowrap}
 .pill{display:inline-block;font-size:12px;line-height:1.5;padding:1px 8px;border-radius:10px;background:var(--chip);color:var(--mut);white-space:nowrap}
 .pill.amb{background:rgba(227,160,58,.18);color:#8a5a00}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .pill.amb{color:var(--fat)}}
@@ -127,12 +131,12 @@ details[open] summary{margin-bottom:10px}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js" crossorigin="anonymous"></script>
 <script src="config.js"></script>
 <script>
-const KEY='dl1',KCAL=2800,PROT=120,VER='2026-10-30';
+const KEY='dl1',KCAL=2800,PROT=120,VER='2026-10-31';
 /* Storage slots keep "this device only" data and each account's data apart: dl1:local and dl1:u:<user id>.
    The old single key "dl1" is copied into the first slot opened, then kept as dl1:legacy. See docs/data-model.md. */
-const fresh=()=>({days:{},foods:[],dbx:[],t:{},gm:{},meals:[],tpl:null,lang:'',sched:[],stat:null,rem:{},tz:'',cal_tok:'',tpls:{},bin:[],timer:null});
+const fresh=()=>({days:{},foods:[],dbx:[],t:{},gm:{},meals:[],tpl:null,lang:'',sched:[],stat:null,rem:{},tz:'',cal_tok:'',tpls:{},bin:[],timer:null,favs:[]});
 // Account-wide fields synced through the cfg row (timer stays on this device).
-const CFG=['foods','dbx','t','gm','meals','tpl','lang','sched','stat','rem','tz','cal_tok','tpls','bin'];
+const CFG=['foods','dbx','t','gm','meals','tpl','lang','sched','stat','rem','tz','cal_tok','tpls','bin','favs'];
 const pref=(k,v)=>{try{if(v===undefined)return localStorage.getItem(KEY+':'+k);if(v===null)localStorage.removeItem(KEY+':'+k);else localStorage.setItem(KEY+':'+k,v)}catch(e){}return null};
 let S=fresh(),SK=null;
 S.lang=pref('lang')||'zh';
@@ -231,7 +235,7 @@ remHow:['On iPhone: in Safari tap Share → Add to Home Screen, open the app fro
 remEnable:['Turn on notifications','开启通知'],remCats:['Remind me about','提醒哪些'],remPlan:['Plan','计划'],remSup:['Supplements','补剂'],remWater:['Water','饮水'],remNote:['Evening wrap-up','睡前小结'],
 remCal:['Calendar','日历'],remCalNote:['Subscribe once and your plan appears in the iPhone Calendar with an alert 15 minutes before, even when the app is closed. The calendar refreshes about every 15 to 60 minutes.','订阅一次，计划就会出现在 iPhone 日历里，提前 15 分钟提醒，关掉 App 也有效。日历大约每 15 到 60 分钟更新一次。'],
 remCalAdd:['Subscribe in iPhone Calendar','订阅到 iPhone 日历'],remCalCopy:['Copy link','复制订阅链接'],remCalNew:['New link','换一个新链接'],remCalNewQ:['The old link will stop working. Continue?','旧链接会失效，确定吗？'],remCalNewOk:['New link created. Subscribe again.','已生成新链接，请重新订阅。'],
-remCalPre:['Let the calendar give the 15-minute alerts (notifications will not repeat them)','提前 15 分钟的提醒交给日历（通知不再重复提醒）'],copied:['Copied ✓','已复制 ✓'],inMin:['in {n} min','{n} 分钟后'],overdue:['due now, not done yet','已到时间，还没完成'],
+remCalPre:['Let the calendar give the 15-minute alerts (notifications will not repeat them)','提前 15 分钟的提醒交给日历（通知不再重复提醒）'],copied:['Copied ✓','已复制 ✓'],inMin:['in {n} min','{n} 分钟后'],inHr:['in {h} h {n} min','{h} 小时 {n} 分钟后'],overdue:['due now, not done yet','已到时间，还没完成'],
 tmStart:['Start timer:','开始计时：'],paused:['paused','已暂停'],pause:['Pause','暂停'],resume:['Resume','继续'],stop:['Stop','结束'],tmNote:['Note: what did you do?','备注：今天做了什么'],tmDone:['Logged {m} min ✓','已记录 {m} 分钟 ✓'],tmShort:['Under a minute, nothing logged.','不到 1 分钟，没有记录。'],
 tplLab:['Lab day','实验日'],tplCls:['Class day','上课日'],tplGym:['Gym day','健身日'],tplWkd:['Weekend (light)','周末轻量版'],tplExam:['Exam week','考试周版'],tplApply:['Use template','套用模板'],copyPlan:['Copy yesterday’s plan','复制昨天计划'],tplSave:['Save today as template','把今天存为模板'],
 planReplace:['Replace today’s plan? Ticks on today’s plan will be cleared.','用新计划替换今天的吗？今天已勾选的会清空。'],noYPlan:['Yesterday has no plan to copy.','昨天没有计划可以复制。'],planCopied:['Yesterday’s plan copied ✓','已复制昨天的计划 ✓'],tplApplied:['Template applied ✓','已套用模板 ✓'],
@@ -241,6 +245,10 @@ deleted:['Deleted','已删除'],undo:['Undo','撤销'],restored:['Restored ✓',
 pendBtn:['Save the photo, fill in later','先存照片，晚点补'],pendSaved:['Saved as a meal to fill in later.','已存为待补全的一餐，有空再补热量。'],pendPill:['to fill in','待补全'],pendAI:['Recognise','识别'],pendManual:['Enter kcal','填热量'],pendKcal:['About how many kcal was this meal?','这一餐大约多少千卡？'],
 newR:['Reminders: turn on notifications and/or subscribe in the iPhone Calendar (Review → Reminders). Due items also show as a banner in the app.','提醒：可以开启通知，或订阅到 iPhone 日历（回顾 → 提醒）。快到时间的事项也会在 App 顶部横幅提示。'],
 newA:['Timer with pause and notes (Activity), plan templates and “Copy yesterday’s plan” (Plan), ±10 g buttons, “Save the photo, fill in later”, and a 7-day recycle bin with Undo.','计时可暂停、写备注（活动页）；计划模板和“复制昨天计划”（计划页）；克数 ±10 按钮；“先存照片，晚点补”；删除后可撤销，回收站保留 7 天。'],
+allDoneT:['Everything on today’s plan is done','今天的计划都完成了'],noPlanT:['No plan for today yet','今天还没有计划'],water1:['Add a cup of water','喝了一杯水'],
+favL:['Favourite','收藏'],favOn:['Added to favourites: it stays first on the shelf','已收藏：会一直排在快速添加最前面'],favOff:['Removed from favourites','已取消收藏'],
+merged:['Another device also changed {d}; both sets of changes were kept.','另一台设备也改过 {d}，两边的改动都已保留。'],
+newQ:['Faster logging: the top of the Food page shows what is next, with one-tap water. Tap ☆ on a food to keep it first on the shelf; foods from the last 7 days come next. When two devices change the same day, both changes are kept.','记录更快：饮食页顶部显示下一项，喝水点一下 +1。点食物旁的 ☆ 收藏，会一直排在快速添加最前面，其次是最近 7 天吃过的。两台设备改了同一天时，两边的改动都会保留。'],
 newT:['New in this version','本次更新'],newOk:['Got it','知道了'],verL:['Version','版本'],
 new0:['New: log a meal from a photo. Tap the camera button on the Food tab, or use “Use an AI app (free)” with 豆包, Claude or ChatGPT and paste the reply. Check the grams, then tap Add.','新功能：拍照记录一餐。在“饮食”页点相机按钮；或点“用 AI App 识别（免费）”，用豆包、Claude 或 ChatGPT 识别后粘贴结果。核对克数后点“添加”。'],
 new1:['Food: type a whole meal, like “2 eggs, chicken rice, kopi”, then press Enter. About 50 Singapore and Chinese dishes added.','饮食：直接输入一餐，例如“两个鸡蛋，鸡饭，咖啡”，按回车即可。新增约50种新加坡和中式菜品。'],
@@ -399,9 +407,11 @@ async function flush(){
   try{
     const keys=Array.from(dirty).filter(k=>S.days[k]);
     if(keys.length){
+      const sentT={};keys.forEach(k=>{sentT[k]=S.days[k]._t});
       const rows=keys.map(k=>({user_id:user.id,day:k,data:S.days[k],updated_at:new Date().toISOString()}));
       const r=await sb.from('days').upsert(rows,{onConflict:'user_id,day'});if(r.error)throw r.error;
-      keys.forEach(k=>dirty.delete(k));
+      // _s = the version the server has; a day changed while uploading stays dirty
+      keys.forEach(k=>{const d=S.days[k];if(!d)return;d._s=sentT[k];if(d._t===sentT[k])dirty.delete(k)});persist();
     }
     if(cfgDirty){
       const data={_t:S._ct};CFG.forEach(f=>{data[f]=S[f]});
@@ -412,12 +422,45 @@ async function flush(){
   }catch(e){st='err';console.error(e);retryLater()}
   updSync();
 }
+// One day from the server against the local copy. _t = last change, _s = version last synced.
+// Only one side changed → take it. Both changed since the last sync → merge (never overwrite silently).
+const strip=d=>{const o=Object.assign({},d);delete o._t;delete o._s;return JSON.stringify(o)};
+function syncDay(k,j){
+  j=j||{};const l=S.days[k];
+  if(!l){j._s=j._t;S.days[k]=j;return 'remote'}
+  const lt=l._t||0,rt=j._t||0;
+  if(lt===rt||strip(l)===strip(j)){l._s=rt;if(rt>lt)l._t=rt;return 'same'}
+  const base=l._s!=null?l._s:Math.min(lt,rt),lc=lt>base,rc=rt>base;
+  if(rc&&!lc){j._s=rt;S.days[k]=j;return 'remote'}
+  if(lc&&!rc){dirty.add(k);return 'local'}
+  const m=mergeDay(norm(Object.assign({},l)),norm(Object.assign({},j)),k);m._t=Date.now();m._s=rt;S.days[k]=m;dirty.add(k);return 'merged';
+}
+// a = this device, b = the other device. Lists are joined (records deleted into the bin stay deleted),
+// ticks and habits are kept if either side has them, counters take the larger value, text keeps this device's.
+function mergeDay(a,b,k){
+  const gone=new Set(S.bin.filter(x=>x.d===k).map(x=>x.type+'|'+JSON.stringify(x.v)));
+  const uni=(x,y,key,type)=>{const out=[],seen=new Set();(x||[]).concat(y||[]).forEach(e=>{const q=key(e);if(seen.has(q)||gone.has(type+'|'+JSON.stringify(e)))return;seen.add(q);out.push(e)});return out};
+  const m=Object.assign({},b,a),pk=x=>x.t+'|'+x.n+'|'+x.z;
+  m.food=uni(a.food,b.food,e=>(e.at||'')+'|'+(e.b||e.n)+'|'+e.k,'food');
+  if(a.plan||b.plan){const bx=new Map((b.plan||[]).map(x=>[pk(x),x]));m.plan=uni(a.plan,b.plan,pk,'plan').map(x=>{const o=bx.get(pk(x));return o&&o.x&&!x.x?Object.assign({},x,{x:true}):x})}
+  m.sp=Object.assign({},b.sp,a.sp);
+  m.gym=Array.from(new Set(a.gym.concat(b.gym)));
+  m.wk=uni(a.wk,b.wk,w=>w.x+'|'+JSON.stringify(w.s),'wk');
+  m.ex=uni(a.ex,b.ex,x=>JSON.stringify(x),'ex');
+  m.tl=uni(a.tl,b.tl,x=>String(x.at),'tl');
+  m.min={};['study','lab','ai','career'].forEach(c=>{m.min[c]=Math.max(a.min[c]||0,b.min[c]||0)});
+  m.eng=!!(a.eng||b.eng);m.h2o=Math.max(a.h2o||0,b.h2o||0);
+  ['mood','nrg','sl','stp','wt','win','next'].forEach(f=>{m[f]=a[f]||b[f]||''});
+  return m;
+}
 async function pull(){
   const dr=await sb.from('days').select('day,data').eq('user_id',user.id);
   const cr=await sb.from('cfg').select('data').eq('user_id',user.id).maybeSingle();
   if(dr.error)throw dr.error;
   const have=new Set();
-  (dr.data||[]).forEach(r=>{have.add(r.day);const j=r.data||{},l=S.days[r.day];if(!l||(j._t||0)>(l._t||0))S.days[r.day]=j;else if((l._t||0)>(j._t||0))dirty.add(r.day)});
+  const merged=[];
+  (dr.data||[]).forEach(r=>{have.add(r.day);if(syncDay(r.day,r.data)==='merged')merged.push(r.day.slice(5))});
+  if(merged.length)toast(t('merged',{d:merged.join('、')}));
   Object.keys(S.days).forEach(k=>{if(!have.has(k))dirty.add(k)});
   const c=cr.data&&cr.data.data;
   if(c&&c._t){if(c._t>(S._ct||0)){const df=fresh();CFG.forEach(f=>{if(f==='lang'){if(c.lang)S.lang=c.lang}else S[f]=c[f]!=null?c[f]:df[f]});S._ct=c._t}else if(c._t<(S._ct||0))cfgDirty=true}
@@ -611,7 +654,7 @@ function remCard(){
 }
 // In-app banner: the fallback when notifications are off or unsupported.
 function dueBanner(){
-  const td=ymd(new Date());if(cur!==td||tab==='today')return '';
+  const td=ymd(new Date());if(cur!==td||tab==='today'||tab==='food')return '';   // Plan and Food show this themselves
   const d=S.days[td];if(!d||!d.plan)return '';
   const nw=new Date(),m=nw.getHours()*60+nw.getMinutes();
   const x=d.plan.filter(i=>!i.x&&hmM(i.t)>=m-90&&hmM(i.t)<=m+15).sort((a,b)=>hmM(a.t)-hmM(b.t))[0];if(!x)return '';
@@ -699,11 +742,27 @@ function supCard(d){
   });
   return h+'</div>';
 }
+// Top of the first page: what is next, then today's progress with one-tap water.
+function todayCard(){
+  const td=ymd(new Date()),d=day(),pl=plan(d,cur).slice().sort((a,b)=>a.t<b.t?-1:a.t>b.t?1:0);
+  const done=pl.filter(x=>x.x).length,spN=supReq.filter(q=>d.sp[q[0]]).length;
+  let nx='';
+  if(cur===td){
+    const nw=new Date(),m=nw.getHours()*60+nw.getMinutes(),x=pl.find(i=>!i.x&&hmM(i.t)>=m-90);
+    if(x){const dm=hmM(x.t)-m;nx='<span class="pill" style="margin-right:6px">'+t('nextL')+'</span><b>'+esc(x.t)+' '+esc(tx(x.n,x.z))+'</b> <small>'+(dm>=60?t('inHr',{h:Math.floor(dm/60),n:dm%60}):dm>0?t('inMin',{n:dm}):t('overdue'))+'</small>'}
+    else nx=pl.length?'<b>'+t('allDoneT')+'</b>':'<span class="mut">'+t('noPlanT')+'</span>';
+  }
+  const chip=(ic,v,act)=>'<span class="chip">'+ic+' <b>'+v+'</b>'+(act||'')+'</span>';
+  return '<div class="c" style="padding:12px 14px">'+(nx?'<div class="row" style="margin:0 0 8px;flex-wrap:nowrap"><span style="flex:1;min-width:0">'+nx+'</span><button class="sm" data-a="tab" data-t="today">'+t('planTab')+'</button></div>':'')
+    +'<div class="row" style="margin:0;gap:6px">'+chip('💧',(d.h2o||0)+'/8','<button class="sm on" data-a="h2o" data-v="1" aria-label="'+t('water1')+'" style="min-height:30px;padding:2px 10px;margin-left:6px">+1</button>')
+    +chip('✓',done+'/'+pl.length)+chip('💊',spN+'/'+supReq.length)+'</div></div>';
+}
 function hero(k,p,f,c){
   const T0=T(),r=T0.k-k;
-  let h=S.seen!==VER?'<div class="c hl"><h2>'+t('newT')+'</h2><ul style="margin:0 0 8px;padding-left:20px">'+['newR','newA','newP','newM'].map(x=>'<li style="margin:4px 0">'+t(x)+'</li>').join('')+'</ul><button class="on sm" data-a="seen">'+t('newOk')+'</button></div>':'';
+  let h=S.seen!==VER?'<div class="c hl"><h2>'+t('newT')+'</h2><ul style="margin:0 0 8px;padding-left:20px">'+['newQ','newR','newA','newP'].map(x=>'<li style="margin:4px 0">'+t(x)+'</li>').join('')+'</ul><button class="on sm" data-a="seen">'+t('newOk')+'</button></div>':'';
   const C=2*Math.PI*52,pc=T0.k>0?Math.min(1,k/T0.k):0;
   const mac=(l,v,x,cl)=>'<div><div class="mh"><span>'+l+'</span><span><b>'+Math.round(v)+'</b> / '+x+'g</span></div><div class="m '+cl+'"><i style="width:'+Math.min(100,x>0?v/x*100:0)+'%"></i></div></div>';
+  h+=todayCard();
   h+='<div class="c hero"><div class="ring"><svg viewBox="0 0 120 120" aria-hidden="true"><defs><linearGradient id="rg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" style="stop-color:var(--ac)"/><stop offset="1" style="stop-color:var(--ac2)"/></linearGradient></defs><circle class="trk" cx="60" cy="60" r="52"/><circle class="val'+(r<0?' over':'')+'" cx="60" cy="60" r="52" stroke="url(#rg)" stroke-dasharray="'+C.toFixed(1)+'" stroke-dashoffset="'+(C*(1-pc)).toFixed(1)+'"/></svg><div class="rc"><b>'+Math.round(Math.abs(r))+'</b><small>'+(r>=0?t('kleft'):t('over'))+'</small></div></div>'
    +'<div class="macros">'+mac(t('pro'),p,T0.p,'')+mac(t('fat'),f,T0.f,'f')+mac(t('carb'),c,T0.c,'cb')+'</div></div>';
   return h;
@@ -729,12 +788,22 @@ function vToday(d){
   h+='<div class="c"><h2>'+t('noteT')+'</h2><label for="win">'+t('winL')+'</label><textarea id="win" rows="2">'+esc(d.win)+'</textarea><label for="nx" style="display:block;margin-top:8px">'+t('nextL')+'</label><textarea id="nx" rows="3">'+esc(d.next)+'</textarea></div>';
   return h;
 }
+const favKey=e=>(e.b||e.n)+'|'+(e.g||e.k);
+const isFav=e=>S.favs.some(f=>favKey(f)===favKey(e));
+const clean=e=>{const o={b:e.b||e.n,z:e.z||'',k:e.k,p:e.p||0,f:e.f||0,c:e.c||0};if(e.g)o.g=e.g;return o};
 function shelf(){
-  const cnt={},last={};
-  for(let i=0;i<30;i++){const d=S.days[shift(cur,-i)];if(!d||!d.food)continue;d.food.forEach(e=>{const q=e.b||e.n;cnt[q]=(cnt[q]||0)+1;if(!last[q])last[q]=e})}
-  const fr=Object.keys(cnt).sort((a,b)=>cnt[b]-cnt[a]).slice(0,8).map(q=>last[q]);
-  const have=new Set(fr.map(e=>e.b||e.n));
-  return fr.concat(PRE.concat(S.foods).filter(e=>!have.has(e.b||e.n))).slice(0,16);
+  const out=[],seen=new Set(),add=e=>{const q=e.b||e.n;if(!q||e.pend||seen.has(q))return;seen.add(q);out.push(e)};
+  S.favs.forEach(add);
+  const recent=[],cnt={},last={};
+  for(let i=0;i<30;i++){
+    const k=shift(cur,-i),d=S.days[k];if(!d||!d.food)continue;
+    d.food.forEach((e,j)=>{if(e.pend)return;const q=e.b||e.n;cnt[q]=(cnt[q]||0)+1;if(!last[q])last[q]=e;
+      if(i<7)recent.push({e:e,t:e.at||(new Date(k+'T00:00:00').getTime()+j)})});
+  }
+  recent.sort((a,b)=>b.t-a.t).forEach(r=>add(r.e));
+  Object.keys(cnt).sort((a,b)=>cnt[b]-cnt[a]).forEach(q=>add(last[q]));
+  PRE.concat(S.foods).forEach(add);
+  return out.slice(0,16);
 }
 function vFood(d,k,p,f,c){
   shl=shelf();
@@ -742,10 +811,10 @@ function vFood(d,k,p,f,c){
   h+=supCard(d);
   const ml=mealsTop();
   if(ml.length)h+='<div class="c"><h2>'+t('mealsT')+'</h2><div class="shelf">'+ml.map(m=>'<button data-a="meal" data-k="'+esc(m.key)+'">'+esc(m.it.map(nm).join(', '))+'<br><small>'+m.it.reduce((a,e)=>a+e.k,0)+' '+t('kc')+'</small></button>').join('')+'</div></div>';
-  h+='<div class="c"><h2>'+t('shelfT')+'</h2><div class="shelf">'+shl.map((e,i)=>'<button data-a="shelf" data-i="'+i+'">'+esc(nm(e))+(e.g?' · '+e.g+'g':'')+'<br><small>'+Math.round(e.k)+' '+t('kc')+'</small></button>').join('')+'</div><div class="row"><button data-a="ycopy">'+t('copyY')+'</button><button data-a="aicopy">'+t('aiCopy')+'</button></div><div class="row"><input class="s" id="qk" type="number" inputmode="numeric" placeholder="'+t('kc')+'"><button data-a="kadd">'+t('qk')+'</button></div>';
+  h+='<div class="c"><h2>'+t('shelfT')+'</h2><div class="shelf">'+shl.map((e,i)=>'<button data-a="shelf" data-i="'+i+'">'+(isFav(e)?'★ ':'')+esc(nm(e))+(e.g?' · '+e.g+'g':'')+'<br><small>'+Math.round(e.k)+' '+t('kc')+'</small></button>').join('')+'</div><div class="row"><button data-a="ycopy">'+t('copyY')+'</button><button data-a="aicopy">'+t('aiCopy')+'</button></div><div class="row"><input class="s" id="qk" type="number" inputmode="numeric" placeholder="'+t('kc')+'"><button data-a="kadd">'+t('qk')+'</button></div>';
   h+='<details><summary>'+t('other')+'</summary><div class="row"><input class="g" id="cn" placeholder="'+t('nameP')+'"><input class="s" id="ck" type="number" inputmode="numeric" placeholder="'+t('kc')+'"><input class="s" id="cp" type="number" inputmode="numeric" placeholder="'+t('gprot')+'"><input class="s" id="cf" type="number" inputmode="numeric" placeholder="'+t('gfat')+'"><input class="s" id="cc" type="number" inputmode="numeric" placeholder="'+t('gcarb')+'"><button data-a="cadd">'+t('add')+'</button></div></details></div>';
   h+='<div class="c"><h2>'+t('eatenT')+' · '+Math.round(sum(d,'k'))+' '+t('kc')+'</h2>'+(d.food.length?d.food.map((e,i)=>e.pend?'<div class="li amb" style="border-radius:10px;padding:8px 6px"><span style="display:flex;gap:8px;align-items:center;min-width:0">'+(e.img?'<img src="'+e.img+'" alt="" style="width:44px;height:44px;object-fit:cover;border-radius:10px;flex:0 0 auto">':'')+'<span>'+esc(nm(e))+(e.at?' <small>'+pad(new Date(e.at).getHours())+':'+pad(new Date(e.at).getMinutes())+'</small>':'')+'<br><span class="pill amb">'+t('pendPill')+'</span></span></span><span style="display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end">'+(e.img?'<button class="sm on" data-a="pfill" data-i="'+i+'">'+t('pendAI')+'</button>':'')+'<button class="sm" data-a="pkc" data-i="'+i+'">'+t('pendManual')+'</button><button class="sm" data-a="del" data-i="'+i+'" aria-label="Remove">×</button></span></div>'
-    :'<div class="li"><span>'+esc(nm(e))+(e.g?' · '+e.g+'g':'')+'</span><span>'+Math.round(e.k)+' '+t('kc')+', '+(e.p||0)+'g <button class="sm" data-a="del" data-i="'+i+'" aria-label="Remove">×</button></span></div>').join(''):'<div class="mut">'+t('none')+'</div>')+'</div>';
+    :'<div class="li"><span>'+esc(nm(e))+(e.g?' · '+e.g+'g':'')+'</span><span>'+Math.round(e.k)+' '+t('kc')+', '+(e.p||0)+'g <button class="sm" data-a="fav" data-i="'+i+'" aria-label="'+t('favL')+'" aria-pressed="'+isFav(e)+'" style="background:none;min-width:34px;padding:4px 6px;color:'+(isFav(e)?'var(--fat)':'var(--mut)')+'">'+(isFav(e)?'★':'☆')+'</button><button class="sm" data-a="del" data-i="'+i+'" aria-label="Remove">×</button></span></div>').join(''):'<div class="mut">'+t('none')+'</div>')+'</div>';
   return h;
 }
 /* ---------- workout log ---------- */
@@ -1197,6 +1266,7 @@ document.addEventListener('click',e=>{
     const j=S.foods.findIndex(x=>(x.b||x.n)===n);if(j<0)S.foods.push(e1);else S.foods[j]=e1;touchCfg();
   }
   else if(a==='ycopy'){const py=S.days[shift(cur,-1)];if(!py||!py.food||!py.food.length)return;py.food.forEach(x=>addFood(d,Object.assign({},x)))}
+  else if(a==='fav'){const e=d.food[+b.dataset.i];if(!e)return;if(isFav(e)){S.favs=S.favs.filter(f=>favKey(f)!==favKey(e));toast(t('favOff'))}else{S.favs=[clean(e)].concat(S.favs).slice(0,24);toast(t('favOn'))}touchCfg()}
   else if(a==='del'){const v=d.food.splice(+b.dataset.i,1)[0];if(v){const e=trash('food',cur,v);toast(t('deleted'),{label:t('undo'),fn:()=>binRestore(e)})}}
   else if(a==='gym'){const g=b.dataset.g,i=d.gym.indexOf(g);if(i<0)d.gym.push(g);else d.gym.splice(i,1)}
   else if(a==='min'){const c=b.dataset.c;d.min[c]=Math.max(0,d.min[c]+parseInt(b.dataset.v,10))}
@@ -1279,6 +1349,9 @@ document.addEventListener('change',e=>{
   else{const v=e.target.value.trim();if(!v)return;x[2]=L()?'':v;x[3]=L()?v:''}
   touchCfg();save();
 });
+const typing=el=>el&&(el.tagName==='TEXTAREA'||(el.tagName==='INPUT'&&!/checkbox|radio|file|button/.test(el.type)));
+document.addEventListener('focusin',e=>{if(!typing(e.target)||!document.body.classList)return;document.body.classList.add('kb');const el=e.target;setTimeout(()=>{if(el.scrollIntoView)el.scrollIntoView({block:'center',behavior:'smooth'})},320)});
+document.addEventListener('focusout',()=>{setTimeout(()=>{if(document.body.classList&&!typing(document.activeElement))document.body.classList.remove('kb')},120)});
 document.addEventListener('toggle',e=>{if(e.target.id==='tplc')tplOpen=e.target.open},true);
 document.addEventListener('keydown',e=>{
   if(e.key!=='Enter'||e.isComposing)return;

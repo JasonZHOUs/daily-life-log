@@ -393,4 +393,53 @@ ok('deleting a task never ticks a different one, and Undo brings it back', () =>
   assert.deepEqual(env.run('day().plan.map(x=>x.z).sort()'), ['早上补剂', '早餐'].sort());
   env0.run('S.tpl=null');
 });
+
+/* ---------- Phase 3 ---------- */
+ok('shelf: favourites first, then the last 7 days by most recent use, then frequent ones', () => {
+  env0.run(`loadSlot('dl1:local');S.days={};S.favs=[{b:'Fav oats',z:'收藏燕麦',k:300}];cur='2026-10-31';
+    S.days['2026-10-20']=norm({food:[{b:'Old rice',k:200},{b:'Old rice',k:200},{b:'Old rice',k:200}]});
+    S.days['2026-10-29']=norm({food:[{b:'Egg',k:72,at:new Date('2026-10-29T08:00:00').getTime()}]});
+    S.days['2026-10-30']=norm({food:[{b:'Kopi',k:125,at:new Date('2026-10-30T09:00:00').getTime()},{b:'Photo',k:0,pend:true}]})`);
+  assert.deepEqual(env.run('shelf().slice(0,4).map(e=>e.b)'), ['Fav oats', 'Kopi', 'Egg', 'Old rice']);
+  assert.ok(!env.run(`shelf().some(e=>e.pend)`), 'pending photo meals are not on the shelf');
+});
+ok('today card: next item, progress and one-tap water on the first page', () => {
+  env0.run(`S.lang='zh';cur=ymd(new Date());delete S.days[cur];S.tpl=[['0123456','00:00','Early','凌晨事项'],['0123456','23:59','Late','睡前事项']];tab='food';render()`);
+  const h = env0.els.app.innerHTML;
+  assert.ok(h.includes('data-a="h2o" data-v="1"') && h.includes('0/8') && h.includes('✓ <b>0/2'));
+  assert.ok(h.indexOf('💧') < h.indexOf('class="c hero"'), 'progress sits above the calorie ring');
+  env0.run('S.tpl=null');
+});
+ok('sync: only one side changed → take it; both changed → merge, keeping deletions', () => {
+  env0.run(`S.days={};S.bin=[];dirty=new Set()`);
+  // remote changed only
+  env0.run(`S.days['2026-10-01']=norm({h2o:1,_t:100,_s:100});syncDay('2026-10-01',norm({h2o:4,_t:200}))`);
+  assert.equal(env.run(`S.days['2026-10-01'].h2o`), 4);
+  // local changed only
+  env0.run(`S.days['2026-10-02']=norm({h2o:5,_t:300,_s:100})`);
+  assert.equal(env.run(`syncDay('2026-10-02',norm({h2o:1,_t:100}))`), 'local');
+  assert.equal(env.run(`S.days['2026-10-02'].h2o`), 5);
+  // both changed: phone added breakfast, computer added a workout and ticked a task; a food deleted on the phone stays deleted
+  env0.run(`S.days['2026-10-03']=norm({_t:500,_s:100,food:[{b:'Egg',k:72,at:1}],plan:[{t:'08:30',n:'B',z:'早餐',x:false}],sp:{multi:true},win:'phone note'});
+    S.bin=[{at:Date.now(),d:'2026-10-03',type:'food',v:{b:'Cake',k:300,at:2}}]`);
+  const r = env.run(`syncDay('2026-10-03',norm({_t:400,food:[{b:'Cake',k:300,at:2}],plan:[{t:'08:30',n:'B',z:'早餐',x:true}],wk:[{x:'Squat',s:[{r:5,kg:80}]}],sp:{mg:true},h2o:6,win:'pc note'}))`);
+  assert.equal(r, 'merged');
+  const m = env.run(`S.days['2026-10-03']`);
+  assert.deepEqual(m.food.map(e => e.b), ['Egg']);
+  assert.equal(m.plan[0].x, true); assert.equal(m.wk[0].x, 'Squat');
+  assert.deepEqual(Object.keys(m.sp).sort(), ['mg', 'multi']);
+  assert.equal(m.h2o, 6); assert.equal(m.win, 'phone note');
+  assert.ok(env.run(`dirty.has('2026-10-03')`));
+  // identical content is not a conflict
+  env0.run(`S.days['2026-10-04']=norm({h2o:2,_t:700,_s:100})`);
+  assert.equal(env.run(`syncDay('2026-10-04',norm({h2o:2,_t:650}))`), 'same');
+});
+await okA('an edit made while uploading is not lost', async () => {
+  const e = makeEnv('en', {});
+  e.run(`user={id:'u1'};S.days['2026-10-05']=norm({h2o:1,_t:10});dirty=new Set(['2026-10-05']);
+    sb={from:()=>({upsert:async()=>{S.days['2026-10-05'].h2o=2;S.days['2026-10-05']._t=20;return {}}})}`);
+  await e.run('flush()');
+  assert.equal(J(e, `dirty.has('2026-10-05')`), true, 'still marked for upload');
+  assert.equal(J(e, `S.days['2026-10-05']._s`), 10);
+});
 console.log(`\n${n} checks passed`);
