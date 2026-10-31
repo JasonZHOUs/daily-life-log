@@ -498,4 +498,43 @@ ok('trends: 7 or 30 days, bars with a target line, gaps where nothing was logged
   for (const x of ['今日目标', '趋势', '连续打卡', '周报', '和上周比', '保存图片']) assert.ok(h.includes(x), x);
   env0.run(`S.lang='en'`);
 });
+ok('health values: the newer import wins a merge; the activity page uses the larger burn', () => {
+  const m = env.run(`mergeDay(norm({stp:'1200',sl:'6',mood:3}),norm({stp:'9100',sl:'7.4',hs:{at:5,f:['stp','sl']}}),'2026-05-01')`);
+  assert.equal(m.stp, '9100'); assert.equal(m.sl, '7.4'); assert.equal(m.mood, 3);
+  const m2 = env.run(`mergeDay(norm({stp:'9900',hs:{at:9,f:['stp']}}),norm({stp:'9100',hs:{at:5,f:['stp']}}),'2026-05-01')`);
+  assert.equal(m2.stp, '9900');
+  env0.run(`S.lang='en';cur='2026-05-02';S.days[cur]=norm({hx:450,stp:'9100',hs:{at:5,f:['stp','hx']},ex:[{a:0,m:30,k:200}]});tab='act';render()`);
+  const h = env0.els.app.innerHTML;
+  assert.match(h, /Active energy \(Apple Health\)/); assert.match(h, /Exercise<\/span>|450 kcal/);
+  env0.run(`tab='today';render()`);
+  assert.match(env0.els.app.innerHTML, /Steps <small class="pill">from Apple Health/);
+});
+ok('plan times: move open items at once (Undo-able), warn on same time, templates update today', () => {
+  env0.run(`S.lang='en';cur='2026-05-03';S.days[cur]=norm({plan:[{t:'09:00',n:'A',z:'',x:true},{t:'10:00',n:'B',z:'',x:false},{t:'23:50',n:'C',z:'',x:false}]})`);
+  const old = env.run(`shiftPlan(day(),cur,30).map(o=>o[1])`);
+  assert.deepEqual(old, ['10:00', '23:50']);
+  assert.deepEqual(env.run(`day().plan.map(x=>x.t)`), ['09:00', '10:30', '23:59']);
+  assert.equal(env.run(`mHm(-20)`), '00:00');
+  env0.run(`day().plan[2].t='10:30'`);
+  assert.deepEqual(env.run(`sameTime(day(),cur,day().plan[1]).map(x=>x.n)`), ['C']);
+  env0.run(`tab='today';render()`);
+  const h = env0.els.app.innerHTML;
+  assert.match(h, /type="time" class="tm" data-pt="1" value="10:30"/);
+  assert.match(h, /data-a="pshift" data-v="60"/);
+  // template edit reaches the open copy on a plan already made for today
+  const td = env.run(`ymd(new Date())`), wd = env.run(`String(new Date().getDay())`);
+  env0.run(`S.days['${td}']=norm({plan:[{t:'08:30',n:'Run',z:'跑步',x:false},{t:'09:00',n:'Run',z:'跑步',x:true}]})`);
+  assert.equal(env.run(`tplSpread(['${wd}','08:30','Run','跑步'],['${wd}','07:45','Run','跑步'])`), 1);
+  assert.deepEqual(env.run(`S.days['${td}'].plan.map(x=>x.t)`), ['07:45', '09:00']);
+  assert.equal(env.run(`tplSpread(['x','08:30','Run','跑步'],['x','07:45','Run','跑步'])`), 0, 'not on that weekday');
+});
+ok('Apple Health card: sign-in note when local, link and steps when signed in', () => {
+  env0.run(`S.lang='zh';user=null;tab='rev';render()`);
+  assert.ok(env0.els.app.innerHTML.includes('登录后才能用'));
+  env0.run(`user={id:'u9',email:'me@x.com'};S.days['2026-05-02'].hs={at:new Date('2026-05-02T23:30:00').getTime(),f:['stp','hx']};render()`);
+  const h = env0.els.app.innerHTML;
+  assert.ok(h.includes('上次收到：05-02 23:30（步数、活动消耗）'));
+  assert.ok(h.includes('复制同步链接') && h.includes('设置步骤'));
+  env0.run(`user=null;S.lang='en'`);
+});
 console.log(`\n${n} checks passed`);

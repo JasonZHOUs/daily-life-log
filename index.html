@@ -96,6 +96,8 @@ label.ck{display:flex;gap:12px;align-items:center;margin:8px 0}
 .ch{display:block;margin:4px 0 0}.ch .tg{stroke:var(--mut);stroke-dasharray:3 3;stroke-width:1;opacity:.7}.ch .b0{fill:var(--ac);opacity:.35}.ch .b1{fill:var(--ac)}.ch .ln{fill:none;stroke:var(--ac);stroke-width:2;stroke-linejoin:round;stroke-linecap:round}.ch .dt{fill:var(--ac)}.ch .xl{font-size:9px;fill:var(--mut);text-anchor:middle}
 .hs{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin:0 -2px 4px;padding:0 2px 2px}.hs::-webkit-scrollbar{display:none}.hs button{flex:0 0 auto}
 .m.ov i{background:var(--warn)}
+.pr{flex-wrap:nowrap;gap:4px}.tm{width:78px;min-height:34px;padding:2px 4px;font-size:14px;font-weight:600;background:none;border-color:transparent}.tm:focus{border-color:var(--ac)}
+ol.steps{margin:6px 0 0;padding-left:20px}ol.steps li{margin:6px 0}
 .gt{display:grid;grid-template-columns:52px repeat(7,minmax(0,1fr));gap:4px;align-items:center;font-size:12px;color:var(--mut);text-align:center}
 .gt span:nth-child(8n+1){text-align:left}.gt i{display:block;height:18px;border-radius:5px;background:var(--track)}.gt i.y{background:linear-gradient(135deg,var(--ac),var(--ac2))}.gt i.fu{background:none;border:1px dashed var(--bd)}.gt b.full{color:var(--ac)}
 .hm{display:grid;grid-template-rows:repeat(7,1fr);grid-auto-flow:column;grid-auto-columns:1fr;gap:3px}
@@ -136,12 +138,12 @@ input,textarea,select{scroll-margin:96px 0 140px}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js" crossorigin="anonymous"></script>
 <script src="config.js"></script>
 <script>
-const KEY='dl1',KCAL=2800,PROT=120,VER='2026-10-31.2';
+const KEY='dl1',KCAL=2800,PROT=120,VER='2026-11-01';
 /* Storage slots keep "this device only" data and each account's data apart: dl1:local and dl1:u:<user id>.
    The old single key "dl1" is copied into the first slot opened, then kept as dl1:legacy. See docs/data-model.md. */
-const fresh=()=>({days:{},foods:[],dbx:[],t:{},gm:{},meals:[],tpl:null,lang:'',sched:[],stat:null,rem:{},tz:'',cal_tok:'',tpls:{},bin:[],timer:null,favs:[]});
+const fresh=()=>({days:{},foods:[],dbx:[],t:{},gm:{},meals:[],tpl:null,lang:'',sched:[],stat:null,rem:{},tz:'',cal_tok:'',hl_tok:'',tpls:{},bin:[],timer:null,favs:[]});
 // Account-wide fields synced through the cfg row (timer stays on this device).
-const CFG=['foods','dbx','t','gm','meals','tpl','lang','sched','stat','rem','tz','cal_tok','tpls','bin','favs'];
+const CFG=['foods','dbx','t','gm','meals','tpl','lang','sched','stat','rem','tz','cal_tok','hl_tok','tpls','bin','favs'];
 const pref=(k,v)=>{try{if(v===undefined)return localStorage.getItem(KEY+':'+k);if(v===null)localStorage.removeItem(KEY+':'+k);else localStorage.setItem(KEY+':'+k,v)}catch(e){}return null};
 let S=fresh(),SK=null;
 S.lang=pref('lang')||'zh';
@@ -263,7 +265,26 @@ skRule:['Only days recorded on the day count (until 3 am the next morning). Back
 rpT:['Weekly report','周报'],rpDays:['Days with every goal hit: {d}','全部达标的日子：{d}'],rpNone:['No day with every goal hit yet','还没有全部达标的日子'],rpMiss:['Missed most often','最容易漏'],rpMissN:['{l} (missed {m} of {n})','{l}（{n} 次漏了 {m} 次）'],rpMissNone:['Nothing missed so far. Nice.','目前没有漏掉的项目，很好。'],
 rpCmp:['Compared with last week','和上周比'],rpCmpNote:['Last week is counted over the same days of the week.','上周按相同的星期几来比。'],rpGym:['Gym days','健身天数'],rpMin:['Study and work minutes','学习工作分钟'],rpPl:['Plan done','计划完成'],rpH2o:['Average water','平均饮水'],rpPrev:['Previous week','上一周'],rpNext:['Next week','下一周'],
 rpShare:['Share','分享'],rpCopy:['Copy text','复制文字'],rpImg:['Save as image','保存图片'],rpCopied:['Report copied','周报已复制'],rpHit:['Goals hit','各项达标'],rpBy:['Daily Life Log','Daily Life Log'],
-newT:['New in this version','本次更新'],newOk:['Got it','知道了'],verL:['Version','版本'],
+newH:['Apple Health: an iPhone Shortcut can send steps, sleep and active energy every night, so you no longer type them (Review → Apple Health has the steps).','Apple 健康：用 iPhone 的“快捷指令”每晚自动发送步数、睡眠和活动消耗，不用再手填（设置步骤在复盘页 → Apple 健康）。'],
+newM:['Plan times: tap a time to change it, or move every open item by ±15 / 30 / 60 minutes at once. Same-time items are pointed out. Changing a weekly template item also updates the open item on today’s plan.','计划时间：点时间就能改，也可以把没完成的一次性推后或提前 15 / 30 / 60 分钟；时间撞了会提示。改每周模板里的事项时，今天计划里没完成的同一项也会跟着改。'],
+hlT:['Apple Health','Apple 健康'],hlNote:['A web app cannot read Apple Health directly. An iPhone Shortcut can: it sends today’s steps, last night’s sleep and active energy here, once a night.','网页 App 不能直接读取 Apple 健康，但 iPhone 的“快捷指令”可以：每晚把今天的步数、昨晚的睡眠和活动消耗发过来。'],
+hlLogin:['Sign in to use this: the Shortcut sends the numbers to your account.','登录后才能用：快捷指令会把数据发到你的账号里。'],hlLast:['Last received: {d} ({f})','上次收到：{d}（{f}）'],hlNone:['Nothing received yet.','还没收到数据。'],
+hlCopy:['Copy the sync link','复制同步链接'],hlNew:['New link','生成新链接'],hlNewQ:['Make a new link? The old one stops working, so paste the new one into the Shortcut.','生成新链接？旧链接会立即失效，记得把新链接换到快捷指令里。'],hlNewOk:['New link made. Copy it into the Shortcut.','已生成新链接，请复制到快捷指令里。'],hlCopied:['Link copied. Paste it into the Shortcut.','链接已复制，粘贴到快捷指令里。'],
+hlHow:['Set it up (about 3 minutes)','设置步骤（约 3 分钟）'],
+hlS1:['Tap “Copy the sync link” above.','点上面的「复制同步链接」。'],
+hlS2:['Open the Shortcuts app, tap +, and name it “Sync to Daily Life Log”.','打开「快捷指令」App，点右上角 ＋ 新建，命名为「同步到生活日志」。'],
+hlS3:['Add “Find Health Samples”: Type Steps, Start Date is Today. Then add “Calculate Statistics” → Sum.','添加操作「查找健康样本」：类型选「步数」，条件「开始日期 是 今天」；再添加「计算统计数据」，选「总和」。'],
+hlS4:['Do the same for “Active Energy” (Start Date is Today) → Sum, and for “Sleep Analysis” (Start Date is in the last 1 day, Value is Asleep) → “Get Details of Health Samples: Duration” → Sum.','同样再做两组：「活动能量」（开始日期 是 今天）→ 总和；「睡眠分析」（开始日期 在最近 1 天内，值 是 睡眠中）→「获取健康样本的详细信息：时长」→ 总和。'],
+hlS5:['Add “Get Contents of URL” and paste the link. Put the cursor after steps= and insert the steps sum, after active= the energy sum, after sleep= the sleep sum. Leave the method as GET.','添加「获取 URL 内容」，粘贴链接。把光标放在 steps= 后面插入步数的「统计数据」变量，active= 后面插入活动能量的，sleep= 后面插入睡眠的。方法保持 GET。'],
+hlS6:['Run it once, then come back here: “Last received” shows the numbers.','点运行试一次，再回到这里，「上次收到」会显示数据。'],
+hlS7:['Automation tab → New Personal Automation → Time of Day, 23:30, daily → Run Shortcut → this one. Turn off “Ask Before Running”.','「自动化」标签 → 新建个人自动化 →「特定时间」每天 23:30 → 运行快捷指令 → 选这个，关掉「运行前询问」。'],
+hlSafe:['The link works like a password for these three numbers. If it leaks, make a new link.','这个链接相当于这几项数据的密码，别发给别人；泄露了就点「生成新链接」。'],
+hlFrom:['from Apple Health','来自 Apple 健康'],hlAct:['Active energy (Apple Health)','活动消耗（Apple 健康）'],hlActNote:['Apple Health active energy already includes workouts, so the larger of it and the exercise you added is used.','Apple 健康的活动消耗已包含运动，所以取它和你手动添加的运动中较大的一个。'],
+f_stp:['steps','步数'],f_sl:['sleep','睡眠'],f_hx:['active energy','活动消耗'],f_wt:['weight','体重'],
+ptMoved:['Moved to {t}.','已改到 {t}。'],ptConf:['Same time as “{n}”. Both are kept; move one if they clash.','和「{n}」时间相同，两项都保留了；冲突的话再调一下。'],ptCal:['The subscribed calendar picks this up on its next refresh.','订阅的日历下次刷新时会更新。'],
+psL:['Open items:','没完成的：'],psDone:['Moved {n} open items by {m} minutes.','已把 {n} 个没完成的事项移动 {m} 分钟。'],psNone:['No open items to move.','没有可以移动的事项。'],
+tplSpread:['Also updated on today’s plan.','今天计划里的同一项也已更新。'],
+timeL:['Time','时间'],newT:['New in this version','本次更新'],newOk:['Got it','知道了'],verL:['Version','版本'],
 new0:['New: log a meal from a photo. Tap the camera button on the Food tab, or use “Use an AI app (free)” with 豆包, Claude or ChatGPT and paste the reply. Check the grams, then tap Add.','新功能：拍照记录一餐。在“饮食”页点相机按钮；或点“用 AI App 识别（免费）”，用豆包、Claude 或 ChatGPT 识别后粘贴结果。核对克数后点“添加”。'],
 new1:['Food: type a whole meal, like “2 eggs, chicken rice, kopi”, then press Enter. About 50 Singapore and Chinese dishes added.','饮食：直接输入一餐，例如“两个鸡蛋，鸡饭，咖啡”，按回车即可。新增约50种新加坡和中式菜品。'],
 new2:['Today: a quick check-in for mood, energy, sleep, water and steps. Your plan highlights what is next.','今天：快速记录心情、精力、睡眠、饮水和步数。计划会高亮下一项。'],
@@ -465,6 +486,9 @@ function mergeDay(a,b,k){
   m.min={};['study','lab','ai','career'].forEach(c=>{m.min[c]=Math.max(a.min[c]||0,b.min[c]||0)});
   m.eng=!!(a.eng||b.eng);if(a.lv||b.lv)m.lv=1;m.h2o=Math.max(a.h2o||0,b.h2o||0);
   ['mood','nrg','sl','stp','wt','win','next'].forEach(f=>{m[f]=a[f]||b[f]||''});
+  // values sent by Apple Health: the newer import wins over the other copy
+  const hs=[a.hs,b.hs].filter(Boolean).sort((x,y)=>y.at-x.at)[0];
+  if(hs){const src=hs===b.hs?b:a;(hs.f||[]).forEach(f=>{if(src[f]!=null)m[f]=src[f]});m.hs=hs}
   return m;
 }
 async function pull(){
@@ -611,6 +635,21 @@ let qp=-1,evSnap=null;
 const VAPID_PUB='BErwRNr7p821FnB-t8b44r2Q8An1gz31nI6EVlmYYR9SgEgBPtE4RIYylGbIlmL36hj31xS5DA0ngGRwZs764Ak';
 const remOn=()=>Object.assign({plan:true,sup:true,water:true,note:true,calPre:false,push:false},S.rem||{});
 const hmM=t0=>{const a=String(t0).split(':');return (+a[0])*60+(+a[1]||0)};
+const mHm=m=>{m=Math.max(0,Math.min(23*60+59,Math.round(m)));return pad(Math.floor(m/60))+':'+pad(m%60)};
+// Move every open item (today: only the ones not yet past) by m minutes; returns the old times for Undo.
+function shiftPlan(d,k,m){
+  const now=new Date(),past=k===ymd(now)?now.getHours()*60+now.getMinutes():-1,old=[];
+  plan(d,k).forEach(x=>{if(x.x||hmM(x.t)<past)return;old.push([x,x.t]);x.t=mHm(hmM(x.t)+m)});
+  return old;
+}
+const sameTime=(d,k,x)=>plan(d,k).filter(y=>y!==x&&!y.x&&y.t===x.t);
+// A weekly template item changed: update the same open item on plans already made for today onward.
+function tplSpread(o,x){
+  let n=0;const td=ymd(new Date());
+  Object.keys(S.days).forEach(k=>{if(k<td||!S.days[k].plan)return;const w=new Date(k+'T00:00:00').getDay();if(x[0].indexOf(w)<0)return;
+    S.days[k].plan.forEach(y=>{if(!y.x&&y.t===o[1]&&y.n===o[2]&&(y.z||'')===(o[3]||'')){y.t=x[1];y.n=x[2];y.z=x[3];n++;touchDay(k)}})});
+  return n;
+}
 function planPreview(k){const d=S.days[k];if(d&&d.plan)return d.plan;const wd=new Date(k+'T00:00:00').getDay();return tpl().filter(x=>x[0].indexOf(wd)>=0).map(x=>({t:x[1],n:x[2],z:x[3],x:false}))}
 function buildSched(){
   const td=ymd(new Date()),out=[];
@@ -652,6 +691,22 @@ async function testPush(){
 function calToken(fresh){if(fresh||!S.cal_tok){const a=new Uint8Array(24);crypto.getRandomValues(a);S.cal_tok=Array.from(a,b=>'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_'[b%64]).join('');touchCfg()}return S.cal_tok}
 const calUrl=()=>location.host+'/api/calendar?t='+calToken();
 async function calSub(){if(!user){toast(t('remLogin'));return}const u=calUrl();S.rem=Object.assign({},S.rem,{calPre:true});touchCfg();save();await flush();location.href='webcal://'+u}
+function hlToken(fresh){if(fresh||!S.hl_tok){const a=new Uint8Array(24);crypto.getRandomValues(a);S.hl_tok=Array.from(a,b=>'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_'[b%64]).join('');touchCfg()}return S.hl_tok}
+const hlUrl=()=>location.origin+'/api/health?t='+hlToken()+'&steps=&active=&sleep=';
+function hlLast(){const ks=Object.keys(S.days).filter(k=>S.days[k].hs).sort((a,b)=>S.days[b].hs.at-S.days[a].hs.at);return ks.length?{k:ks[0],hs:S.days[ks[0]].hs}:null}
+function hlCard(){
+  let h='<div class="c"><h2>'+t('hlT')+'</h2><p class="mut" style="margin:0 0 6px">'+t('hlNote')+'</p>';
+  if(!user)return h+'<p class="mut" style="margin:0">'+t('hlLogin')+'</p></div>';
+  const l=hlLast(),at=l&&new Date(l.hs.at);
+  h+='<p style="margin:6px 0">'+(l?esc(t('hlLast',{d:l.k.slice(5)+' '+pad(at.getHours())+':'+pad(at.getMinutes()),f:(l.hs.f||[]).map(f=>t('f_'+f)).join(L()?'、':', ')})):'<span class="mut">'+t('hlNone')+'</span>')+'</p>';
+  h+='<div class="row"><button class="sm on" data-a="hlcopy">'+t('hlCopy')+'</button>'+(S.hl_tok?'<button class="sm" data-a="hlnew">'+t('hlNew')+'</button>':'')+'</div>';
+  return h+'<details><summary>'+t('hlHow')+'</summary><ol class="steps">'+[1,2,3,4,5,6,7].map(i=>'<li>'+t('hlS'+i)+'</li>').join('')+'</ol><p class="mut">'+t('hlSafe')+'</p></details></div>';
+}
+async function hlCopy(){
+  const u=hlUrl();save();await flush();
+  let ok=false;try{await navigator.clipboard.writeText(u);ok=true}catch(e){}
+  toast(ok?t('hlCopied'):u);render();
+}
 function remCard(){
   const r=remOn(),perm=pushOK()?Notification.permission:'na',on=r.push&&perm==='granted';
   let h='<div class="c"><h2>'+t('remT')+'</h2>';
@@ -734,11 +789,12 @@ function quick(ks){
 }
 const MOOD=['😞','🙁','😐','🙂','😄'];
 function checkin(d){
+  const hf=f=>d.hs&&(d.hs.f||[]).indexOf(f)>=0?' <small class="pill">'+t('hlFrom')+'</small>':'';
   const sc=(a,v,lab)=>'<div class="row" style="gap:6px"><span style="min-width:64px">'+lab+'</span>'+[1,2,3,4,5].map(i=>'<button class="sm'+(v===i?' on':'')+'" data-a="'+a+'" data-v="'+i+'" style="flex:1;min-width:0;padding:4px 0" aria-label="'+lab+' '+i+'">'+(a==='mood'?MOOD[i-1]:i)+'</button>').join('')+'</div>';
   return '<div class="c"><h2>'+t('ciT')+'</h2>'+sc('mood',d.mood,t('moodL'))+sc('nrg',d.nrg,t('nrgL'))
-   +'<div class="row"><label for="sl" style="flex:1">'+t('sleepL')+'</label><input class="s" id="sl" type="number" step="0.5" min="0" max="16" inputmode="decimal" value="'+esc(d.sl||'')+'"></div>'
+   +'<div class="row"><label for="sl" style="flex:1">'+t('sleepL')+hf('sl')+'</label><input class="s" id="sl" type="number" step="0.5" min="0" max="16" inputmode="decimal" value="'+esc(d.sl||'')+'"></div>'
    +'<div class="row"><span style="flex:1">'+t('waterL')+'</span><button class="sm" data-a="h2o" data-v="-1" aria-label="-1">−</button><b style="min-width:52px;text-align:center">'+(d.h2o||0)+' / 8</b><button class="sm" data-a="h2o" data-v="1" aria-label="+1">+</button></div>'
-   +'<div class="row"><label for="stp" style="flex:1">'+t('stepsL')+'</label><input class="s" id="stp" type="number" min="0" inputmode="numeric" value="'+esc(d.stp||'')+'" style="width:110px"></div></div>';
+   +'<div class="row"><label for="stp" style="flex:1">'+t('stepsL')+hf('stp')+'</label><input class="s" id="stp" type="number" min="0" inputmode="numeric" value="'+esc(d.stp||'')+'" style="width:110px"></div></div>';
 }
 /* ---------- supplements: [id, group, English, 中文, dose en, dose zh]; group am / pm / opt (as you like) ---------- */
 const SUPS=[['multi','am','Multivitamin & mineral','复合维生素矿物质片','1 tablet','1 粒'],['fo_am','am','Fish oil','鱼油','1 capsule','1 粒'],['crea','am','Creatine','肌酸','6 g','6 克'],
@@ -773,7 +829,7 @@ function todayCard(){
 }
 function hero(k,p,f,c){
   const T0=T(),r=T0.k-k;
-  let h=S.seen!==VER?'<div class="c hl"><h2>'+t('newT')+'</h2><ul style="margin:0 0 8px;padding-left:20px">'+['newV','newQ','newA','newR'].map(x=>'<li style="margin:4px 0">'+t(x)+'</li>').join('')+'</ul><button class="on sm" data-a="seen">'+t('newOk')+'</button></div>':'';
+  let h=S.seen!==VER?'<div class="c hl"><h2>'+t('newT')+'</h2><ul style="margin:0 0 8px;padding-left:20px">'+['newH','newM','newV','newQ'].map(x=>'<li style="margin:4px 0">'+t(x)+'</li>').join('')+'</ul><button class="on sm" data-a="seen">'+t('newOk')+'</button></div>':'';
   const C=2*Math.PI*52,pc=T0.k>0?Math.min(1,k/T0.k):0;
   const mac=(l,v,x,cl)=>'<div><div class="mh"><span>'+l+'</span><span><b>'+Math.round(v)+'</b> / '+x+'g</span></div><div class="m '+cl+'"><i style="width:'+Math.min(100,x>0?v/x*100:0)+'%"></i></div></div>';
   h+=todayCard();
@@ -793,10 +849,10 @@ function vToday(d){
     const ev=itemEv(d,cur,o.x),need=!o.x.x&&ev&&ev.ok,maybe=!o.x.x&&ev&&ev.maybe,part=!o.x.x&&ev&&!ev.ok&&ev.part;
     if(o.x.x)nd++;if(need||maybe)np++;
     const badge=need?'<span class="pill amb">'+t('evHave')+'</span>':maybe?'<span class="pill amb">'+t('evMaybe')+'</span>':part?'<span class="pill">'+ev.part+'</span>':'';
-    return '<div class="row'+(o===nx?' hl" style="border-radius:8px;padding:0 6px':(need||maybe?' amb':''))+'"><label class="ck" style="flex:1;margin:0">'+(o===nx?'<small style="color:var(--ac);font-weight:600;white-space:nowrap">'+t('nextL')+'</small>':'')+'<input type="checkbox" data-a="pdone" data-i="'+o.i+'"'+(o.x.x?' checked':'')+'><span><b>'+esc(o.x.t)+'</b> '+esc(tx(o.x.n,o.x.z))+(badge?' '+badge:'')+'</span></label><button class="sm" data-a="pdel" data-i="'+o.i+'" aria-label="Remove">×</button></div>'
+    return '<div class="row pr'+(o===nx?' hl" style="border-radius:8px;padding:0 6px':(need||maybe?' amb':''))+'"><input type="time" class="tm" data-pt="'+o.i+'" value="'+esc(o.x.t)+'" aria-label="'+t('timeL')+'"><label class="ck" style="flex:1;margin:0;min-width:0">'+(o===nx?'<small style="color:var(--ac);font-weight:600;white-space:nowrap">'+t('nextL')+'</small>':'')+'<input type="checkbox" data-a="pdone" data-i="'+o.i+'"'+(o.x.x?' checked':'')+'><span>'+esc(tx(o.x.n,o.x.z))+(badge?' '+badge:'')+'</span></label><button class="sm" data-a="pdel" data-i="'+o.i+'" aria-label="Remove">×</button></div>'
       +(qp===o.i&&o.x.x&&ev&&!ev.ok?'<div class="row" style="margin:0 0 8px 34px;gap:6px"><small style="width:100%">'+t('noRec')+'</small>'+quick(ev.ks)+'<button class="sm" data-a="qpx">'+t('qpNo')+'</button></div>':'');
   }).join('');
-  h+='<div class="c"><h2>'+t('plan')+' <small style="font-weight:500">'+t('planDoneN',{d:nd,n:pl.length})+(np?' · '+t('planPend',{n:np}):'')+'</small></h2>'+rows+'<div class="row"><input id="pt" type="time" style="width:120px"><input class="g" id="pn" placeholder="'+t('addplan')+'"><button data-a="padd">'+t('add')+'</button></div>'+tplRow()+'</div>';
+  h+='<div class="c"><h2>'+t('plan')+' <small style="font-weight:500">'+t('planDoneN',{d:nd,n:pl.length})+(np?' · '+t('planPend',{n:np}):'')+'</small></h2>'+rows+'<div class="row"><input id="pt" type="time" style="width:120px"><input class="g" id="pn" placeholder="'+t('addplan')+'"><button data-a="padd">'+t('add')+'</button></div>'+(pd.some(x=>!x.x)?'<div class="row" style="gap:6px"><small>'+t('psL')+'</small>'+[-15,15,30,60].map(m=>'<button class="sm" data-a="pshift" data-v="'+m+'">'+(m>0?'+':'−')+(Math.abs(m)===60?(L()?'1 小时':'1 h'):Math.abs(m)+(L()?' 分':' min'))+'</button>').join('')+'</div>':'')+tplRow()+'</div>';
   h+=checkin(d);
   h+='<div class="c"><label class="ck"><input type="checkbox" data-a="eng"'+(d.eng?' checked':'')+'> '+t('eng')+'</label></div>';
   h+='<div class="c"><h2>'+t('noteT')+'</h2><label for="win">'+t('winL')+'</label><textarea id="win" rows="2">'+esc(d.win)+'</textarea><label for="nx" style="display:block;margin-top:8px">'+t('nextL')+'</label><textarea id="nx" rows="3">'+esc(d.next)+'</textarea></div>';
@@ -858,13 +914,13 @@ function wkCard(d){
   return h+'<div class="row"><input class="g" id="wx" list="exl" autocomplete="off" placeholder="'+t('wkAdd')+'"><button data-a="wadd">'+t('add')+'</button></div><datalist id="exl">'+opts.map(o=>'<option value="'+esc(o)+'">').join('')+'</datalist></div>';
 }
 function vAct(d,k){
-  const tt=T(),w=W(),base=Math.round((10*w+6.25*tt.h-5*tt.a+5)*1.2),ex=d.ex.reduce((a,x)=>a+x.k,0),bal=Math.round(k-base-ex);
+  const tt=T(),w=W(),base=Math.round((10*w+6.25*tt.h-5*tt.a+5)*1.2),ex=Math.max(d.ex.reduce((a,x)=>a+x.k,0),d.hx||0),bal=Math.round(k-base-ex);
   let h='<div class="c"><h2>'+t('gym')+'</h2>'+GYM.map(g=>'<button class="ch'+(d.gym.indexOf(g[0])>=0?' on':'')+'" data-a="gym" data-g="'+g[0]+'">'+g[L()]+'</button>').join('')+'</div>'+wkCard(d);
   h+='<div class="c"><h2>'+t('timeT')+'</h2>'+CATS.map(c=>'<div class="row"><span>'+c[1+L()]+'</span><b>'+d.min[c[0]]+' '+t('min')+'</b><span class="sp"></span><button class="sm" data-a="min" data-c="'+c[0]+'" data-v="10">+10</button><button class="sm" data-a="min" data-c="'+c[0]+'" data-v="30">+30</button><button class="sm" data-a="min" data-c="'+c[0]+'" data-v="60">+60</button><button class="sm" data-a="min" data-c="'+c[0]+'" data-v="-10" aria-label="-10">−10</button></div>').join('');
   h+=(S.timer?'<div class="row"><input id="tmn" class="g" placeholder="'+t('tmNote')+'" value="'+esc(S.timer.note||'')+'"></div>'
     :'<div class="row hl" style="padding:10px;border-radius:12px"><span>'+t('tmStart')+'</span><select id="tc" style="width:auto">'+CATS.map(c=>'<option value="'+c[0]+'">'+c[1+L()]+'</option>').join('')+'</select><button class="on" data-a="tmgo">'+t('start')+'</button></div>')
     +((d.tl||[]).length?(d.tl||[]).map(x=>{const c=CATS.find(q=>q[0]===x.c);return '<div class="li"><span>⏱ '+(c?c[1+L()]:esc(x.c))+' · '+x.m+' '+t('min')+(x.n?' · '+esc(x.n):'')+'</span></div>'}).join(''):'')+'</div>';
-  h+='<div class="c"><h2>'+t('energy')+'</h2><div class="row"><select id="ea" style="width:auto;flex:1">'+ACT.map((a,i)=>'<option value="'+i+'">'+a[L()]+'</option>').join('')+'</select><input class="s" id="em" type="number" inputmode="numeric" placeholder="'+t('min')+'"><button data-a="exadd">'+t('add')+'</button></div>'+d.ex.map((x,i)=>'<div class="li"><span>'+esc(x.a!=null?ACT[x.a][L()]+', '+x.m+' '+t('min'):x.n)+'</span><span>'+x.k+' '+t('kc')+' <button class="sm" data-a="exdel" data-i="'+i+'" aria-label="Remove">×</button></span></div>').join('')+'<p>'+t('eatenL')+': <b>'+Math.round(k)+'</b> '+t('kc')+'<br>'+t('rest')+': <b>'+base+'</b> '+t('kc')+'<br>'+t('exL')+': <b>'+ex+'</b> '+t('kc')+'</p><p class="hl" style="padding:10px;border-radius:8px"><b>'+(bal>=0?t('surplus')+' +':t('deficit')+' ')+bal+' '+t('kc')+'</b><br><small>'+t('goalHint')+'</small></p><p class="mut">'+t('estNote')+' ('+w+' kg)</p></div>';
+  h+='<div class="c"><h2>'+t('energy')+'</h2><div class="row"><select id="ea" style="width:auto;flex:1">'+ACT.map((a,i)=>'<option value="'+i+'">'+a[L()]+'</option>').join('')+'</select><input class="s" id="em" type="number" inputmode="numeric" placeholder="'+t('min')+'"><button data-a="exadd">'+t('add')+'</button></div>'+d.ex.map((x,i)=>'<div class="li"><span>'+esc(x.a!=null?ACT[x.a][L()]+', '+x.m+' '+t('min'):x.n)+'</span><span>'+x.k+' '+t('kc')+' <button class="sm" data-a="exdel" data-i="'+i+'" aria-label="Remove">×</button></span></div>').join('')+(d.hx!=null?'<div class="li"><span>'+t('hlAct')+'</span><span>'+d.hx+' '+t('kc')+'</span></div><p class="mut" style="margin:4px 0 0">'+t('hlActNote')+'</p>':'')+'<p>'+t('eatenL')+': <b>'+Math.round(k)+'</b> '+t('kc')+'<br>'+t('rest')+': <b>'+base+'</b> '+t('kc')+'<br>'+t('exL')+': <b>'+ex+'</b> '+t('kc')+'</p><p class="hl" style="padding:10px;border-radius:8px"><b>'+(bal>=0?t('surplus')+' +':t('deficit')+' ')+bal+' '+t('kc')+'</b><br><small>'+t('goalHint')+'</small></p><p class="mut">'+t('estNote')+' ('+w+' kg)</p></div>';
   return h;
 }
 function weekSummary(k){
@@ -1159,7 +1215,7 @@ function vRev(){
   return goalCard()+trendCard()+streakCard()+reportCard()+adCard()+patCard()+heat()+'<div class="c"><h2>'+t('weight')+'</h2><div class="row"><input class="s" id="wt" type="number" step="0.1" inputmode="decimal" value="'+esc(d.wt)+'"><small>'+t('weightHint')+'</small></div></div>'
    +'<details class="c"><summary>'+t('targets')+'</summary>'+f('k',t('tk'),tt.k)+f('p',t('tp'),tt.p)+f('f',t('tf'),tt.f)+f('c',t('tc'),tt.c)+f('h',t('th'),tt.h)+f('a',t('ta'),tt.a)+'<p class="mut">'+t('tNote')+'</p></details>'+tplCard()
    +(user?'<div class="c"><h2>'+t('modeNow')+'</h2><p class="mut" style="margin:0">'+t('modeSync')+'</p><div class="row"><small>'+esc(user.email||'')+'</small><span class="sp"></span><button data-a="signout">'+t('signout')+'</button></div></div>':sb?'<div class="c"><h2>'+t('modeNow')+': '+t('skip')+'</h2><p class="mut" style="margin:0">'+t('modeLocal')+'</p><div class="row"><button data-a="tosync">'+t('toSync')+'</button></div><small>'+t('toSyncNote')+'</small></div>':'')+'<div class="c"><h2>'+t('tips')+'</h2><p class="mut">'+t('tipsT')+'</p><small>'+t('verL')+' '+VER+'</small></div>'
-   +remCard()+binCard()+'<details class="c"><summary>'+t('backup')+'</summary><textarea id="bk" rows="4"></textarea><div class="row"><button data-a="bshow">'+t('bshow')+'</button><button data-a="bcopy">'+t('bcopy')+'</button><button data-a="brest">'+t('brest')+'</button><button data-a="csv">'+t('csv')+'</button></div><div class="row"><button data-a="bfile">'+t('bfile')+'</button><button data-a="bpick">'+t('bfrest')+'</button><input type="file" id="bfi" accept="application/json,.json" hidden></div><div id="bm" class="mut"></div></details>';
+   +remCard()+hlCard()+binCard()+'<details class="c"><summary>'+t('backup')+'</summary><textarea id="bk" rows="4"></textarea><div class="row"><button data-a="bshow">'+t('bshow')+'</button><button data-a="bcopy">'+t('bcopy')+'</button><button data-a="brest">'+t('brest')+'</button><button data-a="csv">'+t('csv')+'</button></div><div class="row"><button data-a="bfile">'+t('bfile')+'</button><button data-a="bpick">'+t('bfrest')+'</button><input type="file" id="bfi" accept="application/json,.json" hidden></div><div id="bm" class="mut"></div></details>';
 }
 function vReset(){
   return '<div class="c" style="margin-top:40px"><h2>'+t('resetT')+'</h2><input class="big" id="np" type="password" autocomplete="new-password" placeholder="'+t('newPw')+'"><div class="row"><button class="on" data-a="setpw">'+t('setPw')+'</button></div><div class="mut" id="am">'+esc(authMsg)+'</div></div>';
@@ -1443,6 +1499,10 @@ document.addEventListener('click',e=>{
   else if(a==='remcat'){const c=b.dataset.c,r=remOn();S.rem=Object.assign({},S.rem,{[c]:!r[c]});touchCfg()}
   else if(a==='calpre'){S.rem=Object.assign({},S.rem,{calPre:b.checked});touchCfg()}
   else if(a==='calsub'){calSub();return}
+  else if(a==='hlcopy'){if(!user){toast(t('hlLogin'));return}hlCopy();return}
+  else if(a==='hlnew'){if(typeof confirm==='function'&&!confirm(t('hlNewQ')))return;hlToken(true);toast(t('hlNewOk'))}
+  else if(a==='pshift'){const m=+b.dataset.v,old=shiftPlan(d,cur,m);if(!old.length){toast(t('psNone'));return}
+    toast(t('psDone',{n:old.length,m:(m>0?'+':'−')+Math.abs(m)})+(S.cal_tok?' '+t('ptCal'):''),{label:t('undo'),fn:()=>{old.forEach(o=>{o[0].t=o[1]});touchDay(cur)}})}
   else if(a==='calnew'){if(typeof confirm==='function'&&!confirm(t('remCalNewQ')))return;calToken(true);toast(t('remCalNewOk'))}
   else if(a==='calcopy'){if(!user){toast(t('remLogin'));return}const u='webcal://'+calUrl();try{navigator.clipboard.writeText(u);toast(t('copied'))}catch(z){toast(u)}save();return}
   else if(a==='gstep'){const g=$('#fg');if(!g)return;g.value=Math.max(1,(parseFloat(g.value)||0)+(+b.dataset.v));updPrev();return}
@@ -1507,11 +1567,16 @@ document.addEventListener('change',e=>{
   // typing in the night note or weight saves as you go; link the plan once you leave the field
   if(['win','nx','wt'].indexOf(e.target.id)>=0){if(linkPlan(day(),cur,evSnap)){save();render()}return}
   if(e.target.dataset&&e.target.dataset.pg!=null){const x=ph.it&&ph.it[+e.target.dataset.pg],g=parseFloat(e.target.value);if(x&&g>0){phScale(x,Math.round(g));render()}return}
+  if(e.target.dataset&&e.target.dataset.pt!=null){
+    const d=day(),x=plan(d,cur)[+e.target.dataset.pt],v=e.target.value;if(!x||!v||v===x.t)return;
+    x.t=v;delete x.auto;const c=sameTime(d,cur,x);save();render();
+    toast((c.length?t('ptConf',{n:tx(c[0].n,c[0].z)}):t('ptMoved',{t:v}))+(S.cal_tok?' '+t('ptCal'):''));return;
+  }
   const tp=e.target.dataset&&e.target.dataset.tp;if(!tp)return;
-  const x=ensureTpl()[+e.target.dataset.i];if(!x)return;
+  const x=ensureTpl()[+e.target.dataset.i];if(!x)return;const o=x.slice();
   if(tp==='t')x[1]=e.target.value||'12:00';
   else{const v=e.target.value.trim();if(!v)return;x[2]=L()?'':v;x[3]=L()?v:''}
-  touchCfg();save();
+  touchCfg();const sp=tplSpread(o,x);save();if(sp)toast(t('tplSpread'));
 });
 const typing=el=>el&&(el.tagName==='TEXTAREA'||(el.tagName==='INPUT'&&!/checkbox|radio|file|button/.test(el.type)));
 document.addEventListener('focusin',e=>{if(!typing(e.target)||!document.body.classList)return;document.body.classList.add('kb');const el=e.target;setTimeout(()=>{if(el.scrollIntoView)el.scrollIntoView({block:'center',behavior:'smooth'})},320)});

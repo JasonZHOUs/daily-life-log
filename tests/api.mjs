@@ -159,4 +159,39 @@ await ok('sender sends each due reminder once, logs it, and drops expired device
   assert.equal(calls.posts[0][0], 'push_log'); assert.ok(calls.posts[0][1].key.endsWith('|pre'));
   assert.ok(calls.dels.some(p => p.includes('endpoint=eq.e2')));
 });
+const H = await import('../api/health.js');
+await ok('health: numbers from Shortcuts in any format, sleep in hours, minutes or seconds', async () => {
+  assert.equal(H.num('8,432'), 8432); assert.equal(H.num('8 432'), 8432); assert.equal(H.num('7,5'), 7.5); assert.equal(H.num(''), null);
+  const r = H.readHealth({ steps: '8,432.0', sleep: '450', active: '420.6', weight: 'abc' }, 'Asia/Singapore', new Date('2026-10-31T15:30:00Z'));
+  assert.equal(r.date, '2026-10-31');
+  assert.deepEqual(r.fields, { stp: '8432', sl: '7.5', hx: 421 });
+  assert.equal(H.readHealth({ sleep: 27000 }).fields.sl, '7.5');
+  assert.equal(H.readHealth({ sleep: 7.25 }).fields.sl, '7.3');
+  assert.equal(H.readHealth({ steps: 9, date: '2026-10-30' }).date, '2026-10-30');
+  assert.equal(H.readHealth({}, 'Asia/Singapore', new Date('2026-10-31T16:30:00Z')).date, '2026-11-01', 'after midnight in Singapore');
+  const d = H.applyHealth({ food: [{ b: 'Egg' }], stp: '100', mood: 4 }, { stp: '8432' }, 5);
+  assert.deepEqual(d, { food: [{ b: 'Egg' }], stp: '8432', mood: 4, hs: { at: 5, f: ['stp'] }, _t: 5 });
+});
+await ok('health handler: finds the account by link, keeps the rest of the day, rejects bad links', async () => {
+  const r1 = resMock(); await H.default({ query: { t: 'short' } }, r1); assert.equal(r1.code, 400);
+  process.env.SUPABASE_SERVICE_ROLE_KEY = 'svc';
+  const calls = []; const f0 = globalThis.fetch;
+  globalThis.fetch = async (url, opt = {}) => {
+    calls.push([url, opt.method || 'GET', opt.body]);
+    const ok = (b) => ({ ok: true, status: 200, json: async () => b, text: async () => '' });
+    if (url.includes('/cfg?')) return ok(url.includes('hl_tok=eq.goodtoken_goodtoken_1') ? [{ user_id: 'u1', tz: 'Asia/Singapore' }] : []);
+    if (url.includes('/days?select')) return ok([{ data: { food: [{ b: 'Egg', k: 72 }], h2o: 3 } }]);
+    return ok(null);
+  };
+  try {
+    const r2 = resMock(); await H.default({ query: { t: 'unknown_token_123456789' , steps: '5' } }, r2); assert.equal(r2.code, 404);
+    const r3 = resMock(); await H.default({ query: { t: 'goodtoken_goodtoken_1' } }, r3); assert.equal(r3.code, 400); assert.equal(r3.body.error, 'no_values');
+    const r4 = resMock(); await H.default({ query: { t: 'goodtoken_goodtoken_1', date: '2026-10-31' }, body: { steps: 8000, sleep: 7 } }, r4);
+    assert.equal(r4.code, 200); assert.deepEqual(r4.body.saved, { stp: '8000', sl: '7' });
+    const post = calls.find(c => c[1] === 'POST'); assert.ok(post[0].includes('days?on_conflict=user_id,day'));
+    const row = JSON.parse(post[2])[0];
+    assert.equal(row.user_id, 'u1'); assert.equal(row.day, '2026-10-31');
+    assert.equal(row.data.h2o, 3); assert.equal(row.data.food[0].b, 'Egg'); assert.equal(row.data.stp, '8000');
+  } finally { globalThis.fetch = f0; delete process.env.SUPABASE_SERVICE_ROLE_KEY; }
+});
 console.log(`\n${n} api checks passed`);
