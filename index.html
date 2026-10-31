@@ -93,6 +93,11 @@ label.ck{display:flex;gap:12px;align-items:center;margin:8px 0}
 .wc{flex:1;display:flex;flex-direction:column;align-items:center;text-align:center}
 .bw{height:72px;display:flex;align-items:flex-end;width:100%;background:var(--track);border-radius:8px;overflow:hidden}
 .bw i{display:block;width:100%;min-height:3px;background:linear-gradient(180deg,var(--ac2),var(--ac));border-radius:8px}
+.ch{display:block;margin:4px 0 0}.ch .tg{stroke:var(--mut);stroke-dasharray:3 3;stroke-width:1;opacity:.7}.ch .b0{fill:var(--ac);opacity:.35}.ch .b1{fill:var(--ac)}.ch .ln{fill:none;stroke:var(--ac);stroke-width:2;stroke-linejoin:round;stroke-linecap:round}.ch .dt{fill:var(--ac)}.ch .xl{font-size:9px;fill:var(--mut);text-anchor:middle}
+.hs{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin:0 -2px 4px;padding:0 2px 2px}.hs::-webkit-scrollbar{display:none}.hs button{flex:0 0 auto}
+.m.ov i{background:var(--warn)}
+.gt{display:grid;grid-template-columns:52px repeat(7,minmax(0,1fr));gap:4px;align-items:center;font-size:12px;color:var(--mut);text-align:center}
+.gt span:nth-child(8n+1){text-align:left}.gt i{display:block;height:18px;border-radius:5px;background:var(--track)}.gt i.y{background:linear-gradient(135deg,var(--ac),var(--ac2))}.gt i.fu{background:none;border:1px dashed var(--bd)}.gt b.full{color:var(--ac)}
 .hm{display:grid;grid-template-rows:repeat(7,1fr);grid-auto-flow:column;grid-auto-columns:1fr;gap:3px}
 .hm i{display:block;aspect-ratio:1;border-radius:4px;background:var(--track)}
 .hm i.l1{background:var(--ac);opacity:.35}.hm i.l2{background:var(--ac);opacity:.65}.hm i.l3{background:linear-gradient(135deg,var(--ac),var(--ac2))}
@@ -131,7 +136,7 @@ input,textarea,select{scroll-margin:96px 0 140px}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js" crossorigin="anonymous"></script>
 <script src="config.js"></script>
 <script>
-const KEY='dl1',KCAL=2800,PROT=120,VER='2026-10-31';
+const KEY='dl1',KCAL=2800,PROT=120,VER='2026-10-31.2';
 /* Storage slots keep "this device only" data and each account's data apart: dl1:local and dl1:u:<user id>.
    The old single key "dl1" is copied into the first slot opened, then kept as dl1:legacy. See docs/data-model.md. */
 const fresh=()=>({days:{},foods:[],dbx:[],t:{},gm:{},meals:[],tpl:null,lang:'',sched:[],stat:null,rem:{},tz:'',cal_tok:'',tpls:{},bin:[],timer:null,favs:[]});
@@ -166,8 +171,8 @@ gprot:['g protein','蛋白质克'],gfat:['g fat','脂肪克'],gcarb:['g carbs','
 gym:['Gym','健身'],timeT:['Study, lab and career time','学习、实验与职业技能时间'],focus:['Stuck? Start for just 10 minutes:','卡住了？先做10分钟：'],start:['Start timer','开始计时'],running:['Running…','进行中…'],doneT:['Done, +10 min logged ✓','完成，已记录10分钟 ✓'],min:['min','分钟'],
 energy:['Exercise and energy balance','运动与能量平衡'],eatenL:['Eaten','已摄入'],rest:['Resting and daily activity','基础代谢与日常活动'],exL:['Exercise','运动消耗'],surplus:['Surplus','盈余'],deficit:['Deficit','缺口'],
 goalHint:['For gaining muscle, aim for about +300 to +500.','增肌建议盈余约 +300 到 +500 千卡。'],estNote:['Rough estimate from your latest weight, height and age.','根据你最近的体重、身高和年龄粗略估算。'],
-week:['Last 7 days','最近7天'],gd:['Gym days','健身天数'],ed:['English days','英语天数'],wm:['Work minutes','学习工作分钟'],streak:['Gentle streak: {n} active days. One skipped day does not break it.','宽松连续：{n} 个活跃日，漏一天不会中断。'],
-weight:['Weight (kg)','体重（公斤）'],weightHint:['Weigh once a week, in the morning.','每周早上称一次。'],trendT:['Weight trend','体重趋势'],trendNone:['Log your weight on two different days to see a trend and a food hint.','在两个不同的日子记录体重，就能看到趋势和饮食建议。'],
+
+weight:['Weight (kg)','体重（公斤）'],weightHint:['Weigh once a week, in the morning.','每周早上称一次。'],
 h0:['Keep logging weekly. A trend needs two entries at least 10 days apart.','坚持每周记录，趋势需要至少间隔10天的两次记录。'],h1:['Flat or falling ({r} kg a week). Try adding about 200–300 kcal a day, for example milk and a banana after the gym.','体重持平或下降（每周 {r} 公斤）。可每天多吃约 200–300 千卡，例如健身后喝牛奶加一根香蕉。'],h2:['Gaining fast ({r} kg a week). You can trim about 150 kcal a day.','增重较快（每周 {r} 公斤）。可每天少吃约 150 千卡。'],h3:['On track: about {r} kg a week. Keep going.','进展正常：每周约 {r} 公斤，继续保持。'],
 heatT:['Last 12 weeks','最近12周'],heatNote:['Darker squares mean more of the day was logged.','颜色越深，当天记录越多。'],
 targets:['Targets and body','目标与身体数据'],tk:['Calories target (kcal)','热量目标（千卡）'],tp:['Protein target (g)','蛋白质目标（克）'],tf:['Fat target (g)','脂肪目标（克）'],tc:['Carbs target (g)','碳水目标（克）'],th:['Height (cm)','身高（厘米）'],ta:['Age','年龄'],tNote:['Used for the bars and the energy balance, which assumes a male body.','用于进度条和能量平衡（按男性计算）。'],
@@ -176,7 +181,7 @@ backup:['Backup and restore','备份与恢复'],bshow:['Show backup','显示备�
 addAll:['Add · {n} kcal','添加 · {n} 千卡'],lineHint:['Enter adds it. Separate foods with commas.','按回车添加，用逗号分隔多个食物。'],noMatch:['not found','没找到'],mealsT:['Recent meals: tap to repeat','最近的餐：点一下重复'],
 upd:['A new version is ready.','新版本已就绪。'],reload:['Reload','刷新'],offline:['Offline. Saved on this device, will sync later','离线中，已保存在本设备，稍后同步'],
 tplT:['Weekly plan template','每周计划模板'],tplNote:['Each new day starts with these items. Tap a weekday to turn it on or off for that item.','每天的计划由这里生成。点星期几来开启或关闭该事项。'],tplAdd:['Add item','添加事项'],tplNew:['New item','新事项'],tplReset:['Rebuild this day’s plan from the template','用模板重建这一天的计划'],tplDef:['Restore the original template','恢复默认模板'],tplOk:['Plan rebuilt ✓','计划已重建 ✓'],
-sumT:['This week at a glance','本周概览'],avgK:['Average calories','平均热量'],avgP:['Average protein','平均蛋白质'],protDays:['Protein target hit','蛋白质达标'],planDone:['Plan items done','计划完成'],wtCh:['Weight change','体重变化'],dys:['days','天'],sugT:['Suggestions','建议'],
+avgK:['Average calories','平均热量'],avgP:['Average protein','平均蛋白质'],protDays:['Protein target hit','蛋白质达标'],planDone:['Plan items done','计划完成'],wtCh:['Weight change','体重变化'],dys:['days','天'],sugT:['Suggestions','建议'],
 s_low:['You averaged {a} kcal, about {d} under your target. Add a snack such as milk and a banana.','平均每天 {a} 千卡，比目标少约 {d}。可以加一份加餐，例如牛奶加香蕉。'],
 s_high:['You averaged {a} kcal, about {d} over your target. Watch whether your weight rises faster than planned.','平均每天 {a} 千卡，比目标多约 {d}。留意体重是否涨得比计划快。'],
 s_prot:['Protein hit target on {n} of {m} logged days. Add eggs, Greek yogurt or whey at breakfast.','有记录的 {m} 天中只有 {n} 天蛋白质达标。早餐可以加鸡蛋、希腊酸奶或乳清蛋白。'],
@@ -249,6 +254,15 @@ allDoneT:['Everything on today’s plan is done','今天的计划都完成了'],
 favL:['Favourite','收藏'],favOn:['Added to favourites: it stays first on the shelf','已收藏：会一直排在快速添加最前面'],favOff:['Removed from favourites','已取消收藏'],
 merged:['Another device also changed {d}; both sets of changes were kept.','另一台设备也改过 {d}，两边的改动都已保留。'],
 newQ:['Faster logging: the top of the Food page shows what is next, with one-tap water. Tap ☆ on a food to keep it first on the shelf; foods from the last 7 days come next. When two devices change the same day, both changes are kept.','记录更快：饮食页顶部显示下一项，喝水点一下 +1。点食物旁的 ☆ 收藏，会一直排在快速添加最前面，其次是最近 7 天吃过的。两台设备改了同一天时，两边的改动都会保留。'],
+newV:['Trends and a weekly report (Review): 7- or 30-day charts for calories, protein, weight, sleep, mood, energy, steps and water; today’s goal bars; streaks that only count days you logged on the day; and a weekly report you can share as text or an image.','趋势与周报（复盘页）：热量、蛋白质、体重、睡眠、心情、精力、步数、饮水的 7 天 / 30 天趋势图；今日目标进度条；只算当天记录的连续打卡；可以分享文字或保存成图片的周报。'],
+gT:['Today’s goals','今日目标'],gKc:['Calories','热量'],gP:['Protein','蛋白质'],gW:['Water','饮水'],gSp:['Supplements','补剂'],gPl:['Plan','计划'],gWk:['this week {n}/{m} days','本周 {n}/{m} 天'],gNote:['Calories count as hit at 90–115% of the target, the plan at 80% of items done.','热量在目标的 90%–115% 之间算达标，计划完成 80% 算达标。'],
+trT:['Trends','趋势'],trW:['7 days','7 天'],trMo:['30 days','30 天'],mKc:['Calories','热量'],mP:['Protein','蛋白质'],mWt:['Weight','体重'],mSl:['Sleep','睡眠'],mMood:['Mood','心情'],mNrg:['Energy','精力'],mStp:['Steps','步数'],mW:['Water','饮水'],
+trNone:['Nothing logged in this period yet.','这段时间还没有记录。'],trAvg:['Average {v} ({n} of {m} days logged)','平均 {v}（{m} 天里记了 {n} 天）'],trVs:['{d} vs the period before','比前一段 {d}'],cups:['cups','杯'],
+skT:['Streaks','连续打卡'],skLog:['Logged food','记录饮食'],skBest:['best {n}','最长 {n}'],skBf:['{n} back-filled days in the last 30 are not counted.','最近 30 天有 {n} 天是补记的，不计入连续。'],
+skRule:['Only days recorded on the day count (until 3 am the next morning). Back-filled days do not count and end a streak. Today does not break it until it is over. After a break, the count starts again from the next day you hit it; your best stays.','只算当天记录的日子（到第二天凌晨 3 点为止）。补记的日子不计入，会中断连续；今天没结束前不算中断。中断后从下一个达标日重新开始计数，最长纪录会保留。'],
+rpT:['Weekly report','周报'],rpDays:['Days with every goal hit: {d}','全部达标的日子：{d}'],rpNone:['No day with every goal hit yet','还没有全部达标的日子'],rpMiss:['Missed most often','最容易漏'],rpMissN:['{l} (missed {m} of {n})','{l}（{n} 次漏了 {m} 次）'],rpMissNone:['Nothing missed so far. Nice.','目前没有漏掉的项目，很好。'],
+rpCmp:['Compared with last week','和上周比'],rpCmpNote:['Last week is counted over the same days of the week.','上周按相同的星期几来比。'],rpGym:['Gym days','健身天数'],rpMin:['Study and work minutes','学习工作分钟'],rpPl:['Plan done','计划完成'],rpH2o:['Average water','平均饮水'],rpPrev:['Previous week','上一周'],rpNext:['Next week','下一周'],
+rpShare:['Share','分享'],rpCopy:['Copy text','复制文字'],rpImg:['Save as image','保存图片'],rpCopied:['Report copied','周报已复制'],rpHit:['Goals hit','各项达标'],rpBy:['Daily Life Log','Daily Life Log'],
 newT:['New in this version','本次更新'],newOk:['Got it','知道了'],verL:['Version','版本'],
 new0:['New: log a meal from a photo. Tap the camera button on the Food tab, or use “Use an AI app (free)” with 豆包, Claude or ChatGPT and paste the reply. Check the grams, then tap Add.','新功能：拍照记录一餐。在“饮食”页点相机按钮；或点“用 AI App 识别（免费）”，用豆包、Claude 或 ChatGPT 识别后粘贴结果。核对克数后点“添加”。'],
 new1:['Food: type a whole meal, like “2 eggs, chicken rice, kopi”, then press Enter. About 50 Singapore and Chinese dishes added.','饮食：直接输入一餐，例如“两个鸡蛋，鸡饭，咖啡”，按回车即可。新增约50种新加坡和中式菜品。'],
@@ -395,9 +409,9 @@ function toast(m,act){
 /* ---------- saving and syncing ---------- */
 let sb=null,user=null,ready=false,skip=false,recov=false,authMode='in',authMsg='',authEmail='',dirty=new Set(),cfgDirty=false,st='local',tmr=null;
 const touchCfg=()=>{S._ct=Date.now();cfgDirty=true};
-function save(){const d=S.days[cur];if(d){d._t=Date.now();dirty.add(cur)}updSched();persist();schedule()}
+function save(){const d=S.days[cur];if(d){d._t=Date.now();markLive(cur);dirty.add(cur)}updSched();persist();schedule()}
 // mark another day as changed (e.g. the day a timer started)
-function touchDay(k){const d=S.days[k];if(d){d._t=Date.now();dirty.add(k)}}
+function touchDay(k){const d=S.days[k];if(d){d._t=Date.now();markLive(k);dirty.add(k)}}
 function schedule(){if(!user)return;clearTimeout(tmr);st='sync';updSync();tmr=setTimeout(flush,900)}
 function updSync(){const el=$('#sy');if(el)el.textContent=user?(navigator.onLine===false?t('offline'):st==='sync'?t('syncing'):st==='err'?t('syncerr'):t('synced')):t('local')}
 let retry=null;
@@ -449,7 +463,7 @@ function mergeDay(a,b,k){
   m.ex=uni(a.ex,b.ex,x=>JSON.stringify(x),'ex');
   m.tl=uni(a.tl,b.tl,x=>String(x.at),'tl');
   m.min={};['study','lab','ai','career'].forEach(c=>{m.min[c]=Math.max(a.min[c]||0,b.min[c]||0)});
-  m.eng=!!(a.eng||b.eng);m.h2o=Math.max(a.h2o||0,b.h2o||0);
+  m.eng=!!(a.eng||b.eng);if(a.lv||b.lv)m.lv=1;m.h2o=Math.max(a.h2o||0,b.h2o||0);
   ['mood','nrg','sl','stp','wt','win','next'].forEach(f=>{m[f]=a[f]||b[f]||''});
   return m;
 }
@@ -759,7 +773,7 @@ function todayCard(){
 }
 function hero(k,p,f,c){
   const T0=T(),r=T0.k-k;
-  let h=S.seen!==VER?'<div class="c hl"><h2>'+t('newT')+'</h2><ul style="margin:0 0 8px;padding-left:20px">'+['newQ','newR','newA','newP'].map(x=>'<li style="margin:4px 0">'+t(x)+'</li>').join('')+'</ul><button class="on sm" data-a="seen">'+t('newOk')+'</button></div>':'';
+  let h=S.seen!==VER?'<div class="c hl"><h2>'+t('newT')+'</h2><ul style="margin:0 0 8px;padding-left:20px">'+['newV','newQ','newA','newR'].map(x=>'<li style="margin:4px 0">'+t(x)+'</li>').join('')+'</ul><button class="on sm" data-a="seen">'+t('newOk')+'</button></div>':'';
   const C=2*Math.PI*52,pc=T0.k>0?Math.min(1,k/T0.k):0;
   const mac=(l,v,x,cl)=>'<div><div class="mh"><span>'+l+'</span><span><b>'+Math.round(v)+'</b> / '+x+'g</span></div><div class="m '+cl+'"><i style="width:'+Math.min(100,x>0?v/x*100:0)+'%"></i></div></div>';
   h+=todayCard();
@@ -853,20 +867,6 @@ function vAct(d,k){
   h+='<div class="c"><h2>'+t('energy')+'</h2><div class="row"><select id="ea" style="width:auto;flex:1">'+ACT.map((a,i)=>'<option value="'+i+'">'+a[L()]+'</option>').join('')+'</select><input class="s" id="em" type="number" inputmode="numeric" placeholder="'+t('min')+'"><button data-a="exadd">'+t('add')+'</button></div>'+d.ex.map((x,i)=>'<div class="li"><span>'+esc(x.a!=null?ACT[x.a][L()]+', '+x.m+' '+t('min'):x.n)+'</span><span>'+x.k+' '+t('kc')+' <button class="sm" data-a="exdel" data-i="'+i+'" aria-label="Remove">×</button></span></div>').join('')+'<p>'+t('eatenL')+': <b>'+Math.round(k)+'</b> '+t('kc')+'<br>'+t('rest')+': <b>'+base+'</b> '+t('kc')+'<br>'+t('exL')+': <b>'+ex+'</b> '+t('kc')+'</p><p class="hl" style="padding:10px;border-radius:8px"><b>'+(bal>=0?t('surplus')+' +':t('deficit')+' ')+bal+' '+t('kc')+'</b><br><small>'+t('goalHint')+'</small></p><p class="mut">'+t('estNote')+' ('+w+' kg)</p></div>';
   return h;
 }
-function week(){
-  let h='',gy=0,en=0,mm=0,st2=0,miss=0;
-  for(let i=6;i>=0;i--){
-    const k=shift(cur,-i),d=S.days[k]?norm(S.days[k]):null;
-    const kc=d?sum(d,'k'):0,m=d?tot(d):0;
-    if(d&&d.gym.length)gy++;if(d&&d.eng)en++;mm+=m;
-    h+='<div class="wc"><div class="bw"><i style="height:'+Math.min(100,kc/T().k*100)+'%"></i></div><small>'+new Date(k+'T00:00:00').toLocaleDateString(L()?'zh-CN':undefined,{weekday:'narrow'})+'</small><small>'+m+(L()?'分':'m')+'</small></div>';
-  }
-  for(let i=0;i<60;i++){
-    const d=S.days[shift(cur,-i)],act=d&&(tot(norm(d))>0||d.gym.length||d.eng);
-    if(act){st2++;miss=0}else{miss++;if(i>0&&miss>=2)break}
-  }
-  return '<div class="c"><h2>'+t('week')+'</h2><div class="wk">'+h+'</div><p>'+t('gd')+': <b>'+gy+'</b> · '+t('ed')+': <b>'+en+'</b> · '+t('wm')+': <b>'+mm+'</b></p><p>'+t('streak',{n:st2})+'</p></div>';
-}
 function weekSummary(k){
   const T0=T(),mins={study:0,lab:0,ai:0,career:0},parts=new Set();
   let fd=0,kc=0,pr=0,pd=0,gy=0,en=0,pt=0,px=0,spl=0,spc=0;const sls=[],mds=[],vol={},ts={n:0};
@@ -898,12 +898,6 @@ function weekSummary(k){
   if(!mins.ai)sug.push(t('s_ai'));
   if(pt>=7&&px/pt<.5)sug.push(t('s_plan',{r:Math.round(px/pt*100)}));
   return {ak:ak,ap:ap,pd:pd,fd:fd,gy:gy,en:en,mins:mins,pt:pt,px:px,spl:spl,spc:spc,wc:wc,as:as,am:am,vol:vol,sug:sug.length?sug.slice(0,3):[t('s_ok')]};
-}
-function sumCard(){
-  const s=weekSummary(cur),T0=T(),row=(l,v)=>'<div class="li"><span>'+l+'</span><b>'+v+'</b></div>';
-  return '<div class="c"><h2>'+t('sumT')+'</h2>'+row(t('avgK'),s.fd?s.ak+' / '+T0.k+' '+t('kc'):'–')+row(t('avgP'),s.fd?s.ap+' / '+T0.p+' g':'–')+row(t('protDays'),s.pd+' / '+s.fd+' '+t('dys'))+row(t('planDone'),s.pt?Math.round(s.px/s.pt*100)+'%':'–')+(s.spl?row(t('spDays'),s.spc+' / '+s.spl+' '+t('dys')):'')+(s.wc!=null?row(t('wtCh'),(s.wc>0?'+':'')+s.wc.toFixed(1)+' kg'):'')+(s.as?row(t('avgS'),s.as+' '+t('h')):'')+(s.am?row(t('avgM'),MOOD[Math.round(s.am)-1]+' '+s.am+' / 5'):'')
-   +(Object.keys(s.vol).length?row(t('wkT'),GYM.filter(g=>s.vol[g[0]]).map(g=>g[L()]+' '+s.vol[g[0]]).join(' · ')+' '+t('setsL')):'')
-   +'<h2 style="margin-top:14px">'+t('sugT')+'</h2><ul style="margin:0;padding-left:20px">'+s.sug.map(x=>'<li style="margin:4px 0">'+esc(x)+'</li>').join('')+'</ul></div>';
 }
 function adaptive(k){
   let ki=0,fd=0;const ws=[];
@@ -948,7 +942,7 @@ function toCSV(){
 }
 async function dlCSV(){await saveFile('daily-life-log-'+ymd(new Date())+'.csv',toCSV(),'text/csv');$('#bm').textContent=t('csvOk')}
 async function saveFile(name,text,type){
-  const blob=new Blob([text],{type:type+';charset=utf-8'});
+  const blob=text instanceof Blob?text:new Blob([text],{type:type+';charset=utf-8'});
   try{
     const f=new File([blob],name,{type:type});
     if(/iPhone|iPad|Android/i.test(navigator.userAgent)&&navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f]});return}
@@ -963,18 +957,183 @@ function restoreFrom(txt){
   ['foods','dbx','t','gm','meals','tpl'].forEach(f=>{if(o[f]!=null)S[f]=o[f]});
   touchCfg();persist();schedule();return true;
 }
-function trend(){
+/* ---------- goals, trends, streaks and the weekly report ---------- */
+// "Recorded on the day" = something changed on that day or before 3 am the next morning.
+const inWin=(k,ts)=>{const a=new Date(k+'T00:00:00').getTime();return ts>=a&&ts<a+27*36e5};
+function markLive(k){const d=S.days[k];if(d&&inWin(k,Date.now()))d.lv=1}
+// Days from before this marker existed: food times, timer entries or the last change tell.
+const isLive=(k,d)=>!!(d&&(d.lv||(d.food||[]).some(e=>e.at&&inWin(k,e.at))||(d.tl||[]).some(x=>x.at&&inWin(k,x.at))||(d._t&&inWin(k,d._t))));
+const GOALS=[['kc','gKc'],['p','gP'],['h2o','gW'],['sp','gSp'],['pl','gPl']];
+function goalVals(d){
+  const T0=T(),pl=d.plan||[],n=supReq.filter(q=>d.sp[q[0]]).length;
+  return {kc:[Math.round(sum(d,'k')),T0.k],p:[Math.round(sum(d,'p')),T0.p],h2o:[d.h2o||0,8],sp:[n||(d.supp?supReq.length:0),supReq.length],pl:[pl.filter(x=>x.x).length,pl.length]};
+}
+function goalHit(d){
+  const g=goalVals(d);
+  return {kc:g.kc[0]>=g.kc[1]*.9&&g.kc[0]<=g.kc[1]*1.15,p:g.p[0]>=g.p[1],h2o:g.h2o[0]>=8,sp:g.sp[0]>=g.sp[1],pl:g.pl[1]>0&&g.pl[0]/g.pl[1]>=.8};
+}
+const monday=k=>shift(k,-((new Date(k+'T00:00:00').getDay()+6)%7));
+function goalCard(){
+  const d=day(),g=goalVals(d),h=goalHit(d),td=ymd(new Date()),mon=monday(cur),ks=[];
+  for(let k=mon;k<=cur&&k<=td;k=shift(k,1))ks.push(k);
+  const wk={};GOALS.forEach(x=>{wk[x[0]]=ks.filter(k=>S.days[k]&&goalHit(norm(S.days[k]))[x[0]]).length});
+  const u={kc:' '+t('kc'),p:' g',h2o:' '+t('cups'),sp:'',pl:''};
+  return '<div class="c"><h2>'+t('gT')+(cur!==td?' · '+cur.slice(5):'')+'</h2>'+GOALS.map(x=>{
+    const v=g[x[0]],pc=v[1]>0?Math.min(100,v[0]/v[1]*100):0,ov=x[0]==='kc'&&v[0]>v[1]*1.15;
+    return '<div style="margin:8px 0"><div class="mh"><span>'+(h[x[0]]?'✓ ':'')+t(x[1])+' <small>'+t('gWk',{n:wk[x[0]],m:ks.length})+'</small></span><span><b>'+v[0]+'</b> / '+v[1]+u[x[0]]+'</span></div><div class="m'+(ov?' ov':'')+'"><i style="width:'+pc+'%"></i></div></div>';
+  }).join('')+'<p class="mut" style="margin:6px 0 0">'+t('gNote')+'</p></div>';
+}
+/* trends: one metric at a time, 7 or 30 days, with the target as a dashed line */
+const MET=[['kc','mKc'],['p','mP'],['wt','mWt'],['sl','mSl'],['mood','mMood'],['nrg','mNrg'],['stp','mStp'],['h2o','mW']];
+const BARS=['kc','p','stp','h2o'];
+let trM=pref('trm')||'kc',trR=+pref('trr')||7,rpW=0;
+if(!MET.some(m=>m[0]===trM))trM='kc';if(trR!==30)trR=7;
+function metVal(r,m){
+  if(!r)return null;const d=norm(r);
+  if(m==='kc'||m==='p')return d.food.some(e=>!e.pend)?Math.round(sum(d,m==='kc'?'k':'p')):null;
+  if(m==='wt'||m==='sl'||m==='stp'){const v=parseFloat(d[m]);return v>0?v:null}
+  if(m==='h2o')return d.h2o>0?d.h2o:null;
+  return d[m]||null;
+}
+const metTgt=m=>({kc:T().k,p:T().p,sl:7,stp:8000,h2o:8})[m];
+const metUnit=m=>({kc:' '+t('kc'),p:' g',wt:' kg',sl:' '+t('h'),stp:'',h2o:' '+t('cups'),mood:' / 5',nrg:' / 5'})[m];
+const fmtM=(m,v)=>v==null?'–':['wt','sl','mood','nrg'].indexOf(m)>=0?String(Math.round(v*10)/10):String(Math.round(v));
+const metOk=(m,v)=>{const g=metTgt(m);return g!=null&&v!=null&&(m==='kc'?v>=g*.9&&v<=g*1.15:v>=g)};
+function series(m,end,n){const o=[];for(let i=n-1;i>=0;i--){const k=shift(end,-i);o.push({k:k,v:metVal(S.days[k],m)})}return o}
+const avgOf=a=>{const v=a.filter(x=>x.v!=null).map(x=>x.v);return v.length?v.reduce((x,y)=>x+y,0)/v.length:null};
+function chart(s,m){
+  const vals=s.filter(p=>p.v!=null).map(p=>p.v);if(!vals.length)return '<p class="mut">'+t('trNone')+'</p>';
+  const W0=300,H0=118,top=8,bot=96,n=s.length,tg=metTgt(m),bar=BARS.indexOf(m)>=0,all=vals.concat(tg!=null?[tg]:[]);
+  let lo=Math.min.apply(null,all),hi=Math.max.apply(null,all);
+  if(m==='mood'||m==='nrg'){lo=1;hi=5}else if(bar){lo=0;hi=hi*1.08||1}else{const pd=(hi-lo)*.15||(m==='wt'?.5:1);lo-=pd;hi+=pd}
+  const cw=(W0-8)/n,x=i=>4+cw*i+cw/2,y=v=>bot-(v-lo)/(hi-lo||1)*(bot-top),r1=v=>Math.round(v*10)/10;
+  let g='';
+  if(tg!=null&&tg>=lo&&tg<=hi)g+='<line x1="4" x2="'+(W0-4)+'" y1="'+r1(y(tg))+'" y2="'+r1(y(tg))+'" class="tg"/>';
+  if(bar)s.forEach((p,i)=>{if(p.v==null)return;const bw=Math.max(2,cw*.62),yy=y(p.v);g+='<rect x="'+r1(x(i)-bw/2)+'" y="'+r1(yy)+'" width="'+r1(bw)+'" height="'+r1(Math.max(1.5,bot-yy))+'" rx="'+r1(Math.min(4,bw/2))+'" class="'+(metOk(m,p.v)?'b1':'b0')+'"><title>'+p.k+': '+fmtM(m,p.v)+'</title></rect>'});
+  else{
+    const pts=s.map((p,i)=>p.v==null?null:r1(x(i))+','+r1(y(p.v))).filter(Boolean);
+    if(pts.length>1)g+='<polyline points="'+pts.join(' ')+'" class="ln"/>';
+    s.forEach((p,i)=>{if(p.v!=null)g+='<circle cx="'+r1(x(i))+'" cy="'+r1(y(p.v))+'" r="'+(n>7?2.5:3.5)+'" class="dt"><title>'+p.k+': '+fmtM(m,p.v)+'</title></circle>'});
+  }
+  s.forEach((p,i)=>{if(n<=7||(n-1-i)%7===0)g+='<text x="'+r1(x(i))+'" y="'+(H0-6)+'" class="xl"'+(n>7&&i===n-1?' style="text-anchor:end"':'')+'>'+(n<=7?wdName(new Date(p.k+'T00:00:00').getDay()):(+p.k.slice(5,7))+'/'+(+p.k.slice(8)))+'</text>'});
+  return '<svg class="ch" viewBox="0 0 '+W0+' '+H0+'" width="100%" role="img" aria-label="'+esc(t(MET.find(q=>q[0]===m)[1]))+'">'+g+'</svg>';
+}
+function wtHint(){
   const ws=Object.keys(S.days).filter(k=>parseFloat(S.days[k].wt)>0).sort().map(k=>({k:k,w:parseFloat(S.days[k].wt)}));
-  if(ws.length<2)return '<div class="c"><h2>'+t('trendT')+'</h2><p class="mut">'+t('trendNone')+'</p></div>';
-  const last=ws[ws.length-1],pts=ws.slice(-12);
-  const lo=Math.min.apply(null,pts.map(p=>p.w))-.5,hi=Math.max.apply(null,pts.map(p=>p.w))+.5;
-  const xs=i=>10+i*(280/(pts.length-1)),ys=w=>70-(w-lo)/(hi-lo)*60;
-  const line=pts.map((p,i)=>xs(i)+','+ys(p.w)).join(' ');
-  const dots=pts.map((p,i)=>'<circle cx="'+xs(i)+'" cy="'+ys(p.w)+'" r="3" style="fill:var(--ac)"/>').join('');
-  const ref=ws.filter(p=>(new Date(last.k)-new Date(p.k))/864e5>=10).pop();
-  let hint=t('h0');
-  if(ref){const r=(last.w-ref.w)/((new Date(last.k)-new Date(ref.k))/864e5)*7,rr=r.toFixed(2);hint=r<0.15?t('h1',{r:rr}):r>0.6?t('h2',{r:rr}):t('h3',{r:rr})}
-  return '<div class="c"><h2>'+t('trendT')+'</h2><svg viewBox="0 0 300 80" width="100%" role="img" aria-label="'+t('trendT')+'"><polyline points="'+line+'" style="fill:none;stroke:var(--ac);stroke-width:2"/>'+dots+'</svg><p class="mut">'+esc(last.w)+' kg · '+last.k+'. '+hint+'</p></div>';
+  if(ws.length<2)return t('h0');
+  const last=ws[ws.length-1],ref=ws.filter(p=>(new Date(last.k)-new Date(p.k))/864e5>=10).pop();
+  if(!ref)return t('h0');
+  const r=(last.w-ref.w)/((new Date(last.k)-new Date(ref.k))/864e5)*7,rr=r.toFixed(2);
+  return r<0.15?t('h1',{r:rr}):r>0.6?t('h2',{r:rr}):t('h3',{r:rr});
+}
+function trendCard(){
+  const s=series(trM,cur,trR),a=avgOf(s),b=avgOf(series(trM,shift(cur,-trR),trR)),n=s.filter(p=>p.v!=null).length;
+  let info=a==null?'':t('trAvg',{v:fmtM(trM,a)+metUnit(trM),n:n,m:trR});
+  if(a!=null&&b!=null){const dl=a-b;info+=' · '+t('trVs',{d:(dl>0?'+':dl<0?'−':'±')+fmtM(trM,Math.abs(dl))+metUnit(trM)})}
+  if(trM==='wt')info+=(info?' ':'')+wtHint();
+  return '<div class="c"><div class="row" style="margin:0 0 8px;flex-wrap:nowrap"><h2 style="flex:1;margin:0">'+t('trT')+'</h2>'+[7,30].map(r=>'<button class="sm'+(trR===r?' on':'')+'" data-a="trr" data-v="'+r+'" aria-pressed="'+(trR===r)+'">'+t(r===7?'trW':'trMo')+'</button>').join('')+'</div>'
+    +'<div class="hs">'+MET.map(m=>'<button class="sm'+(trM===m[0]?' on':'')+'" data-a="trm" data-m="'+m[0]+'" aria-pressed="'+(trM===m[0])+'">'+t(m[1])+'</button>').join('')+'</div>'
+    +chart(s,trM)+(info?'<p class="mut" style="margin:4px 0 0">'+esc(info)+'</p>':'')+'</div>';
+}
+/* streaks: only days recorded on the day count; today is still open */
+const STK=[['log','skLog'],['p','gP'],['h2o','gW'],['sp','gSp'],['pl','gPl']];
+function dayOk(k,g){const r=S.days[k];if(!r)return false;const d=norm(r);return g==='log'?d.food.some(e=>!e.pend):goalHit(d)[g]}
+function streak(g,today){
+  today=today||ymd(new Date());
+  const ok=k=>dayOk(k,g)&&isLive(k,S.days[k]);
+  let c=0;for(let i=ok(today)?0:1;i<1000;i++){if(ok(shift(today,-i)))c++;else break}
+  let best=c,run=0;const ks=Object.keys(S.days).filter(k=>k<=today).sort();
+  if(ks.length)for(let k=ks[0];k<=today;k=shift(k,1)){if(ok(k)){run++;if(run>best)best=run}else run=0}
+  let bf=0;for(let i=0;i<30;i++){const k=shift(today,-i);if(dayOk(k,g)&&!isLive(k,S.days[k]))bf++}
+  return {cur:c,best:best,bf:bf};
+}
+function streakCard(){
+  const rs=STK.map(x=>({x:x,r:streak(x[0])})),bf=rs[0].r.bf;
+  return '<div class="c"><h2>'+t('skT')+'</h2>'+rs.map(o=>'<div class="li"><span>'+(o.r.cur?'🔥 ':'')+t(o.x[1])+'</span><span><b>'+o.r.cur+'</b> '+t('dys')+' <small class="mut">· '+t('skBest',{n:o.r.best})+'</small></span></div>').join('')
+    +(bf?'<p class="mut">'+t('skBf',{n:bf})+'</p>':'')+'<p class="mut" style="margin-bottom:0">'+t('skRule')+'</p></div>';
+}
+/* weekly report: Monday to Sunday */
+function wkStats(ks){
+  let fd=0,kc=0,pr=0,hw=0,hn=0,pt=0,px=0,gy=0,mn=0;const sl=[],md=[];
+  ks.forEach(k=>{const r=S.days[k];if(!r)return;const d=norm(r);
+    if(d.food.some(e=>!e.pend)){fd++;kc+=sum(d,'k');pr+=sum(d,'p')}
+    if(d.h2o){hw+=d.h2o;hn++}if(d.plan){pt+=d.plan.length;px+=d.plan.filter(x=>x.x).length}
+    const v=parseFloat(d.sl);if(v>0)sl.push(v);if(d.mood)md.push(d.mood);if(d.gym.length||d.wk.length)gy++;mn+=tot(d)});
+  const av=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:null;
+  return {kc:fd?kc/fd:null,p:fd?pr/fd:null,h2o:hn?hw/hn:null,pl:pt?px/pt*100:null,sl:av(sl),mood:av(md),gym:gy,min:mn};
+}
+function weekReport(mon){
+  const td=ymd(new Date()),ks=[];for(let i=0;i<7;i++){const k=shift(mon,i);if(k<=td)ks.push(k)}
+  const cnt={},of={},items={},rows=[];GOALS.forEach(g=>{cnt[g[0]]=0;of[g[0]]=0});
+  ks.forEach(k=>{
+    const r=S.days[k],d=r?norm(r):null,h=d?goalHit(d):{},open=k===td;let n=0;
+    // today is not over: a goal not reached yet is not a miss
+    GOALS.forEach(g=>{if(h[g[0]]){cnt[g[0]]++;n++}if(h[g[0]]||!open)of[g[0]]++});
+    if(d&&d.plan)d.plan.forEach(x=>{if(open&&!x.x)return;const q=x.n,o=items[q]||(items[q]={n:x.n,z:x.z,of:0,miss:0});o.of++;if(!x.x)o.miss++});
+    rows.push({k:k,n:n,h:h});
+  });
+  const miss=[];
+  GOALS.forEach(g=>{const m=of[g[0]]-cnt[g[0]];if(m>0)miss.push({l:t(g[1]),m:m,n:of[g[0]]})});
+  Object.keys(items).forEach(q=>{const o=items[q];if(o.of>=2&&o.miss>=2)miss.push({l:tx(o.n,o.z),m:o.miss,n:o.of})});
+  miss.sort((a,b)=>b.m/b.n-a.m/a.n||b.m-a.m);
+  const prev=ks.map(k=>shift(k,-7));
+  return {mon:mon,ks:ks,rows:rows,cnt:cnt,of:of,miss:miss.slice(0,2),full:rows.filter(r=>r.n===GOALS.length).map(r=>r.k),now:wkStats(ks),last:wkStats(prev),sum:ks.length?weekSummary(ks[ks.length-1]):null};
+}
+const wdLong=k=>new Date(k+'T00:00:00').toLocaleDateString(L()?'zh-CN':undefined,{weekday:'short'});
+function cmpRows(r){
+  const T0=T(),a=r.now,b=r.last,d=(x,y,f,u)=>x==null?'–':f(x)+(u||'')+(y!=null?' ('+(x-y>0?'+':x-y<0?'−':'±')+f(Math.abs(x-y))+')':'');
+  const i=v=>String(Math.round(v)),o=v=>String(Math.round(v*10)/10);
+  return [[t('avgK'),d(a.kc,b.kc,i,' / '+T0.k+' '+t('kc'))],[t('avgP'),d(a.p,b.p,i,' / '+T0.p+' g')],[t('rpH2o'),d(a.h2o,b.h2o,o,' '+t('cups'))],[t('rpPl'),d(a.pl,b.pl,i,'%')],
+    [t('avgS'),d(a.sl,b.sl,o,' '+t('h'))],[t('avgM'),d(a.mood,b.mood,o,' / 5')],[t('rpGym'),d(a.gym,b.gym,i,' '+t('dys'))],[t('rpMin'),d(a.min,b.min,i,' '+t('min'))]]
+    .concat(r.sum&&r.sum.wc!=null?[[t('wtCh'),(r.sum.wc>0?'+':'')+r.sum.wc.toFixed(1)+' kg']]:[]);
+}
+const rpRange=mon=>(+mon.slice(5,7))+'/'+(+mon.slice(8))+' – '+(+shift(mon,6).slice(5,7))+'/'+(+shift(mon,6).slice(8));
+function rpText(mon){
+  const r=weekReport(mon),sep=L()?'、':', ',cl=L()?'：':': ';
+  const L1=['📊 '+t('rpT')+' '+rpRange(mon),'',r.full.length?t('rpDays',{d:r.full.map(wdLong).join(sep)}):t('rpNone'),
+    t('rpHit')+cl+GOALS.map(g=>t(g[1])+' '+r.cnt[g[0]]+'/'+r.of[g[0]]).join(' · '),
+    t('rpMiss')+cl+(r.miss.length?r.miss.map(x=>t('rpMissN',{l:x.l,m:x.m,n:x.n})).join(sep):t('rpMissNone')),'',t('rpCmp')+cl.trim()]
+    .concat(cmpRows(r).map(x=>'• '+x[0]+cl+x[1]));
+  if(r.sum)L1.push('',t('sugT')+cl.trim(),...r.sum.sug.map(x=>'• '+x));
+  return L1.concat(['','— '+t('rpBy')]).join('\n');
+}
+function reportCard(){
+  const mon=shift(monday(cur),7*rpW),r=weekReport(mon),td=ymd(new Date()),sep=L()?'、':', ';
+  let g='<span></span>';for(let i=0;i<7;i++){const k=shift(mon,i);g+='<span>'+wdName(new Date(k+'T00:00:00').getDay())+'</span>'}
+  GOALS.forEach(x=>{g+='<span>'+t(x[1])+'</span>';for(let i=0;i<7;i++){const k=shift(mon,i),w=r.rows.find(o=>o.k===k);g+=k>td?'<i class="fu"></i>':'<i class="'+(w&&w.h[x[0]]?'y':'')+'" title="'+k+'"></i>'}});
+  g+='<span></span>';for(let i=0;i<7;i++){const k=shift(mon,i),w=r.rows.find(o=>o.k===k);g+=w?'<b class="'+(w.n===GOALS.length?'full':'')+'">'+w.n+'/'+GOALS.length+'</b>':'<span></span>'}
+  const row=(l,v)=>'<div class="li"><span>'+l+'</span><b style="text-align:right">'+esc(v)+'</b></div>';
+  return '<div class="c"><div class="row" style="margin:0 0 8px;flex-wrap:nowrap"><h2 style="flex:1;margin:0">'+t('rpT')+' <small style="font-weight:500">'+rpRange(mon)+'</small></h2><button class="sm" data-a="rpw" data-v="-1" aria-label="'+t('rpPrev')+'">‹</button><button class="sm" data-a="rpw" data-v="1" aria-label="'+t('rpNext')+'"'+(rpW>=0?' disabled':'')+'>›</button></div>'
+    +'<div class="gt">'+g+'</div>'
+    +'<p style="margin:12px 0 4px"><b>'+(r.full.length?esc(t('rpDays',{d:r.full.map(wdLong).join(sep)})):t('rpNone'))+'</b></p>'
+    +'<h2 style="margin-top:14px">'+t('rpMiss')+'</h2>'+(r.miss.length?'<ul style="margin:0;padding-left:20px">'+r.miss.map(x=>'<li style="margin:4px 0">'+esc(t('rpMissN',{l:x.l,m:x.m,n:x.n}))+'</li>').join('')+'</ul>':'<p class="mut" style="margin:0">'+t('rpMissNone')+'</p>')
+    +'<h2 style="margin-top:14px">'+t('rpCmp')+'</h2>'+cmpRows(r).map(x=>row(x[0],x[1])).join('')+'<p class="mut" style="margin:4px 0 0">'+t('rpCmpNote')+'</p>'
+    +(r.sum?'<h2 style="margin-top:14px">'+t('sugT')+'</h2><ul style="margin:0;padding-left:20px">'+r.sum.sug.map(x=>'<li style="margin:4px 0">'+esc(x)+'</li>').join('')+'</ul>':'')
+    +'<div class="row"><button class="on" data-a="rpshare">'+t('rpShare')+'</button><button data-a="rpcopy">'+t('rpCopy')+'</button><button data-a="rpimg">'+t('rpImg')+'</button></div></div>';
+}
+async function rpSend(share){
+  const txt=rpText(shift(monday(cur),7*rpW));
+  if(share&&navigator.share){try{await navigator.share({title:t('rpT'),text:txt});return}catch(e){if(e&&e.name==='AbortError')return}}
+  try{await navigator.clipboard.writeText(txt);toast(t('rpCopied'))}catch(e){toast(txt.slice(0,120)+'…')}
+}
+// The report as a PNG, drawn on a canvas, so it can go to Photos or a chat.
+async function rpImage(mon){
+  const cv=document.createElement('canvas'),x=cv.getContext&&cv.getContext('2d');if(!x)return false;
+  const W0=1080,P=72,F='-apple-system,"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Helvetica Neue",sans-serif';
+  const font=i=>(i===0?'700 54px ':'400 36px ')+F,out=[];
+  rpText(mon).split('\n').forEach((l,i)=>{
+    x.font=font(i);let cur2='';
+    (l.match(/[　-鿿＀-￯]|[^\s　-鿿＀-￯]+\s*|\s+/g)||['']).forEach(tk=>{if(cur2&&!/^[，。、；：！？）》」』]/.test(tk)&&x.measureText(cur2+tk).width>W0-2*P){out.push([i,cur2]);cur2=tk.trimStart()}else cur2+=tk});
+    out.push([i,cur2]);
+  });
+  const lh=o=>o[0]===0?86:o[1]?56:28;
+  cv.width=W0;cv.height=P*2+out.reduce((a,o)=>a+lh(o),0);
+  x.fillStyle='#fbfaf7';x.fillRect(0,0,W0,cv.height);
+  const gr=x.createLinearGradient(0,0,W0,0);gr.addColorStop(0,'#3b4fd8');gr.addColorStop(1,'#7b5cf0');x.fillStyle=gr;x.fillRect(0,0,W0,16);
+  let y=P;x.textBaseline='top';
+  out.forEach(o=>{x.font=font(o[0]);x.fillStyle=o[0]===0?'#15171d':/^—/.test(o[1])?'#8a8d98':'#2c2f38';x.fillText(o[1],P,y);y+=lh(o)});
+  const blob=await new Promise(r=>cv.toBlob(r,'image/png'));if(!blob)return false;
+  await saveFile('weekly-report-'+mon+'.png',blob,'image/png');return true;
 }
 function heat(){
   let c='';
@@ -997,7 +1156,7 @@ function tplCard(){
 }
 function vRev(){
   const d=day(),tt=T(),f=(id,l,v)=>'<div class="row"><label for="t_'+id+'">'+l+'</label><span class="sp"></span><input class="s" id="t_'+id+'" type="number" value="'+v+'"></div>';
-  return week()+sumCard()+adCard()+patCard()+trend()+heat()+'<div class="c"><h2>'+t('weight')+'</h2><div class="row"><input class="s" id="wt" type="number" step="0.1" inputmode="decimal" value="'+esc(d.wt)+'"><small>'+t('weightHint')+'</small></div></div>'
+  return goalCard()+trendCard()+streakCard()+reportCard()+adCard()+patCard()+heat()+'<div class="c"><h2>'+t('weight')+'</h2><div class="row"><input class="s" id="wt" type="number" step="0.1" inputmode="decimal" value="'+esc(d.wt)+'"><small>'+t('weightHint')+'</small></div></div>'
    +'<details class="c"><summary>'+t('targets')+'</summary>'+f('k',t('tk'),tt.k)+f('p',t('tp'),tt.p)+f('f',t('tf'),tt.f)+f('c',t('tc'),tt.c)+f('h',t('th'),tt.h)+f('a',t('ta'),tt.a)+'<p class="mut">'+t('tNote')+'</p></details>'+tplCard()
    +(user?'<div class="c"><h2>'+t('modeNow')+'</h2><p class="mut" style="margin:0">'+t('modeSync')+'</p><div class="row"><small>'+esc(user.email||'')+'</small><span class="sp"></span><button data-a="signout">'+t('signout')+'</button></div></div>':sb?'<div class="c"><h2>'+t('modeNow')+': '+t('skip')+'</h2><p class="mut" style="margin:0">'+t('modeLocal')+'</p><div class="row"><button data-a="tosync">'+t('toSync')+'</button></div><small>'+t('toSyncNote')+'</small></div>':'')+'<div class="c"><h2>'+t('tips')+'</h2><p class="mut">'+t('tipsT')+'</p><small>'+t('verL')+' '+VER+'</small></div>'
    +remCard()+binCard()+'<details class="c"><summary>'+t('backup')+'</summary><textarea id="bk" rows="4"></textarea><div class="row"><button data-a="bshow">'+t('bshow')+'</button><button data-a="bcopy">'+t('bcopy')+'</button><button data-a="brest">'+t('brest')+'</button><button data-a="csv">'+t('csv')+'</button></div><div class="row"><button data-a="bfile">'+t('bfile')+'</button><button data-a="bpick">'+t('bfrest')+'</button><input type="file" id="bfi" accept="application/json,.json" hidden></div><div id="bm" class="mut"></div></details>';
@@ -1314,6 +1473,11 @@ document.addEventListener('click',e=>{
   else if(a==='spall'){SUPS.filter(s=>s[1]===b.dataset.g).forEach(s=>{d.sp[s[0]]=true});supSync(d)}
   else if(a==='csv'){dlCSV();return}
   else if(a==='aduse'){const v=+b.dataset.v;if(!(v>0))return;S.t.k=v;touchCfg();save();render();const m=$('#adm');if(m)m.textContent=t('adOk');return}
+  else if(a==='trm'){trM=b.dataset.m;pref('trm',trM);render();return}
+  else if(a==='trr'){trR=+b.dataset.v;pref('trr',String(trR));render();return}
+  else if(a==='rpw'){rpW=Math.min(0,rpW+(+b.dataset.v));render();return}
+  else if(a==='rpshare'||a==='rpcopy'){rpSend(a==='rpshare');return}
+  else if(a==='rpimg'){rpImage(shift(monday(cur),7*rpW));return}
   else if(a==='seen'){S.seen=VER;persist();render();return}
   else if(a==='bshow'){$('#bk').value=JSON.stringify(S);$('#bm').textContent=t('bok');return}
   else if(a==='bcopy'){const x=$('#bk');x.select();let ok=false;try{ok=document.execCommand('copy')}catch(z){}try{navigator.clipboard.writeText(x.value)}catch(z){}$('#bm').textContent=ok?t('bcp'):t('bman');return}

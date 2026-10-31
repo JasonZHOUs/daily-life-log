@@ -442,4 +442,60 @@ await okA('an edit made while uploading is not lost', async () => {
   assert.equal(J(e, `dirty.has('2026-10-05')`), true, 'still marked for upload');
   assert.equal(J(e, `S.days['2026-10-05']._s`), 10);
 });
+ok('a day counts as recorded on the day only when changed before 3 am the next morning', () => {
+  env0.run(`S.days={};cur=ymd(new Date());day();save()`);
+  assert.equal(env.run(`S.days[cur].lv`), 1);
+  env0.run(`cur='2026-01-05';day();save()`);
+  assert.equal(env.run(`S.days['2026-01-05'].lv`), undefined, 'back-filled');
+  // older days: a food time on the day is enough
+  assert.equal(env.run(`isLive('2026-01-06',{food:[{b:'Egg',k:72,at:new Date('2026-01-07T02:30:00').getTime()}]})`), true);
+  assert.equal(env.run(`isLive('2026-01-06',{food:[{b:'Egg',k:72,at:new Date('2026-01-07T09:00:00').getTime()}]})`), false);
+  assert.equal(env.run(`mergeDay(norm({}),norm({lv:1}),'2026-01-06').lv`), 1);
+});
+ok('streaks: back-filled days do not count, today is still open, best is kept', () => {
+  const day = (k, live) => `S.days['${k}']=norm({h2o:8,food:[{b:'Egg',k:72}]${live ? ',lv:1' : ''}});`;
+  env0.run(`S.days={};` + day('2026-03-01', 1) + day('2026-03-02', 1) + day('2026-03-03', 1) + day('2026-03-04', 0) + day('2026-03-05', 1) + day('2026-03-06', 1));
+  const r = env.run(`streak('h2o','2026-03-07')`);   // nothing yet on the 7th: open, not a break
+  assert.deepEqual(r, { cur: 2, best: 3, bf: 1 });
+  assert.equal(env.run(`streak('log','2026-03-06').cur`), 2);
+  env0.run(`S.days['2026-03-06'].h2o=3`);
+  assert.equal(env.run(`streak('h2o','2026-03-07').cur`), 0, 'a missed yesterday ends it');
+});
+ok('weekly report: days with every goal, the 1–2 most missed items, today not a miss', () => {
+  env0.run(`S.lang='en';S.days={};S.t={k:2000,p:100}`);
+  const td = env.run(`ymd(new Date())`), mon = env.run(`monday(ymd(new Date()))`);
+  const full = `{food:[{b:'Meal',k:2000,p:120}],h2o:8,sp:{multi:1,fo_am:1,crea:1,fo_pm:1,mg:1},plan:[{t:'08:00',n:'Run',z:'跑步',x:true},{t:'22:00',n:'English',z:'口语',x:true}]}`;
+  const miss = `{food:[{b:'Meal',k:2000,p:120}],h2o:3,sp:{multi:1,fo_am:1,crea:1,fo_pm:1,mg:1},plan:[{t:'08:00',n:'Run',z:'跑步',x:true},{t:'22:00',n:'English',z:'口语',x:false}]}`;
+  env0.run(`S.days['${env.run(`shift('${mon}',-7)`)}']=norm(${full});S.days['${env.run(`shift('${mon}',-6)`)}']=norm(${miss});S.days['${env.run(`shift('${mon}',-5)`)}']=norm(${miss})`);
+  const r = env.run(`weekReport(shift('${mon}',-7))`);
+  assert.equal(r.ks.length, 7);
+  assert.deepEqual(r.full, [env.run(`shift('${mon}',-7)`)]);
+  assert.deepEqual(r.miss.map(x => x.l), ['Water', 'Plan']);   // missed 6 of 7; calories only 4
+  assert.deepEqual(r.miss.map(x => x.n), [7, 7]);
+  const txt = env.run(`rpText(shift('${mon}',-7))`);
+  assert.match(txt, /Weekly report/); assert.match(txt, /Missed most often: /); assert.match(txt, /Compared with last week/);
+  // the open day: an unticked task and no water yet are not misses
+  env0.run(`S.days={};S.days['${td}']=norm({plan:[{t:'23:00',n:'Bed',z:'',x:false}]})`);
+  const w = env.run(`weekReport('${mon}')`);
+  assert.deepEqual(w.miss.filter(x => x.l === 'Bed'), []);
+  assert.equal(w.of.h2o, w.ks.length - 1);
+  env0.run(`S.t=null`);
+});
+ok('trends: 7 or 30 days, bars with a target line, gaps where nothing was logged', () => {
+  env0.run(`S.days={};S.days['2026-04-10']=norm({food:[{b:'A',k:2900,p:130}],sl:'7.5',wt:'64.2'});S.days['2026-04-08']=norm({food:[{b:'B',k:1500,p:60}],sl:'6',wt:'64'});cur='2026-04-10'`);
+  const s = env.run(`series('kc','2026-04-10',7)`);
+  assert.equal(s.length, 7); assert.equal(s[6].v, 2900); assert.equal(s[5].v, null);
+  const svg = env.run(`chart(series('kc','2026-04-10',7),'kc')`);
+  assert.equal((svg.match(/<rect/g) || []).length, 2); assert.match(svg, /class="tg"/); assert.match(svg, /class="b1"/); assert.match(svg, /class="b0"/);
+  assert.match(env.run(`chart(series('sl','2026-04-10',30),'sl')`), /<polyline/);
+  for (const lang of ['en', 'zh']) for (const m of ['kc', 'p', 'wt', 'sl', 'mood', 'nrg', 'stp', 'h2o']) for (const r of [7, 30]) {
+    env0.run(`S.lang='${lang}';trM='${m}';trR=${r};tab='rev';render()`);
+    const h = env0.els.app.innerHTML;
+    assert.ok(!/undefined|NaN/.test(h), `${lang} ${m} ${r}`);
+  }
+  env0.run(`S.lang='zh';trM='kc';trR=7;render()`);
+  const h = env0.els.app.innerHTML;
+  for (const x of ['今日目标', '趋势', '连续打卡', '周报', '和上周比', '保存图片']) assert.ok(h.includes(x), x);
+  env0.run(`S.lang='en'`);
+});
 console.log(`\n${n} checks passed`);

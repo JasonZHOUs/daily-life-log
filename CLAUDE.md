@@ -29,7 +29,7 @@ Plan items get kinds from their text (`kindsOf`: breakfast, snack, morning/eveni
 - The service worker shows pushes and never caches `/api/`. An in-app banner shows items due within 15 min or overdue when the app is open.
 
 ## Roadmap
-`docs/roadmap.md` is the user's phased checklist. Done: Phase 0, Phase 1, Phase 2, Phase 6 (sign-in errors, reset, modes), extras A (timer with pause/note, `S.timer` stored locally), C (7-day recycle bin `S.bin` + Undo toast), E (built-in day templates `BTPL` + saved `S.tpls`), F (copy yesterday's plan), I (photo-first pending meals with a 640 px thumbnail), L (±10 g steppers), Phase 3 (today card with next item and one-tap water on the first page, food favourites `S.favs` and a shelf ordered favourites → last 7 days by recency → 30-day frequency, tab bar hidden while typing, per-day merge on sync conflicts). Next: Phase 4 (trends and weekly report).
+`docs/roadmap.md` is the user's phased checklist. Done: Phase 0, Phase 1, Phase 2, Phase 6 (sign-in errors, reset, modes), extras A (timer with pause/note, `S.timer` stored locally), C (7-day recycle bin `S.bin` + Undo toast), E (built-in day templates `BTPL` + saved `S.tpls`), F (copy yesterday's plan), I (photo-first pending meals with a 640 px thumbnail), L (±10 g steppers), Phase 3 (today card with next item and one-tap water on the first page, food favourites `S.favs` and a shelf ordered favourites → last 7 days by recency → 30-day frequency, tab bar hidden while typing, per-day merge on sync conflicts), Phase 4 (Review tab: goal bars, 7/30-day trend chart per metric, streaks, Monday–Sunday weekly report shareable as text or PNG). Next: Phase 5 (health data and plan templates).
 
 ## UI structure
 Four bottom tabs, in order: Food (opens first: calorie ring and macros, search box that also parses a whole meal, recent meals, supplements card in three groups morning / evening / as you like, one-tap shelf of frequent foods, quick kcal add, custom food), Plan (internal tab key `today`: last night's tasks, daily plan, body-and-mind check-in, English habit, night note), Activity (gym parts, study/lab minutes with 10-minute timer, exercise and energy balance), Review (week bars, weekly summary with suggestions, weight trend, 12-week heatmap, targets, weekly plan template editor, backup and CSV export).
@@ -41,11 +41,13 @@ Four bottom tabs, in order: Food (opens first: calorie ring and macros, search b
 - Adaptive calories (`adaptive`, MacroFactor-style): real burn = average intake on logged days − weight slope (least squares over the last 28 days) × 7700. Needs 10+ food days and 2 weigh-ins 10+ days apart. Target = burn + 275 (≈ +0.25 kg a week).
 - Patterns (`patterns`, Exist-style): compares mood, work minutes and energy between groups (sleep 7h+, gym day, 8,000+ steps) over 60 days, shown only when both groups have 5+ days.
 - Research on similar products and open-source options: `docs/research.md`.
+- Recorded on the day: `save()`/`touchDay()` set `d.lv=1` when the change happens before 03:00 the next morning (`markLive`); older days fall back to food `at` / timer `at` / `_t` (`isLive`). Streaks (`streak(goal)`) only count live days that hit the goal; today stays open; back-filled days end a streak. Goals (`goalHit`): calories 90–115% of target, protein ≥ target, water ≥ 8, all required supplements, plan ≥ 80%.
+- Weekly report: `weekReport(monday)` (hits per goal, top 2 missed goals or recurring plan items, compared with the same weekdays last week); `rpText` for sharing, `rpImage` draws it on a canvas.
 - Weekly review: `weekSummary(day)` returns averages and up to 3 rule-based suggestions; `toCSV()` exports all non-empty days (UTF-8 BOM for Excel).
 All UI strings live in the `I` dictionary as [English, 中文]; use `t('key')`. Every new string must have both languages.
 
 ## Design principles (from research on other trackers)
-Fewest taps for repeated actions; frequent-foods shelf and remembered portions; show remaining nutrients live; forgiving streaks (one skipped day does not reset); uncluttered screens; installs to the iPhone Home Screen.
+Fewest taps for repeated actions; frequent-foods shelf and remembered portions; show remaining nutrients live; honest streaks (back-filled days do not count, but the best run is kept); uncluttered screens; installs to the iPhone Home Screen.
 
 ## Rules for working here
 - Keep the app usable on a 390 px wide iPhone screen. Inputs at least 16 px font. Respect safe-area insets.
