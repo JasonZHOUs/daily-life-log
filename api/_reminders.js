@@ -3,12 +3,13 @@
 // The app keeps these fields in the user's cfg row (public.cfg.data):
 //   sched: [{ d:"YYYY-MM-DD", t:"HH:MM", n:"name in the user's language", c:"plan"|"sup"|"note", k:[kinds], x:done, nx:"next item" }]
 //          for today and the next 13 days (today's x mirrors the plan ticks)
-//   stat:  { d:"YYYY-MM-DD", h2o:cups, dinner:bool }   today's water and whether dinner is logged
-//   rem:   { push, plan, sup, water, note, calPre }      reminder settings; calPre = 15-minute alerts come from the calendar
+//   stat:  { d:"YYYY-MM-DD", h2o:cups, dinner:bool, gym:bool }   today's water, whether dinner is logged, whether training is logged
+//   rem:   { push, plan, sup, water, note, calPre, exam } reminder settings; calPre = 15-minute alerts come from the calendar;
+//          exam = exam week, one summary a day instead of separate reminders
 //   tz:    IANA time zone, e.g. "Asia/Singapore"
 //   lang:  "zh" | "en"
 
-const DEF = { plan: true, sup: true, water: true, note: true, calPre: false };
+const DEF = { plan: true, sup: true, water: true, note: true, calPre: false, exam: false };
 export const settings = (rem) => ({ ...DEF, ...(rem || {}) });
 const hm = (t) => { const [h, m] = String(t).split(":").map(Number); return h * 60 + (m || 0); };
 
@@ -35,6 +36,8 @@ const T = {
   dinB: ["No dinner logged yet. Eat about 1 to 2 hours before training.", "今天还没记晚饭，训练前 1 到 2 小时吃比较好。"],
   watT: ["Water", "喝水"],
   watB: ["{n} of 8 cups so far. Have a glass now.", "今天喝了 {n} / 8 杯，现在喝一杯吧。"],
+  watG: ["You trained today and have had {n} of 8 cups. Drink a glass or two before bed.", "今天练过了，目前喝了 {n} / 8 杯，睡前再补一两杯。"],
+  exT: ["Today's plan", "今日安排"],
 };
 const tr = (lang, k, n) => T[k][lang === "en" ? 0 : 1].replace("{n}", n);
 
@@ -46,6 +49,15 @@ export function dueReminders(data, now, sent = new Set()) {
   const sched = (data && Array.isArray(data.sched) ? data.sched : []).filter((x) => x && x.d && x.t && x.n);
   const today = sched.filter((x) => x.d === now.d).sort((a, b) => hm(a.t) - hm(b.t));
   const push = (key, title, body, tag) => { if (!sent.has(key)) out.push({ key, title, body, tag: tag || key }); };
+
+  // Exam week (roadmap D): one message a day before the first item, at 07:30 at the latest, and nothing else.
+  if (rem.exam) {
+    if (today.length) {
+      const at = Math.min(450, Math.max(0, hm(today[0].t) - 15));
+      if (now.m >= at && now.m < at + 60) push(`${now.d}|digest`, tr(lang, "exT"), today.map((x) => x.t + " " + x.n).join(lang === "en" ? "; " : "；"));
+    }
+    return out;
+  }
 
   for (const x of today) {
     if (x.x || !rem[x.c || "plan"]) continue;
@@ -72,6 +84,10 @@ export function dueReminders(data, now, sent = new Set()) {
       }
     }
   }
+
+  // One more water reminder at 21:00 on a training day when still under 8 cups (roadmap D).
+  if (rem.water && stat && stat.gym && now.m >= 1260 && now.m < 1290 && (stat.h2o || 0) < 8)
+    push(`${now.d}|water|gym`, tr(lang, "watT"), tr(lang, "watG", stat.h2o || 0));
 
   // Evening wrap-up at 22:45: what is still open and tomorrow's first item.
   if (rem.note && now.m >= 1365) {
@@ -101,7 +117,7 @@ export function icsFeed(data, stamp = new Date()) {
     lines.push("BEGIN:VEVENT", `UID:${x.d}-${x.t.replace(":", "")}-${hash(x.n)}@daily-life-log`, `DTSTAMP:${st}`,
       `DTSTART:${dt(x.d, x.t)}`, `DTEND:${end(x.d, x.t)}`, "SUMMARY:" + esc((x.x ? "✓ " : "") + x.n));
     if (x.nx) lines.push("DESCRIPTION:" + esc(((data && data.lang) === "en" ? "Then: " : "接下来：") + x.nx));
-    if (!x.x && rem[x.c || "plan"]) lines.push("BEGIN:VALARM", "ACTION:DISPLAY", "DESCRIPTION:" + esc(x.n), "TRIGGER:-PT15M", "END:VALARM");
+    if (!x.x && !rem.exam && rem[x.c || "plan"]) lines.push("BEGIN:VALARM", "ACTION:DISPLAY", "DESCRIPTION:" + esc(x.n), "TRIGGER:-PT15M", "END:VALARM");
     lines.push("END:VEVENT");
   }
   lines.push("END:VCALENDAR");

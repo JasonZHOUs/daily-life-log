@@ -194,4 +194,17 @@ await ok('health handler: finds the account by link, keeps the rest of the day, 
     assert.equal(row.data.h2o, 3); assert.equal(row.data.food[0].b, 'Egg'); assert.equal(row.data.stp, '8000');
   } finally { globalThis.fetch = f0; delete process.env.SUPABASE_SERVICE_ROLE_KEY; }
 });
+await ok('exam week: one summary a day and nothing else; one more water nudge after training', async () => {
+  const EX = { ...DATA, rem: { push: true, exam: true } };
+  const dg = dueReminders(EX, at(7, 30));
+  assert.equal(dg.length, 1); assert.equal(dg[0].title, '今日安排');
+  assert.match(dg[0].body, /08:30 早餐；15:30 下午加餐；20:00 健身/);
+  assert.equal(dueReminders(EX, at(7, 30), new Set([dg[0].key])).length, 0, 'once');
+  for (const [h, m] of [[15, 15], [18, 30], [11, 0], [22, 50]]) assert.equal(dueReminders(EX, at(h, m)).length, 0, `quiet at ${h}:${m}`);
+  assert.ok(!icsFeed(EX).includes('BEGIN:VALARM'), 'no calendar alarms in exam week');
+  const G = { ...DATA, stat: { d: day0, h2o: 5, dinner: true, gym: true } };
+  assert.ok(dueReminders(G, at(21, 5)).some(r => r.key.endsWith('|water|gym') && r.body.includes('5 / 8')));
+  assert.ok(!dueReminders({ ...G, stat: { ...G.stat, gym: false } }, at(21, 5)).some(r => r.key.endsWith('|water|gym')));
+  assert.ok(!dueReminders({ ...G, stat: { ...G.stat, h2o: 8 } }, at(21, 5)).some(r => r.key.endsWith('|water|gym')));
+});
 console.log(`\n${n} api checks passed`);
