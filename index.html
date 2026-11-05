@@ -93,7 +93,8 @@ label.ck{display:flex;gap:12px;align-items:center;margin:8px 0}
 .wc{flex:1;display:flex;flex-direction:column;align-items:center;text-align:center}
 .bw{height:72px;display:flex;align-items:flex-end;width:100%;background:var(--track);border-radius:8px;overflow:hidden}
 .bw i{display:block;width:100%;min-height:3px;background:linear-gradient(180deg,var(--ac2),var(--ac));border-radius:8px}
-.ch{display:block;margin:4px 0 0}.ch .tg{stroke:var(--mut);stroke-dasharray:3 3;stroke-width:1;opacity:.7}.ch .b0{fill:var(--ac);opacity:.35}.ch .b1{fill:var(--ac)}.ch .ln{fill:none;stroke:var(--ac);stroke-width:2;stroke-linejoin:round;stroke-linecap:round}.ch .dt{fill:var(--ac)}.ch .xl{font-size:9px;fill:var(--mut);text-anchor:middle}
+.ch{display:block;margin:4px 0 0}.ch .tg{stroke:var(--mut);stroke-dasharray:3 3;stroke-width:1;opacity:.7}.ch .b0{fill:var(--ac);opacity:.35}.ch .b1{fill:var(--ac)}.ch .ln{fill:none;stroke:var(--ac);stroke-width:2;stroke-linejoin:round;stroke-linecap:round}.ch .dt{fill:var(--ac)}.ch .xl{font-size:9px;fill:var(--mut);text-anchor:middle}.ch .vl{font-size:9px;font-weight:600;fill:var(--tx);text-anchor:middle}
+.trd{width:100%;display:flex;gap:8px;justify-content:space-between;align-items:center;font-size:14px;border:0;border-top:1px solid var(--bd);border-radius:0;background:none;box-shadow:none;padding:8px 2px;min-height:0;color:var(--tx);text-align:left}
 .hs{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin:0 -2px 4px;padding:0 2px 2px}.hs::-webkit-scrollbar{display:none}.hs button{flex:0 0 auto}
 .m.ov i{background:var(--warn)}
 html.lg body{zoom:1.12}
@@ -145,7 +146,7 @@ input,textarea,select{scroll-margin:96px 0 140px}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js" crossorigin="anonymous"></script>
 <script src="config.js"></script>
 <script>
-const KEY='dl1',KCAL=2800,PROT=120,VER='2026-11-07';
+const KEY='dl1',KCAL=2800,PROT=120,VER='2026-11-08';
 /* Storage slots keep "this device only" data and each account's data apart: dl1:local and dl1:u:<user id>.
    The old single key "dl1" is copied into the first slot opened, then kept as dl1:legacy. See docs/data-model.md. */
 const fresh=()=>({days:{},foods:[],dbx:[],t:{},gm:{},meals:[],tpl:null,lang:'',sched:[],stat:null,rem:{},tz:'',cal_tok:'',hl_tok:'',tpls:{},bin:[],timer:null,favs:[],al:{}});
@@ -265,7 +266,7 @@ merged:['Another device also changed {d}; both sets of changes were kept.','另�
 newQ:['Faster logging: the top of the Food page shows what is next, with one-tap water. Tap ☆ on a food to keep it first on the shelf; foods from the last 7 days come next. When two devices change the same day, both changes are kept.','记录更快：饮食页顶部显示下一项，喝水点一下 +1。点食物旁的 ☆ 收藏，会一直排在快速添加最前面，其次是最近 7 天吃过的。两台设备改了同一天时，两边的改动都会保留。'],
 newV:['Trends and a weekly report (Review): 7- or 30-day charts for calories, protein, weight, sleep, mood, energy, steps and water; today’s goal bars; streaks that only count days you logged on the day; and a weekly report you can share as text or an image.','趋势与周报（复盘页）：热量、蛋白质、体重、睡眠、心情、精力、步数、饮水的 7 天 / 30 天趋势图；今日目标进度条；只算当天记录的连续打卡；可以分享文字或保存成图片的周报。'],
 gT:['Today’s goals','今日目标'],gKc:['Calories','热量'],gP:['Protein','蛋白质'],gW:['Water','饮水'],gSp:['Supplements','补剂'],gPl:['Plan','计划'],gWk:['this week {n}/{m} days','本周 {n}/{m} 天'],gNote:['Calories count as hit at 90–115% of the target, the plan at 80% of items done.','热量在目标的 90%–115% 之间算达标，计划完成 80% 算达标。'],
-trT:['Trends','趋势'],trW:['7 days','7 天'],trMo:['30 days','30 天'],mKc:['Calories','热量'],mP:['Protein','蛋白质'],mWt:['Weight','体重'],mSl:['Sleep','睡眠'],mMood:['Mood','心情'],mNrg:['Energy','精力'],mStp:['Steps','步数'],mW:['Water','饮水'],
+trT:['Trends','趋势'],trDays:['Each day','每天的数据'],trTgt:['target {v}','目标 {v}'],trHi:['high {v} ({d})','最高 {v}（{d}）'],trLo:['low {v} ({d})','最低 {v}（{d}）'],trNo:['not logged','未记录'],trTap:['Tap a day to open it.','点某一天可以打开那天的记录。'],trW:['7 days','7 天'],trMo:['30 days','30 天'],mKc:['Calories','热量'],mP:['Protein','蛋白质'],mWt:['Weight','体重'],mSl:['Sleep','睡眠'],mMood:['Mood','心情'],mNrg:['Energy','精力'],mStp:['Steps','步数'],mW:['Water','饮水'],
 trNone:['Nothing logged in this period yet.','这段时间还没有记录。'],trAvg:['Average {v} ({n} of {m} days logged)','平均 {v}（{m} 天里记了 {n} 天）'],trVs:['{d} vs the period before','比前一段 {d}'],cups:['cups','杯'],
 skT:['Streaks','连续打卡'],skLog:['Logged food','记录饮食'],skBest:['best {n}','最长 {n}'],skBf:['{n} back-filled days in the last 30 are not counted.','最近 30 天有 {n} 天是补记的，不计入连续。'],
 skRule:['Only days recorded on the day count (until 3 am the next morning). Back-filled days do not count and end a streak. Today does not break it until it is over. After a break, the count starts again from the next day you hit it; your best stays.','只算当天记录的日子（到第二天凌晨 3 点为止）。补记的日子不计入，会中断连续；今天没结束前不算中断。中断后从下一个达标日重新开始计数，最长纪录会保留。'],
@@ -1136,7 +1137,7 @@ function series(m,end,n){const o=[];for(let i=n-1;i>=0;i--){const k=shift(end,-i
 const avgOf=a=>{const v=a.filter(x=>x.v!=null).map(x=>x.v);return v.length?v.reduce((x,y)=>x+y,0)/v.length:null};
 function chart(s,m){
   const vals=s.filter(p=>p.v!=null).map(p=>p.v);if(!vals.length)return '<p class="mut">'+t('trNone')+'</p>';
-  const W0=300,H0=118,top=8,bot=96,n=s.length,tg=metTgt(m),bar=BARS.indexOf(m)>=0,all=vals.concat(tg!=null?[tg]:[]);
+  const W0=300,H0=118,n=s.length,top=n<=7?18:8,bot=96,tg=metTgt(m),bar=BARS.indexOf(m)>=0,all=vals.concat(tg!=null?[tg]:[]);
   let lo=Math.min.apply(null,all),hi=Math.max.apply(null,all);
   if(m==='mood'||m==='nrg'){lo=1;hi=5}else if(bar){lo=0;hi=hi*1.08||1}else{const pd=(hi-lo)*.15||(m==='wt'?.5:1);lo-=pd;hi+=pd}
   const cw=(W0-8)/n,x=i=>4+cw*i+cw/2,y=v=>bot-(v-lo)/(hi-lo||1)*(bot-top),r1=v=>Math.round(v*10)/10;
@@ -1148,6 +1149,7 @@ function chart(s,m){
     if(pts.length>1)g+='<polyline points="'+pts.join(' ')+'" class="ln"/>';
     s.forEach((p,i)=>{if(p.v!=null)g+='<circle cx="'+r1(x(i))+'" cy="'+r1(y(p.v))+'" r="'+(n>7?2.5:3.5)+'" class="dt"><title>'+p.k+': '+fmtM(m,p.v)+'</title></circle>'});
   }
+  if(n<=7)s.forEach((p,i)=>{if(p.v!=null)g+='<text x="'+r1(x(i))+'" y="'+r1(y(p.v)-(bar?4:7))+'" class="vl">'+fmtM(m,p.v)+'</text>'});
   s.forEach((p,i)=>{if(n<=7||(n-1-i)%7===0)g+='<text x="'+r1(x(i))+'" y="'+(H0-6)+'" class="xl"'+(n>7&&i===n-1?' style="text-anchor:end"':'')+'>'+(n<=7?wdName(new Date(p.k+'T00:00:00').getDay()):(+p.k.slice(5,7))+'/'+(+p.k.slice(8)))+'</text>'});
   return '<svg class="ch" viewBox="0 0 '+W0+' '+H0+'" width="100%" role="img" aria-label="'+esc(t(MET.find(q=>q[0]===m)[1]))+'">'+g+'</svg>';
 }
@@ -1163,10 +1165,18 @@ function trendCard(){
   const s=series(trM,cur,trR),a=avgOf(s),b=avgOf(series(trM,shift(cur,-trR),trR)),n=s.filter(p=>p.v!=null).length;
   let info=a==null?'':t('trAvg',{v:fmtM(trM,a)+metUnit(trM),n:n,m:trR});
   if(a!=null&&b!=null){const dl=a-b;info+=' · '+t('trVs',{d:(dl>0?'+':dl<0?'−':'±')+fmtM(trM,Math.abs(dl))+metUnit(trM)})}
+  const dl0=k=>(+k.slice(5,7))+'/'+(+k.slice(8))+' '+wdName(new Date(k+'T00:00:00').getDay()),got=s.filter(p=>p.v!=null),tg=metTgt(trM);
+  let ex='';
+  if(got.length){
+    const hi=got.reduce((a,p)=>p.v>a.v?p:a),lo=got.reduce((a,p)=>p.v<a.v?p:a);
+    ex=[tg!=null?t('trTgt',{v:fmtM(trM,tg)+metUnit(trM)}):'',got.length>1?t('trHi',{v:fmtM(trM,hi.v),d:dl0(hi.k)}):'',got.length>1?t('trLo',{v:fmtM(trM,lo.v),d:dl0(lo.k)}):''].filter(Boolean).join(' · ');
+  }
+  const rows=s.slice().reverse().map(p=>'<button class="trd" data-a="srgo" data-k="'+p.k+'" data-t="home"><span>'+dl0(p.k)+'</span><span>'+(p.v==null?'<span class="mut">'+t('trNo')+'</span>':'<b>'+fmtM(trM,p.v)+'</b>'+esc(metUnit(trM))+(metOk(trM,p.v)?' <span style="color:var(--ac)">✓</span>':''))+'</span></button>').join('');
+  const list=got.length?(trR<=7?'<div style="margin-top:8px">'+rows+'</div>':'<details style="margin-top:8px"><summary>'+t('trDays')+'</summary>'+rows+'</details>')+'<p class="mut" style="margin:6px 0 0;font-size:12px">'+t('trTap')+'</p>':'';
   if(trM==='wt')info+=(info?' ':'')+wtHint();
   return '<div class="c"><div class="row" style="margin:0 0 8px;flex-wrap:nowrap"><h2 style="flex:1;margin:0">'+t('trT')+'</h2>'+[7,30].map(r=>'<button class="sm'+(trR===r?' on':'')+'" data-a="trr" data-v="'+r+'" aria-pressed="'+(trR===r)+'">'+t(r===7?'trW':'trMo')+'</button>').join('')+'</div>'
     +'<div class="hs">'+MET.map(m=>'<button class="sm'+(trM===m[0]?' on':'')+'" data-a="trm" data-m="'+m[0]+'" aria-pressed="'+(trM===m[0])+'">'+t(m[1])+'</button>').join('')+'</div>'
-    +chart(s,trM)+(info?'<p class="mut" style="margin:4px 0 0">'+esc(info)+'</p>':'')+'</div>';
+    +chart(s,trM)+(info?'<p class="mut" style="margin:4px 0 0">'+esc(info)+'</p>':'')+(ex?'<p class="mut" style="margin:2px 0 0">'+esc(ex)+'</p>':'')+list+'</div>';
 }
 /* streaks: only days recorded on the day count; today is still open */
 const STK=[['log','skLog'],['p','gP'],['h2o','gW'],['sp','gSp'],['pl','gPl']];

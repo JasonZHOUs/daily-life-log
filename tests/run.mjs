@@ -433,6 +433,19 @@ ok('nav hides only while the keyboard is on screen, and comes back after Done or
   assert.equal(env.run(`document.body.classList.has('kb')`), false, 'focused box replaced by a re-render: shown');
   env0.run(`document.body.classList=undefined;delete window.visualViewport;delete document.activeElement`);
 });
+ok('trend shows each day’s number, target, high and low; a row opens that day', () => {
+  env0.run(`S.lang='zh';S.t={k:2800,p:120};S.days={'2026-03-02':norm({food:[{b:'x',k:2900,p:130}]}),'2026-03-04':norm({food:[{b:'x',k:1900,p:80}]})};cur='2026-03-04';trM='kc';trR=7;tab='rev';render()`);
+  let h = env0.els.app.innerHTML;
+  assert.ok(h.includes('class="vl">2900</text>') && h.includes('class="vl">1900</text>'), 'numbers on the 7-day chart');
+  assert.ok(h.includes('目标 2800 千卡') && h.includes('最高 2900（3/2') && h.includes('最低 1900（3/4'));
+  assert.ok(h.includes('data-a="srgo" data-k="2026-03-04" data-t="home"><span>3/4') && h.includes('<b>2900</b> 千卡 <span'), 'list with a tick for the day on target');
+  assert.ok(h.indexOf('data-k="2026-03-04"') < h.indexOf('data-k="2026-03-02"'), 'newest first');
+  assert.ok(h.includes('未记录'));
+  env0.run(`trR=30;render()`);
+  h = env0.els.app.innerHTML;
+  assert.ok(!h.includes('class="vl"') && h.includes('<summary>每天的数据</summary>'), '30 days: list folded, no labels on the chart');
+  env0.run(`trR=7;S.days={}`);
+});
 ok('sync: only one side changed → take it; both changed → merge, keeping deletions', () => {
   env0.run(`S.days={};S.bin=[];dirty=new Set()`);
   // remote changed only
