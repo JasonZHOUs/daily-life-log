@@ -446,6 +446,26 @@ ok('trend shows each day’s number, target, high and low; a row opens that day'
   assert.ok(!h.includes('class="vl"') && h.includes('<summary>每天的数据</summary>'), '30 days: list folded, no labels on the chart');
   env0.run(`trR=7;S.days={}`);
 });
+ok('home: supplements tile ticks a group in one tap; weight tile shows last weigh-in and 7-day change', () => {
+  env0.run(`S.lang='zh';S.days={};cur='2026-03-10';S.days['2026-03-01']=norm({wt:'64.0'});sh=null;tab='home';render()`);
+  let h = env0.els.app.innerHTML;
+  assert.ok(h.includes('0 / 5') && h.includes('早上 0/3 · 晚上 0/2') && h.includes('data-a="spall" data-g="am"'), 'past day: morning group first');
+  assert.ok(h.includes('今天还没称') && h.includes('上次 3/1：64 kg'));
+  env0.run(`SUPS.filter(q=>q[1]==='am').forEach(q=>{day().sp[q[0]]=true});render()`);
+  h = env0.els.app.innerHTML;
+  assert.ok(h.includes('3 / 5') && h.includes('data-a="spall" data-g="pm"'), 'then the evening group');
+  env0.run(`SUPS.filter(q=>q[1]==='pm').forEach(q=>{day().sp[q[0]]=true});render()`);
+  assert.ok(env0.els.app.innerHTML.includes('今天都吃了'));
+  env0.run(`sh='wt';render()`);
+  h = env0.els.app.innerHTML;
+  assert.ok(h.includes('id="wt2"') && h.includes('data-a="wtsame" data-v="64"'));
+  env0.run(`day().wt='64.5';sh=null;render()`);
+  h = env0.els.app.innerHTML;
+  assert.ok(h.includes('64.5 kg') && h.includes('比 7 天前 +0.5 kg'));
+  env0.run(`sh='sup';render()`);
+  assert.ok(env0.els.app.innerHTML.includes('class="sht"') && env0.els.app.innerHTML.includes('data-a="sp" data-id="multi"'));
+  env0.run(`sh=null;S.days={}`);
+});
 ok('sync: only one side changed → take it; both changed → merge, keeping deletions', () => {
   env0.run(`S.days={};S.bin=[];dirty=new Set()`);
   // remote changed only
