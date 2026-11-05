@@ -133,13 +133,13 @@ if (env.run('typeof toCSV') === 'function') {
   });
 }
 ok('every tab renders in both languages without throwing', () => {
-  for (const lang of ['en', 'zh']) for (const tb of ['today', 'food', 'act', 'rev']) {
+  for (const lang of ['en', 'zh']) for (const tb of ['home', 'today', 'food', 'act', 'rev', 'more']) {
     env0.run(`S.lang='${lang}';tab='${tb}';render()`);
     assert.ok(env0.els.app.innerHTML.length > 200, `${lang}/${tb} rendered`);
   }
 });
 ok('what is new card shows once', () => {
-  env0.run(`S.lang='en';S.seen=undefined;tab='food';render()`);
+  env0.run(`S.lang='en';S.seen=undefined;tab='home';render()`);
   assert.ok(env0.els.app.innerHTML.includes('data-a="seen"'));
   env0.run(`S.seen=VER;render()`);
   assert.ok(!env0.els.app.innerHTML.includes('data-a="seen"'));
@@ -219,7 +219,7 @@ ok('supplements: toggle, group all, completion flag, summary, csv', () => {
   const w = env.run(`weekSummary('2026-10-28')`);
   assert.equal(w.spl, 1); assert.equal(w.spc, 1);
   env0.run(`render()`);
-  assert.ok(env0.els.tabs.innerHTML.indexOf('data-t="food"') < env0.els.tabs.innerHTML.indexOf('data-t="today"'));
+  assert.ok(env0.els.tabs.innerHTML.indexOf('data-t="home"') < env0.els.tabs.innerHTML.indexOf('data-t="today"'));
   assert.ok(env0.els.tabs.innerHTML.includes('计划'));
 });
 
@@ -361,7 +361,7 @@ ok('recycle bin: deleted food comes back, old entries expire after 7 days', () =
   env0.run(`S.bin=[{at:Date.now()-8*864e5,d:'2026-10-01',type:'food',v:{b:'Old'}}];loadSlot(SK)`);
   // loadSlot re-reads storage; the pruning rule itself:
   assert.equal(env.run(`[{at:Date.now()-8*864e5}].filter(x=>Date.now()-x.at<7*864e5).length`), 0);
-  env0.run(`S.lang='zh';tab='rev';render()`);
+  env0.run(`S.lang='zh';tab='more';render()`);
   assert.ok(env0.els.app.innerHTML.includes('回收站'));
 });
 ok('photo meal saved for later shows as pending and counts nothing until filled in', () => {
@@ -377,7 +377,7 @@ ok('gram steppers appear next to the portion box', () => {
   env0.run('sel=null');
 });
 ok('reminders card explains what to do when notifications are not available', () => {
-  env0.run(`S.lang='zh';user={id:'u9',email:'me@x.com'};tab='rev';render()`);
+  env0.run(`S.lang='zh';user={id:'u9',email:'me@x.com'};tab='more';render()`);
   const h = env0.els.app.innerHTML;
   assert.ok(h.includes('添加到主屏幕') && h.includes('订阅到 iPhone 日历') && h.includes('data-a="remcat"'));
   env0.run('user=null');
@@ -403,12 +403,26 @@ ok('shelf: favourites first, then the last 7 days by most recent use, then frequ
   assert.deepEqual(env.run('shelf().slice(0,4).map(e=>e.b)'), ['Fav oats', 'Kopi', 'Egg', 'Old rice']);
   assert.ok(!env.run(`shelf().some(e=>e.pend)`), 'pending photo meals are not on the shelf');
 });
-ok('today card: next item, progress and one-tap water on the first page', () => {
-  env0.run(`S.lang='zh';cur=ymd(new Date());delete S.days[cur];S.tpl=[['0123456','00:00','Early','凌晨事项'],['0123456','23:59','Late','睡前事项']];tab='food';render()`);
-  const h = env0.els.app.innerHTML;
-  assert.ok(h.includes('data-a="h2o" data-v="1"') && h.includes('0/8') && h.includes('✓ <b>0/2'));
-  assert.ok(h.indexOf('💧') < h.indexOf('class="c hero"'), 'progress sits above the calorie ring');
-  env0.run('S.tpl=null');
+ok('home: four tiles, next item and water; sheets log without leaving the page', () => {
+  env0.run(`S.lang='zh';cur=ymd(new Date());delete S.days[cur];S.tpl=[['0123456','00:00','Early','凌晨事项'],['0123456','23:59','Late','睡前事项']];S.timer=null;sh=null;tab='home';render()`);
+  let h = env0.els.app.innerHTML;
+  assert.ok(h.includes('data-a="h2o" data-v="1"') && h.includes('0 / 8') && h.includes('计划 0/2'));
+  for (const s of ['food', 'study', 'gym', 'sleep']) assert.ok(h.includes('data-a="sh" data-s="' + s + '"') || (s === 'sleep' && h.includes('data-s="sleep"')), s);
+  assert.ok(!h.includes('class="sht"'), 'no sheet until a tile is tapped');
+  env0.run(`sh='food';render()`);
+  h = env0.els.app.innerHTML;
+  assert.ok(h.includes('class="sht"') && h.includes('id="shq"') && h.includes('data-a="shadd" data-i="0"'));
+  env0.run(`addFood(day(),Object.assign({},shl[0]));sh='gym';render()`);
+  assert.ok(env0.els.app.innerHTML.includes('data-a="gym" data-g="Legs"'));
+  env0.run(`day().gym=['Legs'];day().sl='7.5';sh=null;render()`);
+  h = env0.els.app.innerHTML;
+  assert.ok(h.includes('7.5 小时') && h.includes('>腿<'), 'tiles show what was logged');
+  assert.ok(!h.includes('昨晚睡了几小时'), 'morning sleep question disappears once filled');
+  env0.run(`S.timer={c:'study',st:Date.now(),acc:0,k:cur,note:''};render()`);
+  assert.ok(env0.els.app.innerHTML.includes('data-a="tmstop"'));
+  env0.run(`S.timer=null;S.tpl=null;tab='food';render()`);
+  assert.ok(env0.els.app.innerHTML.includes('‹ 今天'), 'detail pages lead back home');
+  assert.ok(env0.els.tabs.innerHTML.includes('data-t="home" class="on"'), 'food details count as Today in the nav');
 });
 ok('sync: only one side changed → take it; both changed → merge, keeping deletions', () => {
   env0.run(`S.days={};S.bin=[];dirty=new Set()`);
@@ -529,7 +543,7 @@ ok('plan times: move open items at once (Undo-able), warn on same time, template
   assert.equal(env.run(`tplSpread(['x','08:30','Run','跑步'],['x','07:45','Run','跑步'])`), 0, 'not on that weekday');
 });
 ok('Apple Health card: sign-in note when local, link and steps when signed in', () => {
-  env0.run(`S.lang='zh';user=null;tab='rev';render()`);
+  env0.run(`S.lang='zh';user=null;tab='more';render()`);
   assert.ok(env0.els.app.innerHTML.includes('登录后才能用'));
   env0.run(`user={id:'u9',email:'me@x.com'};S.days['2026-05-02'].hs={at:new Date('2026-05-02T23:30:00').getTime(),f:['stp','hx']};render()`);
   const h = env0.els.app.innerHTML;
@@ -600,7 +614,7 @@ ok('Phase 7: search finds food, plan and notes; display settings stay on this de
   env0.run(`srQ='laksa';srR=0;tab='rev';render()`);
   const h = env0.els.app.innerHTML;
   assert.ok(h.includes('Search records') && h.includes('data-a="srgo" data-k="2026-04-01"'));
-  assert.ok(h.includes('data-a="disp" data-k="theme" data-v="dark"'));
+  env0.run(`tab='more';render()`);assert.ok(env0.els.app.innerHTML.includes('data-a="disp" data-k="theme" data-v="dark"'));
   env0.run(`pref('theme','dark');pref('fs','lg');applyDisp()`);
   assert.equal(env0.store['dl1:theme'], 'dark');
   env0.run(`pref('theme',null);pref('fs',null);srQ=''`);
