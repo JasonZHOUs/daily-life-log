@@ -146,7 +146,7 @@ input,textarea,select{scroll-margin:96px 0 140px}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js" crossorigin="anonymous"></script>
 <script src="config.js"></script>
 <script>
-const KEY='dl1',KCAL=2800,PROT=120,VER='2026-11-09';
+const KEY='dl1',KCAL=2800,PROT=120,VER='2026-11-10';
 /* Storage slots keep "this device only" data and each account's data apart: dl1:local and dl1:u:<user id>.
    The old single key "dl1" is copied into the first slot opened, then kept as dl1:legacy. See docs/data-model.md. */
 const fresh=()=>({days:{},foods:[],dbx:[],t:{},gm:{},meals:[],tpl:null,lang:'',sched:[],stat:null,rem:{},tz:'',cal_tok:'',hl_tok:'',tpls:{},bin:[],timer:null,favs:[],al:{}});
@@ -366,18 +366,18 @@ newJ:['Wrap up the day (Plan page, from 8 pm): water, evening supplements and mo
 newN:['Next-meal ideas from what is left of today’s calories and protein, and one gentle note when intake or sleep logging slips for a few days.','按今天剩下的热量和蛋白质推荐下一餐；连续几天吃得偏少或没填睡眠时提醒一次。'],
 newF:['Review: search all records, light or dark theme, larger text, and an exam-week mode that sends one reminder a day. The Apple Health guide is simpler.','复盘页：搜索历史记录、浅色/深色主题、大字号，以及每天只发一条提醒的考试周模式。Apple 健康设置步骤也简化了。'],
 newT:['New in this version','本次更新'],
-hmTab:['Today','今天'],tSup:['Supplements','补剂'],tWt:['Weight','体重'],hmSpAm:['Morning: all taken','早上全吃了'],hmSpPm:['Evening: all taken','晚上全吃了'],hmSpEach:['Tick one by one','逐个勾选'],hmSpDone:['All taken today','今天都吃了'],hmSpSub:['AM {a} · PM {p}','早上 {a} · 晚上 {p}'],
-hmWtNone:['Not weighed today','今天还没称'],hmWtLast:['Last {d}: {v} kg','上次 {d}：{v} kg'],hmWtCh:['{v} kg vs 7 days ago','比 7 天前 {v} kg'],hmWtBtn:['Log weight','记体重'],shWtT:['Today’s weight (kg)','今天的体重（公斤）'],shWtSame:['Same as last time: {v} kg','和上次一样：{v} kg'],moreTab:['More','更多'],tFood:['Food','饮食'],tStudy:['Study','学习'],tGym:['Gym','健身'],tSleep:['Sleep','睡眠'],
+hmTab:['Today','今天'],tMood:['How you feel','状态'],hmNrg:['energy {n}/5','精力 {n}/5'],hmMdBtn:['Log it','记状态'],hmSlShort:['Slept {n} h','睡眠 {n} 小时'],tSup:['Supplements','补剂'],tWt:['Weight','体重'],hmSpAm:['Morning: all taken','早上全吃了'],hmSpPm:['Evening: all taken','晚上全吃了'],hmSpEach:['Tick one by one','逐个勾选'],hmSpDone:['All taken today','今天都吃了'],hmSpSub:['AM {a} · PM {p}','早上 {a} · 晚上 {p}'],
+hmWtNone:['Not weighed today','今天还没称'],hmWtLast:['Last {d}: {v} kg','上次 {d}：{v} kg'],hmWtCh:['{v} kg vs 7 days ago','比 7 天前 {v} kg'],hmWtBtn:['Log weight','记体重'],shWtT:['Today’s weight (kg)','今天的体重（公斤）'],shWtSame:['Same as last time: {v} kg','和上次一样：{v} kg'],moreTab:['More','更多'],tFood:['Food','饮食'],tStudy:['Study','学习'],tGym:['Gym','健身'],
 hmKLeft:['{n} kcal left','还可吃 {n} 千卡'],hmKOver:['{n} kcal over','超了 {n} 千卡'],hmLog:['Log a meal','记一餐'],hmStart:['Start timer','开始计时'],hmRun:['Timing','计时中'],
 hmGymNone:['Not yet today','今天还没练'],hmGymWk:['{n} days this week','近 7 天练了 {n} 天'],hmGymBtn:['Log workout','记训练'],
-hmSlNone:['Not filled in','还没填'],hmSlAvg:['7-day avg {n} h','近 7 天平均 {n} 小时'],hmSlBtn:['Fill in','填写'],hmH:['{n} h','{n} 小时'],
+hmSlNone:['Not filled in','还没填'],hmSlAvg:['7-day avg {n} h','近 7 天平均 {n} 小时'],
 hmSlQ:['How many hours did you sleep last night?','昨晚睡了几小时？'],hmOther:['Other','其他'],hmStreak:['Food logged {n} days in a row','连续记录饮食 {n} 天'],
 hmUpd:['New home page: four tiles, tap one to log without leaving the page.','新首页：四个格子，点一下就能记，不用切页面。'],
 smB:['breakfast','早餐'],smL:['lunch','午饭'],smS:['snack','加餐'],smD:['dinner','晚饭'],
 shFoodT:['Log {m}','记一餐 · {m}'],shLineP:['One line: 2 eggs, a bowl of rice','一句话：两个鸡蛋，一碗米饭'],shOften:['You often eat','你常吃的'],shFull:['Search or photo ›','搜索或拍照 ›'],
 shEaten:['Today: {k} kcal · {p} g protein','今天：{k} 千卡 · 蛋白质 {p} 克'],shDone:['Done','完成'],shAdded:['Added: {n}','已记：{n}'],
 shStudyT:['Study and lab time','学习与实验时间'],shTapStart:['Tap one to start a timer','点一项开始计时'],shAddMin:['Or add time directly','或者直接加时间'],
-shGymT:['What did you train today?','今天练了什么？'],shGymMore:['Log sets and weights ›','记录组数和重量 ›'],shSlT:['Sleep and how you feel','睡眠和状态'],
+shGymT:['What did you train today?','今天练了什么？'],shGymMore:['Log sets and weights ›','记录组数和重量 ›'],shSlT:['How you feel and sleep','状态和睡眠'],
 moreFood:['Food details: search, photo, supplements','饮食详情：搜索、拍照、补剂'],moreAct:['Gym and study details, energy balance','健身、学习详情和能量估算'],backHome:['‹ Today','‹ 今天'],newOk:['Got it','知道了'],verL:['Version','版本'],
 new0:['New: log a meal from a photo. Tap the camera button on the Food tab, or use “Use an AI app (free)” with 豆包, Claude or ChatGPT and paste the reply. Check the grams, then tap Add.','新功能：拍照记录一餐。在“饮食”页点相机按钮；或点“用 AI App 识别（免费）”，用豆包、Claude 或 ChatGPT 识别后粘贴结果。核对克数后点“添加”。'],
 new1:['Food: type a whole meal, like “2 eggs, chicken rice, kopi”, then press Enter. About 50 Singapore and Chinese dishes added.','饮食：直接输入一餐，例如“两个鸡蛋，鸡饭，咖啡”，按回车即可。新增约50种新加坡和中式菜品。'],
@@ -1485,7 +1485,7 @@ function vHome(d){
    +tl('🍽',t('tFood'),Math.round(p)+' / '+T0.p+' g',r>=0?t('hmKLeft',{n:r}):t('hmKOver',{n:-r}),T0.p?p/T0.p*100:0,B('food',t('hmLog'),true))
    +tl('📖',t('tStudy'),hrs(tot(d)),tm?t('hmRun')+' · '+((CATS.find(c=>c[0]===tm.c)||[0,tm.c,tm.c])[1+L()]):'&nbsp;',null,tm?'<button class="sm on" data-a="tmstop">'+t('stop')+'</button>':B('study',t('hmStart'),true))
    +tl('🏋',t('tGym'),d.gym.length?esc(d.gym.map(gymName).join('、')):t('hmGymNone'),t('hmGymWk',{n:gymWk(cur)}),null,B('gym',t('hmGymBtn')))
-   +tl('🌙',t('tSleep'),sl?t('hmH',{n:esc(sl)}):t('hmSlNone'),av!=null?t('hmSlAvg',{n:av}):'&nbsp;',null,B('sleep',t('hmSlBtn')))
+   +tl('🙂',t('tMood'),d.mood||d.nrg?(d.mood?MOOD[d.mood-1]+' ':'')+(d.nrg?t('hmNrg',{n:d.nrg}):''):t('hmSlNone'),sl?t('hmSlShort',{n:esc(sl)}):av!=null?t('hmSlAvg',{n:av}):'&nbsp;',null,B('sleep',t('hmMdBtn')))
    +tl('💊',t('tSup'),spN+' / '+supReq.length,t('hmSpSub',{a:am.n+'/'+am.of,p:pm.n+'/'+pm.of}),supReq.length?spN/supReq.length*100:0,(spG?'<button class="sm on" data-a="spall" data-g="'+spG+'">'+t(spG==='am'?'hmSpAm':'hmSpPm')+'</button>':'<div class="ts">'+t('hmSpDone')+'</div>')+'<button class="sm" data-a="sh" data-s="sup" style="margin-top:6px">'+t('hmSpEach')+'</button>')
    +tl('⚖️',t('tWt'),wt?esc(String(wt))+' kg':t('hmWtNone'),wt&&w7?t('hmWtCh',{v:(wt-w7.v>0?'+':wt-w7.v<0?'−':'±')+Math.abs(Math.round((wt-w7.v)*10)/10)}):wl?t('hmWtLast',{d:(+wl.k.slice(5,7))+'/'+(+wl.k.slice(8)),v:wl.v}):'&nbsp;',null,B('wt',t('hmWtBtn')))
    +'</div>';
@@ -1521,9 +1521,9 @@ function shView(d){
      +(wl&&!(parseFloat(d.wt)>0)?'<div class="row"><button class="sm" data-a="wtsame" data-v="'+wl.v+'">'+t('shWtSame',{v:wl.v})+'</button></div>':'')+'<p class="mut" style="margin:8px 0 0">'+t('weightHint')+'</p>';
   }else if(sh==='sleep'){
     const v0=parseFloat(d.sl);
-    b='<h2>'+t('shSlT')+'</h2><div class="row" style="gap:6px">'+[5.5,6,6.5,7,7.5,8,8.5,9].map(v=>'<button class="sm'+(v0===v?' on':'')+'" data-a="slset" data-v="'+v+'">'+v+'</button>').join('')+'</div>'
-     +'<div class="row"><label for="sl2" style="flex:1">'+t('sleepL')+'</label><input class="s" id="sl2" type="number" step="0.5" min="0" max="16" inputmode="decimal" value="'+esc(d.sl||'')+'"></div>'
-     +['mood','nrg'].map(a=>'<div class="row" style="gap:6px"><span style="min-width:64px">'+t(a==='mood'?'moodL':'nrgL')+'</span>'+[1,2,3,4,5].map(i=>'<button class="sm'+(d[a]===i?' on':'')+'" data-a="'+a+'" data-v="'+i+'" style="flex:1;min-width:0;padding:4px 0" aria-label="'+t(a==='mood'?'moodL':'nrgL')+' '+i+'">'+(a==='mood'?MOOD[i-1]:i)+'</button>').join('')+'</div>').join('');
+    b='<h2>'+t('shSlT')+'</h2>'+['mood','nrg'].map(a=>'<div class="row" style="gap:6px"><span style="min-width:64px">'+t(a==='mood'?'moodL':'nrgL')+'</span>'+[1,2,3,4,5].map(i=>'<button class="sm'+(d[a]===i?' on':'')+'" data-a="'+a+'" data-v="'+i+'" style="flex:1;min-width:0;padding:4px 0" aria-label="'+t(a==='mood'?'moodL':'nrgL')+' '+i+'">'+(a==='mood'?MOOD[i-1]:i)+'</button>').join('')+'</div>').join('')
+     +'<div class="row" style="margin-top:14px"><label for="sl2" style="flex:1">'+t('sleepL')+'</label><input class="s" id="sl2" type="number" step="0.5" min="0" max="16" inputmode="decimal" value="'+esc(d.sl||'')+'"></div>'
+     +'<div class="row" style="gap:6px">'+[5.5,6,6.5,7,7.5,8,8.5,9].map(v=>'<button class="sm'+(v0===v?' on':'')+'" data-a="slset" data-v="'+v+'">'+v+'</button>').join('')+'</div>';
   }
   return '<div class="shv" data-a="shx"></div><div class="sht" role="dialog" aria-modal="true"><div class="shg"></div>'+b+'<div class="row"><button class="on" data-a="shx" style="flex:1">'+t('shDone')+'</button></div></div>';
 }

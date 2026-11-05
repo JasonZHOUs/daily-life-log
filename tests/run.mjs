@@ -416,7 +416,14 @@ ok('home: four tiles, next item and water; sheets log without leaving the page',
   assert.ok(env0.els.app.innerHTML.includes('data-a="gym" data-g="Legs"'));
   env0.run(`day().gym=['Legs'];day().sl='7.5';sh=null;render()`);
   h = env0.els.app.innerHTML;
-  assert.ok(h.includes('7.5 小时') && h.includes('>腿<'), 'tiles show what was logged');
+  assert.ok(h.includes('睡眠 7.5 小时') && h.includes('>腿<'), 'tiles show what was logged');
+  env0.run(`day().mood=4;day().nrg=3;render()`);
+  assert.ok(env0.els.app.innerHTML.includes('🙂 精力 3/5'), 'status tile shows mood and energy');
+  env0.run(`sh='sleep';render()`);
+  h = env0.els.app.innerHTML;
+  assert.ok(h.indexOf('data-a="mood"') < h.indexOf('id="sl2"'), 'status sheet: mood first, sleep below');
+  env0.run(`sh=null;render()`);
+  h = env0.els.app.innerHTML;
   assert.ok(!h.includes('昨晚睡了几小时'), 'morning sleep question disappears once filled');
   env0.run(`S.timer={c:'study',st:Date.now(),acc:0,k:cur,note:''};render()`);
   assert.ok(env0.els.app.innerHTML.includes('data-a="tmstop"'));
