@@ -424,6 +424,15 @@ ok('home: four tiles, next item and water; sheets log without leaving the page',
   assert.ok(env0.els.app.innerHTML.includes('‹ 今天'), 'detail pages lead back home');
   assert.ok(env0.els.tabs.innerHTML.includes('data-t="home" class="on"'), 'food details count as Today in the nav');
 });
+ok('nav hides only while the keyboard is on screen, and comes back after Done or a re-render', () => {
+  env0.run(`document.body.classList={c:new Set(),toggle(k,v){v?this.c.add(k):this.c.delete(k)},has(k){return this.c.has(k)}};window.innerHeight=800;window.visualViewport={height:420};document.activeElement={tagName:'INPUT',type:'text'};kbSync()`);
+  assert.equal(env.run(`document.body.classList.has('kb')`), true, 'keyboard up: hidden');
+  env0.run(`window.visualViewport.height=800;kbSync()`);
+  assert.equal(env.run(`document.body.classList.has('kb')`), false, 'Done pressed, input still focused: shown');
+  env0.run(`window.visualViewport.height=420;kbSync();document.activeElement=null;render()`);
+  assert.equal(env.run(`document.body.classList.has('kb')`), false, 'focused box replaced by a re-render: shown');
+  env0.run(`document.body.classList=undefined;delete window.visualViewport;delete document.activeElement`);
+});
 ok('sync: only one side changed → take it; both changed → merge, keeping deletions', () => {
   env0.run(`S.days={};S.bin=[];dirty=new Set()`);
   // remote changed only
