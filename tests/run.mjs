@@ -473,6 +473,19 @@ ok('home: supplements tile ticks a group in one tap; weight tile shows last weig
   assert.ok(env0.els.app.innerHTML.includes('class="sht"') && env0.els.app.innerHTML.includes('data-a="sp" data-id="multi"'));
   env0.run(`sh=null;S.days={}`);
 });
+ok('isotretinoin: one tap marks the day; last dose, counts and 14-day strip', () => {
+  env0.run(`S.lang='zh';S.days={};cur='2026-03-10';S.days['2026-03-07']=norm({iso:true});S.days['2026-03-01']=norm({iso:true});sh=null;tab='home';render()`);
+  let h = env0.els.app.innerHTML;
+  assert.ok(h.includes('这天吃异维A酸了吗？') && h.includes('data-a="iso" aria-pressed="false"'));
+  assert.ok(h.includes('上次：3/7（3 天前） · 近 7 天 1 次 · 近 30 天 2 次'));
+  assert.equal((h.match(/<i class="on/g) || []).length, 2, 'two filled squares in the last 14 days');
+  env0.run(`day().iso=!day().iso;render()`);
+  h = env0.els.app.innerHTML;
+  assert.ok(h.includes('✓ 已吃') && h.includes('近 7 天 2 次'));
+  const m = env.run(`mergeDay(norm({iso:false}),norm({iso:true}),'x').iso`);
+  assert.equal(m, false, 'un-marking on this device wins over the other copy');
+  env0.run(`S.days={}`);
+});
 ok('sync: only one side changed → take it; both changed → merge, keeping deletions', () => {
   env0.run(`S.days={};S.bin=[];dirty=new Set()`);
   // remote changed only
