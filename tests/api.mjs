@@ -194,6 +194,34 @@ await ok('health handler: finds the account by link, keeps the rest of the day, 
     assert.equal(row.data.h2o, 3); assert.equal(row.data.food[0].b, 'Egg'); assert.equal(row.data.stp, '8000');
   } finally { globalThis.fetch = f0; delete process.env.SUPABASE_SERVICE_ROLE_KEY; }
 });
+await ok('health link also logs water, isotretinoin and supplements without touching the rest of the day', async () => {
+  assert.deepEqual(H.readQuick({ water: ' 1', iso: '1', sup: 'AM' }), { water: 1, iso: true, sup: 'am' }, '"+1" arrives as " 1" in a query string');
+  assert.deepEqual(H.readQuick({ water: '+1', iso: '0' }), { water: 1, iso: false });
+  assert.deepEqual(H.readQuick({ water: '99', iso: 'x', sup: 'opt' }), {}, 'out of range or unknown values are ignored');
+  const d = H.applyQuick({ food: [{ b: 'Egg' }], h2o: 3, sp: { multi: true }, hs: { at: 1, f: ['stp'] } }, { water: 1, iso: true, sup: 'pm' }, 9);
+  assert.deepEqual(d, { food: [{ b: 'Egg' }], h2o: 4, sp: { multi: true, fo_pm: true, mg: true }, hs: { at: 1, f: ['stp'] }, iso: true, supp: false, _t: 9 });
+  assert.equal(H.applyQuick(d, { sup: 'am' }, 10).supp, true, 'all morning and evening ones taken');
+  assert.equal(H.applyQuick({ h2o: 0 }, { water: -1 }, 1).h2o, 0);
+  const html = (await import('node:fs')).readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+  const ids = g => [...html.matchAll(/\['([a-z_0-9]+)','(am|pm)','/g)].filter(m => m[2] === g).map(m => m[1]);
+  assert.deepEqual(H.SUP, { am: ids('am'), pm: ids('pm') }, 'same supplement ids as SUPS in index.html');
+  process.env.SUPABASE_SERVICE_ROLE_KEY = 'svc';
+  const calls = []; const f0 = globalThis.fetch;
+  globalThis.fetch = async (url, opt = {}) => {
+    calls.push([url, opt.method || 'GET', opt.body]);
+    const ok = (b) => ({ ok: true, status: 200, json: async () => b, text: async () => '' });
+    if (url.includes('/cfg?')) return ok([{ user_id: 'u1', tz: 'Asia/Singapore' }]);
+    if (url.includes('/days?select')) return ok([{ data: { food: [{ b: 'Egg', k: 72 }], h2o: 3, stp: '100' } }]);
+    return ok(null);
+  };
+  try {
+    const r = resMock(); await H.default({ query: { t: 'goodtoken_goodtoken_1', water: ' 1', date: '2026-11-11' } }, r);
+    assert.equal(r.code, 200); assert.deepEqual(r.body.quick, { water: 1 }); assert.match(r.body.msg, /喝水 4\/8/);
+    const row = JSON.parse(calls.find(c => c[1] === 'POST')[2])[0];
+    assert.equal(row.data.h2o, 4); assert.equal(row.data.food[0].b, 'Egg'); assert.equal(row.data.stp, '100');
+    assert.equal(row.data.hs, undefined, 'a quick log is not a Health import');
+  } finally { globalThis.fetch = f0; delete process.env.SUPABASE_SERVICE_ROLE_KEY; }
+});
 await ok('exam week: one summary a day and nothing else; one more water nudge after training', async () => {
   const EX = { ...DATA, rem: { push: true, exam: true } };
   const dg = dueReminders(EX, at(7, 30));

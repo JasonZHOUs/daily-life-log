@@ -24,6 +24,7 @@ function makeEnv(lang = 'en-SG', store = {}) {
   ctx.window = ctx;
   vm.createContext(ctx);
   vm.runInContext(app, ctx, { filename: 'index.html' });
+  vm.runInContext('sh=null;mfOn=false;mfArm=false', ctx);   // the morning flow opens by the clock; tests start it themselves
   return { run: code => vm.runInContext(code, ctx), els, store };
 }
 
@@ -485,6 +486,73 @@ ok('isotretinoin: one tap marks the day; last dose, counts and 14-day strip', ()
   const m = env.run(`mergeDay(norm({iso:false}),norm({iso:true}),'x').iso`);
   assert.equal(m, false, 'un-marking on this device wins over the other copy');
   env0.run(`S.days={}`);
+});
+ok('isotretinoin rule: the user\'s own interval and mg give a plain hint and a running total; nothing shows when unset', () => {
+  env0.run(`S.lang='zh';S.seen=VER;S.days={};S.isoc={};isoEd=false;cur='2026-03-10';S.days['2026-03-09']=norm({iso:true});S.days['2026-03-01']=norm({iso:true});sh=null;tab='home';render()`);
+  let h = env0.els.app.innerHTML;
+  assert.ok(!h.includes('累计') && !h.includes('比你设的间隔') && h.includes('设置间隔和每粒毫克'));
+  env0.run(`S.isoc={iv:2,mg:10};render()`); h = env0.els.app.innerHTML;
+  assert.ok(h.includes('上次是 1 天前，比你设的间隔 2 天近') && h.includes('累计 20 mg') && h.includes('间隔 2 天 · 每粒 10 mg'));
+  env0.run(`S.isoc={iv:1};render()`); h = env0.els.app.innerHTML;
+  assert.ok(h.includes('按你设的间隔 1 天，今天可以吃') && !h.includes('累计'));
+  env0.run(`day().iso=true;render()`);
+  assert.ok(!env0.els.app.innerHTML.includes('今天可以吃'), 'no hint once today is marked');
+  assert.ok(env.run(`CFG.indexOf('isoc')>=0&&CFG.indexOf('xps')>=0&&CFG.indexOf('coach')>=0`), 'synced with the account');
+  env0.run(`S.isoc={};S.days={}`);
+});
+ok('morning flow: asks only what is empty, one tap each, skip works, once a day before 14:00', () => {
+  env0.run(`S.lang='zh';S.days={};S.mfd='';mfSkip={};sh=null;tab='home';cur=ymd(new Date());S.days[shift(cur,-1)]=norm({wt:'68.4'})`);
+  assert.deepEqual(env.run(`mfSteps(day())`), ['sl', 'wt', 'sup', 'iso']);
+  assert.equal(env.run(`mfAuto(15)`), false, 'not after 14:00');
+  assert.equal(env.run(`mfAuto(8)`), true);
+  env0.run(`render()`); let h = env0.els.app.innerHTML;
+  assert.ok(h.includes('还剩 4 题') && h.includes('昨晚睡了几小时？') && h.includes('data-a="mfskip"'));
+  env0.run(`day().sl='7.5';render()`); h = env0.els.app.innerHTML;
+  assert.ok(h.includes('今早体重？') && h.includes('和上次一样 68.4') && h.includes('data-v="68.2"') && h.includes('data-v="68.6"'));
+  env0.run(`mfSkip.wt=1;render()`); assert.ok(env0.els.app.innerHTML.includes('早上的补剂都吃了？'));
+  env0.run(`SUPS.filter(s=>s[1]==='am').forEach(s=>{day().sp[s[0]]=true});render()`); assert.ok(env0.els.app.innerHTML.includes('data-a="isono"'));
+  env0.run(`day().iso=false;render()`);
+  assert.equal(env.run(`sh`), null, 'closes itself after the last answer');
+  assert.equal(env.run(`mfAuto(8)`), false, 'once a day');
+  assert.ok(!env0.els.app.innerHTML.includes('昨晚睡了几小时？'), 'the old sleep card on Today is gone');
+  env0.run(`S.days={};S.mfd=''`);
+});
+ok('weekly experiment: weakest goal of last week, accept or swap, progress on Today, a line in the report', () => {
+  env0.run(`S.lang='zh';S.days={};S.xps={};S.coach=null;xpI=0;sh=null;tab='home';cur=ymd(new Date())`);
+  assert.deepEqual(env.run(`xpList()`), [], 'no data, no proposal');
+  const m0 = env.run(`monday(ymd(new Date()))`);
+  env0.run(`for(let i=1;i<=7;i++){const k=shift('${m0}',-i);S.days[k]=norm({h2o:8,food:[{b:'x',k:T().k,p:i<3?T().p:10}]});SUPS.forEach(s=>{S.days[k].sp[s[0]]=true})}`);
+  const l = env.run(`xpList()`);
+  assert.deepEqual([l[0].g, l[0].x, l[0].a, l[0].b], ['pl', 'xpL1', 0, 7]); assert.equal(l[2].g, 'p'); assert.equal(l[2].a, 2);
+  env0.run(`render()`); let h = env0.els.app.innerHTML;
+  assert.ok(h.includes('上周最弱：计划完成 0/7 天达标') || h.includes('上周最弱：'), 'proposal names the goal');
+  assert.ok(h.includes('data-a="xpok" data-g="pl" data-x="xpL1"') && h.includes('data-a="xpswap"') && h.includes('data-a="xpno"'));
+  env0.run(`xpSet({g:'p',x:'xpP1'});day().xd=true;render()`); h = env0.els.app.innerHTML;
+  assert.ok(h.includes('本周实验 · 早餐加一份蛋白质') && h.includes('本周已做 1 / 5 天') && h.includes('今天已做'));
+  assert.match(env.run(`xpRp('${m0}')`), /实验「早餐加一份蛋白质」做了 1 天；.*达标 2 → \d 天。 (看起来有帮助。|还没看出效果。)/);
+  assert.ok(env.run(`rpText('${m0}')`).includes('🧪 实验「早餐加一份蛋白质」'));
+  assert.equal(env.run(`mergeDay(norm({}),norm({xd:true}),'x').xd`), true);
+  assert.equal(env.run(`mergeDay(norm({xd:false}),norm({xd:true}),'x').xd`), false, 'an un-tick on this device wins');
+  env0.run(`xpSet({off:1});render()`); assert.ok(!env0.els.app.innerHTML.includes('🧪'), 'declined for this week');
+  env0.run(`S.xps={};S.days={}`);
+});
+ok('weekly AI coach: copies the week with a question, the pasted reply becomes the focus on Today', () => {
+  env0.run(`S.lang='zh';S.days={};S.coach=null;rpW=0;sh=null;cur=ymd(new Date());tab='rev';render()`);
+  assert.ok(env0.els.app.innerHTML.includes('每周 AI 教练（免费）') && env0.els.app.innerHTML.includes('data-a="cocopy"'));
+  const x = env.run(`coachTxt()`); assert.ok(x.includes('📊') && x.includes('你是我的健身和学习教练'));
+  assert.equal(env.run(`coSave('  ')`), false); assert.equal(env.run(`coSave(coachTxt())`), false, 'the question itself is not a reply');
+  assert.equal(env.run(`coSave('下周专注蛋白质。\\n<b>早餐加两个蛋</b>')`), true);
+  env0.run(`tab='home';render()`); const h = env0.els.app.innerHTML;
+  assert.ok(h.includes('本周重点') && h.includes('下周专注蛋白质。<br>&lt;b&gt;早餐加两个蛋'), 'shown on Today, escaped');
+  env0.run(`S.coach.d=shift(ymd(new Date()),-21);render()`); assert.ok(!env0.els.app.innerHTML.includes('本周重点'), 'gone after next week ends');
+  env0.run(`S.coach=null`);
+});
+ok('quick-log links: the Apple Health card offers four links and Shortcut steps when signed in', () => {
+  env0.run(`S.lang='zh';user={id:'u'};S.hl_tok='tok_tok_tok_tok_tok_12345';tab='more';render()`);
+  const h = env0.els.app.innerHTML;
+  ['water=1', 'iso=1', 'sup=am', 'sup=pm'].forEach(q => assert.ok(h.includes('data-a="qlcopy" data-q="' + q + '"'), q));
+  assert.ok(h.includes('不开应用也能记') && h.includes('获取 URL 内容'));
+  env0.run(`user=null;S.hl_tok='';tab='home'`);
 });
 ok('release: a new VER comes with a new what-is-new line (hmUpd)', () => {
   // tests/release.json remembers the last version and its line; it is updated here when both have changed.

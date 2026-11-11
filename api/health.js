@@ -3,6 +3,8 @@
 // sends the numbers here. The token is a random string the app stores in the user's cfg row (hl_tok);
 // the app can replace it at any time. Values go into that day's row; the date defaults to today in the
 // user's time zone. Environment: SUPABASE_SERVICE_ROLE_KEY.
+// The same link also logs three things without opening the app (one-tap Shortcuts):
+//   &water=1 (one more cup; "+1" works too), &iso=1 (isotretinoin taken; 0 un-marks), &sup=am|pm (that group taken).
 import { admin } from "./_lib.js";
 import { localNow } from "./_reminders.js";
 
@@ -34,6 +36,36 @@ export function readHealth(q, tz, now = new Date()) {
   return { date, fields: f };
 }
 
+// Supplement ids per group; must match SUPS in index.html (tests/api.mjs checks this).
+export const SUP = { am: ["multi", "fo_am", "crea"], pm: ["fo_pm", "mg"] };
+
+export function readQuick(q) {
+  const o = {};
+  const w = num(q.water);
+  if (w != null && Number.isInteger(w) && w !== 0 && Math.abs(w) <= 4) o.water = w;
+  const i = String(q.iso ?? "").trim().toLowerCase();
+  if (i === "1" || i === "true") o.iso = true;
+  else if (i === "0" || i === "false") o.iso = false;
+  const s = String(q.sup ?? "").trim().toLowerCase();
+  if (SUP[s]) o.sup = s;
+  return o;
+}
+
+// Only touches its own fields, so the app's mergeDay keeps everything else: water is a counter (max wins),
+// supplement ticks are OR'd, iso is stored as true/false.
+export function applyQuick(day, o, at) {
+  const d = { ...(day || {}) };
+  if (o.water) d.h2o = Math.max(0, Math.min(30, (+d.h2o || 0) + o.water));
+  if (o.iso != null) d.iso = o.iso;
+  if (o.sup) {
+    d.sp = { ...(d.sp || {}) };
+    SUP[o.sup].forEach((id) => { d.sp[id] = true; });
+    d.supp = [...SUP.am, ...SUP.pm].every((id) => d.sp[id]);
+  }
+  d._t = at;
+  return d;
+}
+
 // hs = when Health last wrote this day and which fields, so a merge on the phone keeps the newer values.
 export function applyHealth(day, fields, at) {
   return { ...(day || {}), ...fields, hs: { at, f: Object.keys(fields) }, _t: at };
@@ -51,12 +83,15 @@ export default async function handler(req, res) {
     if (!rows || !rows.length) return res.status(404).json({ error: "unknown_link" });
     const uid = rows[0].user_id;
     const { date, fields } = readHealth(q, rows[0].tz);
-    if (!Object.keys(fields).length) return res.status(400).json({ error: "no_values" });
+    const quick = readQuick(q), hasF = Object.keys(fields).length > 0;
+    if (!hasF && !Object.keys(quick).length) return res.status(400).json({ error: "no_values" });
     const cur = await db.get(`days?select=data&user_id=eq.${uid}&day=eq.${date}&limit=1`);
-    const data = applyHealth(cur && cur[0] && cur[0].data, fields, Date.now());
+    const at = Date.now(), old = cur && cur[0] && cur[0].data;
+    const data = applyQuick(hasF ? applyHealth(old, fields, at) : old, quick, at);
     await db.post("days?on_conflict=user_id,day", [{ user_id: uid, day: date, data, updated_at: new Date().toISOString() }], "resolution=merge-duplicates");
-    const msg = [`${date}`, fields.stp && `steps ${fields.stp}`, fields.sl && `sleep ${fields.sl} h`, fields.hx != null && `active ${fields.hx} kcal`, fields.wt && `weight ${fields.wt} kg`].filter(Boolean).join(" · ");
-    return res.status(200).json({ ok: true, date, saved: fields, msg });
+    const msg = [`${date}`, fields.stp && `steps ${fields.stp}`, fields.sl && `sleep ${fields.sl} h`, fields.hx != null && `active ${fields.hx} kcal`, fields.wt && `weight ${fields.wt} kg`,
+      quick.water && `喝水 ${data.h2o}/8 杯`, quick.iso != null && (quick.iso ? "异维A酸 已记" : "异维A酸 已取消"), quick.sup && `${quick.sup === "am" ? "早上" : "晚上"}补剂 已记`].filter(Boolean).join(" · ");
+    return res.status(200).json({ ok: true, date, saved: fields, quick, msg });
   } catch (e) {
     console.error("health", e && e.message);
     return res.status(500).json({ error: "server" });
