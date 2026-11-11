@@ -147,6 +147,7 @@ input,textarea,select{scroll-margin:96px 0 140px}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js" crossorigin="anonymous"></script>
 <script src="config.js"></script>
 <script>
+/* ---------- state and storage slots ---------- */
 const KEY='dl1',KCAL=2800,PROT=120,VER='2026-11-11';
 /* Storage slots keep "this device only" data and each account's data apart: dl1:local and dl1:u:<user id>.
    The old single key "dl1" is copied into the first slot opened, then kept as dl1:legacy. See docs/data-model.md. */
@@ -167,6 +168,7 @@ function loadSlot(k){
   S.bin=S.bin.filter(x=>Date.now()-x.at<7*864e5);   // recycle bin keeps 7 days
   dirty=new Set();cfgDirty=false;persist();
 }
+/* ---------- UI strings: key:[English, 中文], read with t(key) ---------- */
 const I={
 title:['Daily Life Log','每日生活记录'],authT:['Sign in to sync your log across phone and computer.','登录后，手机和电脑上的记录会同步。'],pw:['Password (6+ characters)','密码（至少6位）'],signin:['Sign in','登录'],signup:['Create account','注册'],toup:['New here? Create account','新用户？注册'],toin:['Have an account? Sign in','已有账号？登录'],skip:['Use on this device only','仅在本设备使用'],signout:['Sign out','退出登录'],confirmMail:['Account created. Check your email to confirm, then sign in.','账号已创建。请查收邮件确认后再登录。'],authBad:['Enter your email and a password of at least 6 characters.','请输入邮箱和至少6位的密码。'],today:['Today','今天'],food:['Food','饮食'],act:['Activity','活动'],review:['Review','回顾'],
 synced:['Synced to your account','已同步到你的账号'],local:['Saved on this device only','仅保存在本设备'],syncing:['Syncing…','同步中…'],syncerr:['Sync failed, will retry','同步失败，稍后重试'],
@@ -410,6 +412,7 @@ const GYM=[['Legs','腿'],['Chest','胸'],['Shoulders','肩'],['Back','背'],['A
 const ACT=[['Weight training, moderate','力量训练（中等）',4],['Weight training, hard','力量训练（高强度）',6],['Walking','步行',3.5],['Running','跑步',9],['Cycling','骑行',7],['Swimming','游泳',7],['HIIT','高强度间歇',8],['Ball sports','球类运动',7],['Other exercise','其他运动',5]];
 const UN={egg:['egg','个'],slice:['slice','片'],cup:['cup','杯'],bowl:['bowl','碗'],bun:['bun','个'],piece:['piece','个'],banana:['banana','根'],apple:['apple','个'],orange:['orange','个'],tbsp:['tbsp','勺'],sausage:['sausage','根'],serving:['serving','份'],scoop:['scoop','勺'],plate:['plate','盘'],stick:['stick','串'],roll:['roll','条'],glass:['glass','杯']};
 const PRE=[['Breakfast: eggs, bread, yogurt','早餐：鸡蛋、面包、酸奶',500,30,18,50],['Breakfast: oatmeal and eggs','早餐：燕麦和鸡蛋',800,40,24,105],['Meat, vegetables and rice','肉、蔬菜和米饭',600,40,15,70],['Extra half bowl of rice','加半碗米饭',150,3,0.3,33],['Peanut butter sandwich and banana','花生酱三明治和香蕉',400,12,16,52],['Milk 300 ml and banana','牛奶300毫升和香蕉',290,11,10,41],['Handful of nuts','一把坚果',180,6,16,6],['Chicken sausage','鸡肉肠',80,7,4,2],['Gainer powder 25 g','增肌粉25克',95,6,0.3,17]].map(a=>({b:a[0],z:a[1],k:a[2],p:a[3],f:a[4],c:a[5]}));
+/* ---------- built-in data: weekly plan template, food database, dishes ---------- */
 const TPL=[['0123456','08:30','Breakfast with protein','早餐（含蛋白质）'],['0123456','08:30','Morning supplements','早上补剂'],['0123456','23:00','Evening supplements','晚上补剂'],['0123456','15:30','Afternoon snack','下午加餐'],['0123456','22:00','5 minutes of spoken English','口语练习5分钟'],['0123456','23:30','Night note and bed','睡前小结，准备睡觉'],['2460','20:00','Gym (dinner by 7 pm)','健身（7点前吃晚饭）'],['1','09:00','Class 9 am to 12 pm','上课 9:00–12:00'],['1','13:00','Review notes or English','复习笔记或练英语'],['1','15:00','Class 3 to 6 pm','上课 15:00–18:00'],['2','08:30','Deep work before lab','实验前专注学习'],['2','11:00','Lab until 6 pm','实验到18:00'],['3','09:00','Deep work and email a professor','专注学习，给一位教授发邮件'],['3','14:00','AI project time','AI项目时间'],['4','08:30','English and reading','英语与阅读'],['4','10:30','Lab until 3 pm','实验到15:00'],['4','16:00','Class 4 to 6 pm','上课 16:00–18:00'],['5','10:00','Reading or AI project','阅读或AI项目'],['5','13:00','Lab (afternoon)','实验（下午）'],['5','18:00','Class 6 to 9 pm','上课 18:00–21:00'],['6','14:00','Test the plugin with real people','请真实用户试用插件'],['0','09:00','Weekly weigh-in','每周称重'],['0','17:00','Plan the week and call family','规划下周，给家人打电话']];
 const DB=`Chicken breast, cooked;鸡胸肉 chicken;165;31;3.6;0
 Chicken thigh, cooked;鸡腿肉 drumstick;209;26;10.9;0
@@ -1004,6 +1007,7 @@ function vAct(d,k){
   h+='<div class="c"><h2>'+t('energy')+'</h2><div class="row"><select id="ea" style="width:auto;flex:1">'+ACT.map((a,i)=>'<option value="'+i+'">'+a[L()]+'</option>').join('')+'</select><input class="s" id="em" type="number" inputmode="numeric" placeholder="'+t('min')+'"><button data-a="exadd">'+t('add')+'</button></div>'+d.ex.map((x,i)=>'<div class="li"><span>'+esc(x.a!=null?ACT[x.a][L()]+', '+x.m+' '+t('min'):x.n)+'</span><span>'+x.k+' '+t('kc')+' <button class="sm" data-a="exdel" data-i="'+i+'" aria-label="Remove">×</button></span></div>').join('')+(d.hx!=null?'<div class="li"><span>'+t('hlAct')+'</span><span>'+d.hx+' '+t('kc')+'</span></div><p class="mut" style="margin:4px 0 0">'+t('hlActNote')+'</p>':'')+'<p>'+t('eatenL')+': <b>'+Math.round(k)+'</b> '+t('kc')+'<br>'+t('rest')+': <b>'+base+'</b> '+t('kc')+'<br>'+t('exL')+': <b>'+ex+'</b> '+t('kc')+'</p><p class="hl" style="padding:10px;border-radius:8px"><b>'+(bal>=0?t('surplus')+' +':t('deficit')+' ')+bal+' '+t('kc')+'</b><br><small>'+t('goalHint')+'</small></p><p class="mut">'+t('estNote')+' ('+w+' kg)</p></div>';
   return h;
 }
+/* ---------- weekly summary, adaptive calories, patterns, CSV and backup ---------- */
 function weekSummary(k){
   const T0=T(),mins={study:0,lab:0,ai:0,career:0},parts=new Set();
   let fd=0,kc=0,pr=0,pd=0,gy=0,en=0,pt=0,px=0,spl=0,spc=0;const sls=[],mds=[],vol={},ts={n:0};
@@ -1442,6 +1446,7 @@ function tplCard(){
    +ord.map(i=>{const x=L0[i];return '<div style="border-top:1px solid var(--bd);padding:6px 0"><div class="row"><input type="time" data-tp="t" data-i="'+i+'" value="'+esc(x[1])+'" style="width:120px"><input class="g" data-tp="n" data-i="'+i+'" value="'+esc(tx(x[2],x[3]))+'"><button class="sm" data-a="tdel" data-i="'+i+'" aria-label="Remove">×</button></div><div class="row" style="gap:4px">'+WD.map(w=>'<button class="sm'+(x[0].indexOf(w)>=0?' on':'')+'" data-a="twd" data-i="'+i+'" data-w="'+w+'" style="min-width:38px;padding:4px 0">'+wdName(w)+'</button>').join('')+'</div></div>'}).join('')
    +'<div class="row"><button data-a="tadd">'+t('tplAdd')+'</button><button data-a="treset">'+t('tplReset')+'</button></div><div class="row"><button class="sm" data-a="tdef">'+t('tplDef')+'</button><small id="tmsg" class="mut"></small></div></details>';
 }
+/* ---------- Review and More pages ---------- */
 function vRev(){
   const d=day();
   return goalCard()+trendCard()+streakCard()+reportCard()+srCard()+adCard()+patCard()+heat()+'<div class="c"><h2>'+t('weight')+'</h2><div class="row"><input class="s" id="wt" type="number" step="0.1" inputmode="decimal" value="'+esc(d.wt)+'"><small>'+t('weightHint')+'</small></div></div>'
@@ -1539,6 +1544,7 @@ function shView(d){
   }
   return '<div class="shv" data-a="shx"></div><div class="sht" role="dialog" aria-modal="true"><div class="shg"></div>'+b+'<div class="row"><button class="on" data-a="shx" style="flex:1">'+t('shDone')+'</button></div></div>';
 }
+/* ---------- sign-in pages and render() ---------- */
 function vReset(){
   return '<div class="c" style="margin-top:40px"><h2>'+t('resetT')+'</h2><input class="big" id="np" type="password" autocomplete="new-password" placeholder="'+t('newPw')+'"><div class="row"><button class="on" data-a="setpw">'+t('setPw')+'</button></div><div class="mut" id="am">'+esc(authMsg)+'</div></div>';
 }
@@ -1926,6 +1932,7 @@ document.addEventListener('change',e=>{
   else{const v=e.target.value.trim();if(!v)return;x[2]=L()?'':v;x[3]=L()?v:''}
   touchCfg();const sp=tplSpread(o,x);save();if(sp)toast(t('tplSpread'));
 });
+/* ---------- keyboard: hide the bottom nav while typing ---------- */
 function typing(el){return !!el&&(el.tagName==='TEXTAREA'||(el.tagName==='INPUT'&&!/checkbox|radio|file|button/.test(el.type)))}
 // Hide the nav only while the keyboard is on screen. Focus alone is not enough: iOS keeps focus after Done, and a re-render can remove the focused box without a focusout.
 function kbSync(){const bd=document.body;if(!bd||!bd.classList)return;const vv=window.visualViewport,on=typing(document.activeElement)&&(!vv||innerHeight-vv.height>120);bd.classList.toggle('kb',!!on)}

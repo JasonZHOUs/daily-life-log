@@ -486,6 +486,15 @@ ok('isotretinoin: one tap marks the day; last dose, counts and 14-day strip', ()
   assert.equal(m, false, 'un-marking on this device wins over the other copy');
   env0.run(`S.days={}`);
 });
+ok('release: a new VER comes with a new what-is-new line (hmUpd)', () => {
+  // tests/release.json remembers the last version and its line; it is updated here when both have changed.
+  const file = new URL('./release.json', import.meta.url);
+  const now = { ver: env.run(`VER`), upd: env.run(`I.hmUpd`) };
+  const was = fs.existsSync(file) ? JSON.parse(fs.readFileSync(file, 'utf8')) : null;
+  if (was && was.ver !== now.ver) assert.notDeepEqual(now.upd, was.upd, 'VER changed but hmUpd still describes the previous release');
+  if (!was || was.ver !== now.ver) fs.writeFileSync(file, JSON.stringify(now, null, 2) + String.fromCharCode(10));
+});
+
 ok('sync: only one side changed → take it; both changed → merge, keeping deletions', () => {
   env0.run(`S.days={};S.bin=[];dirty=new Set()`);
   // remote changed only
