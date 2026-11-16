@@ -1,7 +1,7 @@
 {
-  "ver": "2026-11-16",
+  "ver": "2026-11-16b",
   "upd": [
-    "New look: light by day, dark at night (More → Display to change). Finished items fold into one line, a 30-second evening check replaces the wrap-up card, and some experiments now count themselves from your log.",
-    "新外观：白天浅色、晚上深色（更多 → 显示 可改）。已完成的项收成一行，晚间 30 秒记录替代收尾卡片，部分小实验会根据记录自动记进度。"
+    "New: gym history by date and by exercise (Gym tile → History, or Review). Also in this version: the new look, light by day and dark at night (More → Display to change).",
+    "新增：健身记录，可按日期或按动作查看（健身格子 →「看记录」，或「回顾」页）。本版还有新外观：白天浅色、晚上深色（更多 → 显示 可改）。"
   ]
 }

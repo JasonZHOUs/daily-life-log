@@ -158,7 +158,7 @@ button:not(.on):not(.trd):not([data-a$="del"]){border-color:var(--bd)}
 <script src="config.js"></script>
 <script>
 /* ---------- state and storage slots ---------- */
-const KEY='dl1',KCAL=2800,PROT=120,VER='2026-11-16';
+const KEY='dl1',KCAL=2800,PROT=120,VER='2026-11-16b';
 /* Storage slots keep "this device only" data and each account's data apart: dl1:local and dl1:u:<user id>.
    The old single key "dl1" is copied into the first slot opened, then kept as dl1:legacy. See docs/data-model.md. */
 const fresh=()=>({days:{},foods:[],dbx:[],t:{},gm:{},meals:[],tpl:null,lang:'',sched:[],stat:null,rem:{},tz:'',cal_tok:'',hl_tok:'',tpls:{},bin:[],timer:null,favs:[],al:{},isoc:{},xps:{},coach:null,mfd:'',mfe:''});
@@ -398,7 +398,8 @@ qlS1:['Copy a link above. Open the Shortcuts app → + (new shortcut).','先点�
 dsTime:['By time','按时间'],mfPmRow:['Evening check','晚间快速记录'],mfGo:['Start','开始'],mfLeftPm:['Evening check · {n} left','晚间快速记录 · 还剩 {n} 题'],mfPmQ:['Evening supplements all taken?','晚上的补剂都吃了？'],mfXpQ:['Did today’s experiment?','今天的小实验做了吗？'],mfXpY:['Did it','做了'],mfWinQ:['Today in one line','今天一句话总结'],mfWinHint:['Leave it empty to use the draft shown in grey.','留空就采用灰色的草稿。'],
 isoShort:['Isotretinoin','异维A酸'],hmAmDone:['Morning supplements','早上补剂'],hmUnfold:['Show','展开'],hmFold:['Hide','收起'],hmExpOn:['Finished items are shown','已完成的项已展开'],xpAutoL:['Counted from your log','已自动记'],
 hmSlQ:['How many hours did you sleep last night?','昨晚睡了几小时？'],hmOther:['Other','其他'],hmStreak:['Food logged {n} days in a row','连续记录饮食 {n} 天'],
-hmUpd:['New look: light by day, dark at night (More → Display to change). Finished items fold into one line, a 30-second evening check replaces the wrap-up card, and some experiments now count themselves from your log.','新外观：白天浅色、晚上深色（更多 → 显示 可改）。已完成的项收成一行，晚间 30 秒记录替代收尾卡片，部分小实验会根据记录自动记进度。'],
+hmUpd:['New: gym history by date and by exercise (Gym tile → History, or Review). Also in this version: the new look, light by day and dark at night (More → Display to change).','新增：健身记录，可按日期或按动作查看（健身格子 →「看记录」，或「回顾」页）。本版还有新外观：白天浅色、晚上深色（更多 → 显示 可改）。'],
+ghT:['Gym history','健身记录'],ghByD:['By date','按日期'],ghByX:['By exercise','按动作'],ghBtn:['History','看记录'],ghOpen:['Open','查看'],ghNoEx:['no exercises logged','没记动作'],ghSets:['{n} sets','{n} 组'],ghPR:['PR','新纪录'],ghMore:['Earlier','更早'],ghNone:['No gym days yet. Tick a body part or log a workout and it shows up here.','还没有健身记录。勾选部位或记一次训练后会出现在这里。'],ghTimes:['{n} sessions','{n} 次'],ghBest:['Best (estimated 1RM)','最好成绩（估算 1RM）'],ghBestR:['Most reps in one set','单组最多次数'],ghLast:['Last {n} sessions','最近 {n} 次'],ghAll:['‹ All exercises','‹ 全部动作'],ghMonth:['{n} this month','本月 {n} 次'],ghReps:['{n} reps','{n} 次'],
 smB:['breakfast','早餐'],smL:['lunch','午饭'],smS:['snack','加餐'],smD:['dinner','晚饭'],
 shFoodT:['Log {m}','记一餐 · {m}'],shLineP:['One line: 2 eggs, a bowl of rice','一句话：两个鸡蛋，一碗米饭'],shOften:['You often eat','你常吃的'],shFull:['Search or photo ›','搜索或拍照 ›'],
 shEaten:['Today: {k} kcal · {p} g protein','今天：{k} 千卡 · 蛋白质 {p} 克'],shDone:['Done','完成'],shAdded:['Added: {n}','已记：{n}'],
@@ -1006,6 +1007,43 @@ const exName=x=>{const e=exF(x);return e?e[L()]:x};
 const e1rm=s=>(s.kg||0)*(1+(s.r||0)/30);
 function lastEx(x,k){for(let i=1;i<=180;i++){const d=S.days[shift(k,-i)];const w=d&&d.wk&&d.wk.find(y=>y.x===x&&y.s.length);if(w)return {k:shift(k,-i),w:w}}return null}
 function bestBefore(x,k){let b=0;Object.keys(S.days).forEach(dk=>{if(dk>=k)return;(S.days[dk].wk||[]).forEach(w=>{if(w.x===x)w.s.forEach(s=>{b=Math.max(b,e1rm(s))})})});return b}
+/* gym history: days with a body part ticked or sets logged, newest first; per exercise the sessions and best estimated 1RM */
+let ghM='d',ghX=null,ghN=20;
+const setTx=s=>s.kg?s.kg+'×'+(s.r||0):String(s.r||0);
+const md=k=>(+k.slice(5,7))+'/'+(+k.slice(8));
+const bestSet=w=>w.s.slice().sort((a,b)=>e1rm(b)-e1rm(a)||(b.r||0)-(a.r||0))[0];
+function ghDays(){return Object.keys(S.days).filter(k=>{const r=S.days[k];return (r.gym&&r.gym.length)||(r.wk&&r.wk.some(w=>w.s&&w.s.length))}).sort().reverse()}
+function ghExs(){
+  const m={};
+  ghDays().forEach(k=>(S.days[k].wk||[]).forEach(w=>{if(!w.s||!w.s.length)return;const o=m[w.x]||(m[w.x]={x:w.x,ses:[]});o.ses.push({k:k,w:w})}));
+  return Object.keys(m).map(x=>{const o=m[x],kg=o.ses.some(q=>q.w.s.some(s=>s.kg>0));let b=null;
+    o.ses.forEach(q=>q.w.s.forEach(s=>{const v=kg?e1rm(s):(s.r||0);if(!b||v>b.v)b={v:v,k:q.k,s:s}}));
+    return {x:x,ses:o.ses,kg:kg,best:b}}).sort((a,b)=>b.ses.length-a.ses.length);
+}
+const r1=v=>Math.round(v*10)/10;
+function vGym(){
+  const ks=ghDays(),B=(v,l)=>'<button class="sm'+(ghM===v?' on':'')+'" data-a="ghm" data-v="'+v+'" aria-pressed="'+(ghM===v)+'">'+t(l)+'</button>';
+  let h='<div class="row" style="flex-wrap:nowrap;gap:6px"><b style="flex:1;font-size:18px">🏋 '+t('ghT')+'</b>'+B('d','ghByD')+B('x','ghByX')+'</div>';
+  if(!ks.length)return h+'<div class="c"><p class="mut" style="margin:0">'+t('ghNone')+'</p></div>';
+  if(ghM==='d'){
+    ks.slice(0,ghN).forEach(k=>{
+      const r=norm(S.days[k]),ws=r.wk.filter(w=>w.s&&w.s.length),pt=r.gym.map(gymName).join('、');
+      h+='<div class="c" style="padding:12px 14px"><div class="row" style="margin:0;flex-wrap:nowrap;gap:8px"><b style="flex:1;min-width:0">'+md(k)+' '+wdLong(k)+' <small style="font-weight:400">'+esc(pt)+(ws.length?'':(pt?' · ':'')+t('ghNoEx'))+'</small></b><button class="sm" data-a="srgo" data-k="'+k+'" data-t="act">'+t('ghOpen')+'</button></div>'
+       +ws.map(w=>{const s=bestSet(w),pb=bestBefore(w.x,k),pr=pb>0&&Math.max.apply(null,w.s.map(e1rm))>pb;
+         return '<div class="li"><span style="min-width:0">'+esc(exName(w.x))+' <small>'+t('ghSets',{n:w.s.length})+'</small></span><span style="white-space:nowrap">'+(s.kg?s.kg+' kg × '+(s.r||0):t('ghReps',{n:s.r||0}))+(pr?' <span class="pill" style="color:var(--ac)">'+t('ghPR')+'</span>':'')+'</span></div>'}).join('')+'</div>';
+    });
+    if(ks.length>ghN)h+='<div class="row" style="justify-content:center"><button class="sm" data-a="ghmore">'+t('ghMore')+' ↓</button></div>';
+    return h;
+  }
+  const xs=ghExs(),o=ghX&&xs.find(q=>q.x===ghX);
+  if(!o)return h+'<div class="c" style="padding:6px 14px">'+(xs.length?xs.map(q=>'<button class="trd" data-a="ghx" data-x="'+esc(q.x)+'"><span style="min-width:0">'+esc(exName(q.x))+' <small>'+t('ghTimes',{n:q.ses.length})+'</small></span><b style="white-space:nowrap">'+(q.kg?r1(q.best.v)+' kg':t('ghReps',{n:q.best.v}))+' ›</b></button>').join(''):'<p class="mut">'+t('ghNoEx')+'</p>')+'</div>';
+  const val=q=>Math.max.apply(null,q.w.s.map(s=>o.kg?e1rm(s):(s.r||0))),last=o.ses.slice(0,6).reverse(),mx=Math.max.apply(null,last.map(val))||1;
+  return h+'<div class="row" style="margin-bottom:0"><button class="sm" data-a="ghx" data-x="">'+t('ghAll')+'</button><b>'+esc(exName(o.x))+'</b></div>'
+   +'<div class="c"><small>'+t(o.kg?'ghBest':'ghBestR')+'</small><div style="font-size:20px;font-weight:600">'+(o.kg?r1(o.best.v)+' kg':o.best.v)+' <small style="font-weight:400">· '+md(o.best.k)+(o.kg?'，'+setTx(o.best.s):'')+'</small></div>'
+   +'<div style="display:flex;align-items:flex-end;gap:6px;height:64px;margin:10px 0 4px" role="img" aria-label="'+t('ghLast',{n:last.length})+'">'+last.map(q=>'<i title="'+q.k+'" style="flex:1;max-width:48px;border-radius:4px 4px 0 0;background:var(--ac2);height:'+Math.max(6,Math.round(val(q)/mx*100))+'%"></i>').join('')+'</div><small>'+t('ghLast',{n:last.length})+'</small></div>'
+   +'<div class="c" style="padding:6px 14px">'+o.ses.slice(0,15).map(q=>'<div class="li" style="align-items:flex-start"><span style="white-space:nowrap">'+md(q.k)+'</span><span style="text-align:right;overflow-wrap:anywhere">'+q.w.s.map(setTx).join(' · ')+'</span></div>').join('')+'</div>';
+}
+function ghCard(){const m=ymd(new Date()).slice(0,7),n=ghDays().filter(k=>k.slice(0,7)===m).length;return '<div class="c row" style="padding:12px 14px;flex-wrap:nowrap"><span style="flex:1">🏋 <b>'+t('ghT')+'</b> <small>· '+t('ghMonth',{n:n})+'</small></span><button class="sm" data-a="tab" data-t="gh">'+t('ghOpen')+'</button></div>'}
 function wkCard(d){
   const used=new Set();Object.keys(S.days).forEach(k=>(S.days[k].wk||[]).forEach(w=>used.add(w.x)));
   const opts=EXS.map(e=>e[L()]).concat([...used].filter(x=>!exF(x)));
@@ -1529,7 +1567,7 @@ function tplCard(){
 /* ---------- Review and More pages ---------- */
 function vRev(){
   const d=day();
-  return goalCard()+trendCard()+streakCard()+reportCard()+coachCard()+srCard()+adCard()+patCard()+heat()+'<div class="c"><h2>'+t('weight')+'</h2><div class="row"><input class="s" id="wt" type="number" step="0.1" inputmode="decimal" value="'+esc(d.wt)+'"><small>'+t('weightHint')+'</small></div></div>'
+  return goalCard()+trendCard()+streakCard()+ghCard()+reportCard()+coachCard()+srCard()+adCard()+patCard()+heat()+'<div class="c"><h2>'+t('weight')+'</h2><div class="row"><input class="s" id="wt" type="number" step="0.1" inputmode="decimal" value="'+esc(d.wt)+'"><small>'+t('weightHint')+'</small></div></div>'
    ;
 }
 function vMore(){
@@ -1622,7 +1660,7 @@ function vHome(d){
   h+='<div class="tiles">'
    +tl('🍽',t('tFood'),Math.round(p)+' / '+T0.p+' g',r>=0?t('hmKLeft',{n:r}):t('hmKOver',{n:-r}),T0.p?p/T0.p*100:0,B('food',t('hmLog'),true))
    +tl('📖',t('tStudy'),hrs(tot(d)),tm?t('hmRun')+' · '+((CATS.find(c=>c[0]===tm.c)||[0,tm.c,tm.c])[1+L()]):'&nbsp;',null,tm?'<button class="sm on" data-a="tmstop">'+t('stop')+'</button>':B('study',t('hmStart'),true))
-   +tl('🏋',t('tGym'),d.gym.length?esc(d.gym.map(gymName).join('、')):t('hmGymNone'),t('hmGymWk',{n:gymWk(cur)}),null,B('gym',t('hmGymBtn')))
+   +tl('🏋',t('tGym'),d.gym.length?esc(d.gym.map(gymName).join('、')):t('hmGymNone'),t('hmGymWk',{n:gymWk(cur)}),null,B('gym',t('hmGymBtn'))+'<button class="sm" data-a="tab" data-t="gh" style="margin-top:6px">'+t('ghBtn')+'</button>')
    +(stDone?'':tl('🙂',t('tMood'),d.mood||d.nrg?(d.mood?MOOD[d.mood-1]+' ':'')+(d.nrg?t('hmNrg',{n:d.nrg}):''):t('hmSlNone'),sl?t('hmSlShort',{n:esc(sl)}):av!=null?t('hmSlAvg',{n:av}):'&nbsp;',null,B('sleep',t('hmMdBtn'))))
    +(spDone?'':tl('💊',t('tSup'),spN+' / '+supReq.length,t('hmSpSub',{a:am.n+'/'+am.of,p:pm.n+'/'+pm.of}),supReq.length?spN/supReq.length*100:0,(spG?'<button class="sm on" data-a="spall" data-g="'+spG+'">'+t(spG==='am'?'hmSpAm':'hmSpPm')+'</button>':'<div class="ts">'+t('hmSpDone')+'</div>')+'<button class="sm" data-a="sh" data-s="sup" style="margin-top:6px">'+t('hmSpEach')+'</button>'))
    +(wtDone?'':tl('⚖️',t('tWt'),wt?esc(String(wt))+' kg':t('hmWtNone'),wt&&w7?t('hmWtCh',{v:(wt-w7.v>0?'+':wt-w7.v<0?'−':'±')+Math.abs(Math.round((wt-w7.v)*10)/10)}):wl?t('hmWtLast',{d:(+wl.k.slice(5,7))+'/'+(+wl.k.slice(8)),v:wl.v}):'&nbsp;',null,B('wt',t('hmWtBtn'))))
@@ -1684,10 +1722,10 @@ function render(){
   let h=ub+tmBar()+header()+dueBanner();
   evSnap=evMap(d,cur);
   const bk='<div class="row" style="margin-top:0"><button class="sm" data-a="tab" data-t="home">'+t('backHome')+'</button></div>';
-  h+=tab==='home'?vHome(d):tab==='today'?vToday(d):tab==='food'?bk+vFood(d,k,p,f,c):tab==='act'?bk+vAct(d,k):tab==='more'?vMore():vRev();
+  h+=tab==='home'?vHome(d):tab==='today'?vToday(d):tab==='food'?bk+vFood(d,k,p,f,c):tab==='act'?bk+vAct(d,k):tab==='gh'?bk+vGym():tab==='more'?vMore():vRev();
   $('#app').innerHTML=h+shView(d);
   if(document.body&&document.body.style)document.body.style.overflow=sh?'hidden':'';
-  const nt=tab==='food'||tab==='act'?'home':tab;
+  const nt=tab==='food'||tab==='act'||tab==='gh'?'home':tab;
   const TB=[['home','<path d="M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-4.5v-6h-5v6H5a1 1 0 0 1-1-1z"/>',t('hmTab')],['today','<path d="M9.5 6.5H20M9.5 12H20M9.5 17.5H20M3.5 6.5l1.3 1.3L7.3 5.3M3.5 12l1.3 1.3 2.5-2.5M3.5 17.5l1.3 1.3 2.5-2.5"/>',t('planTab')],['rev','<path d="M5 20v-8M12 20V5M19 20v-5M3 20.5h18"/>',t('review')],['more','<circle cx="5" cy="12" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="19" cy="12" r="1.3"/>',t('moreTab')]];
   $('#tabs').innerHTML=TB.map(x=>'<button data-a="tab" data-t="'+x[0]+'" class="'+(nt===x[0]?'on':'')+'"'+(nt===x[0]?' aria-current="page"':'')+'><svg viewBox="0 0 24 24" aria-hidden="true">'+x[1]+'</svg>'+x[2]+'</button>').join('');
   updSync();kbSync();
@@ -2028,6 +2066,9 @@ document.addEventListener('click',e=>{
   else if(a==='nmadd'){const cb=nmList[+b.dataset.i];if(!cb)return;cb.forEach(e=>addFood(d,Object.assign({},e)));toast(t('nmAdded'))}
   else if(a==='aldis'){S.al=Object.assign({},S.al);alerts().forEach(x=>{S.al[x[0]]=Date.now()});touchCfg()}
   else if(a==='srr'){srR=+b.dataset.v;render();return}
+  else if(a==='ghm'){ghM=b.dataset.v;ghX=null;render();return}
+  else if(a==='ghx'){ghX=b.dataset.x||null;render();if(typeof scrollTo==='function')scrollTo(0,0);return}
+  else if(a==='ghmore'){ghN+=20;render();return}
   else if(a==='srgo'){cur=b.dataset.k;tab=b.dataset.t;sel=null;render();if(typeof scrollTo==='function')scrollTo(0,0);return}
   else if(a==='disp'){pref(b.dataset.k,b.dataset.v||null);applyDisp();render();return}
   else if(a==='remexam'){S.rem=Object.assign({},S.rem,{exam:b.checked});touchCfg()}
@@ -2092,7 +2133,7 @@ document.addEventListener('keydown',e=>{
   if(addLine(day())){sel=null;focusFs=true;save();render()}
   else if(fq.length===1){sel=fq[0];showSel()}
 });
-try{const qt=new URLSearchParams(location.search||'').get('tab');if(qt&&['home','food','today','act','rev','more'].indexOf(qt)>=0)tab=qt}catch(e){}
+try{const qt=new URLSearchParams(location.search||'').get('tab');if(qt&&['home','food','today','act','gh','rev','more'].indexOf(qt)>=0)tab=qt}catch(e){}
 applyDisp();
 initSync();
 render();

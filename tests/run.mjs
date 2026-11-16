@@ -24,7 +24,7 @@ function makeEnv(lang = 'en-SG', store = {}) {
   ctx.window = ctx;
   vm.createContext(ctx);
   vm.runInContext(app, ctx, { filename: 'index.html' });
-  vm.runInContext('sh=null;mfOn=false;mfArm=false;hmExp=true', ctx);   // older checks look at the unfolded Today   // the morning flow opens by the clock; tests start it themselves
+  vm.runInContext('sh=null;mfOn=false;mfArm=false;mfM="am";hmExp=true', ctx);   // older checks look at the unfolded Today   // the morning flow opens by the clock; tests start it themselves
   return { run: code => vm.runInContext(code, ctx), els, store };
 }
 
@@ -603,6 +603,29 @@ ok('experiment progress is read from records where possible; a manual tick wins'
   assert.equal(env.run(`xpAuto({x:'xpW1'},norm({h2o:8}))`), false, 'not readable from records');
   assert.equal(env.run(`xpDone({x:'xpP1'},norm({xd:false,food:[{b:'Egg',p:18,at:${at(8)}}]}))`), false, 'manual un-tick wins');
   assert.equal(env.run(`xpDone({x:'xpW1'},norm({xd:true}))`), true);
+});
+ok('gym history: days newest first with best set and PR mark; per exercise sessions and best estimated 1RM', () => {
+  env0.run(`S.lang='zh';S.days={};ghM='d';ghX=null;ghN=20;sh=null;cur='2026-03-20';
+    S.days['2026-03-01']=norm({gym:['Chest'],wk:[{x:'Bench press',s:[{r:8,kg:55},{r:8,kg:50}]}]});
+    S.days['2026-03-08']=norm({gym:['Chest'],wk:[{x:'Bench press',s:[{r:8,kg:60},{r:7,kg:60}]},{x:'Pull-up',s:[{r:9},{r:7}]}]});
+    S.days['2026-03-10']=norm({gym:['Legs']});S.days['2026-03-11']=norm({food:[{b:'x',k:1}]})`);
+  assert.deepEqual(env.run(`ghDays()`), ['2026-03-10', '2026-03-08', '2026-03-01']);
+  env0.run(`tab='gh';render()`); let h = env0.els.app.innerHTML;
+  assert.ok(h.includes('健身记录') && h.includes('3/10') && h.includes('没记动作') && h.includes('60 kg × 8') && h.includes('9 次'));
+  assert.equal(h.split('新纪录').length - 1, 1, 'only the later bench session is a PR');
+  assert.ok(h.includes('data-a="srgo" data-k="2026-03-08" data-t="act"') && env0.els.tabs.innerHTML.includes('data-t="home" class="on"'));
+  const xs = env.run(`ghExs().map(q=>[q.x,q.ses.length,q.kg,q.best.v,q.best.k])`);
+  assert.deepEqual(xs, [['Bench press', 2, true, 76, '2026-03-08'], ['Pull-up', 1, false, 9, '2026-03-08']]);
+  env0.run(`ghM='x';render()`); h = env0.els.app.innerHTML;
+  assert.ok(h.includes('data-a="ghx" data-x="Bench press"') && h.includes('76 kg') && h.includes('2 次'));
+  env0.run(`ghX='Bench press';render()`); h = env0.els.app.innerHTML;
+  assert.ok(h.includes('最好成绩（估算 1RM）') && h.includes('3/8，60×8') && h.includes('60×8 · 60×7') && h.includes('55×8 · 50×8'));
+  env0.run(`ghX='Pull-up';render()`); assert.ok(env0.els.app.innerHTML.includes('单组最多次数') && env0.els.app.innerHTML.includes('9 · 7'));
+  env0.run(`S.lang='en';ghX=null;ghM='d';render()`); assert.ok(env0.els.app.innerHTML.includes('Gym history') && env0.els.app.innerHTML.includes('PR'));
+  env0.run(`S.lang='zh';hmExp=true;tab='home';render()`); assert.ok(env0.els.app.innerHTML.includes('data-a="tab" data-t="gh"'));
+  env0.run(`tab='rev';render()`); assert.ok(env0.els.app.innerHTML.includes('data-a="tab" data-t="gh"'));
+  env0.run(`S.days={};tab='gh';render()`); assert.ok(env0.els.app.innerHTML.includes('还没有健身记录'));
+  env0.run(`tab='home';cur=ymd(new Date())`);
 });
 ok('release: a new VER comes with a new what-is-new line (hmUpd)', () => {
   // tests/release.json remembers the last version and its line; it is updated here when both have changed.
