@@ -24,7 +24,7 @@ function makeEnv(lang = 'en-SG', store = {}) {
   ctx.window = ctx;
   vm.createContext(ctx);
   vm.runInContext(app, ctx, { filename: 'index.html' });
-  vm.runInContext('sh=null;mfOn=false;mfArm=false', ctx);   // the morning flow opens by the clock; tests start it themselves
+  vm.runInContext('sh=null;mfOn=false;mfArm=false;hmExp=true', ctx);   // older checks look at the unfolded Today   // the morning flow opens by the clock; tests start it themselves
   return { run: code => vm.runInContext(code, ctx), els, store };
 }
 
@@ -553,6 +553,56 @@ ok('quick-log links: the Apple Health card offers four links and Shortcut steps 
   ['water=1', 'iso=1', 'sup=am', 'sup=pm'].forEach(q => assert.ok(h.includes('data-a="qlcopy" data-q="' + q + '"'), q));
   assert.ok(h.includes('不开应用也能记') && h.includes('获取 URL 内容'));
   env0.run(`user=null;S.hl_tok='';tab='home'`);
+});
+ok('theme follows the clock by default; light, dark and system can be fixed', () => {
+  env0.run(`pref('theme',null)`);
+  assert.deepEqual(env.run(`[thNow(6),thNow(7),thNow(18),thNow(19),thNow(23)]`), ['dark', 'light', 'light', 'dark', 'dark']);
+  env0.run(`pref('theme','sys')`); assert.equal(env.run(`thNow(3)`), '');
+  env0.run(`pref('theme','light')`); assert.equal(env.run(`thNow(3)`), 'light');
+  env0.run(`pref('theme',null);S.lang='zh';tab='more';render()`);
+  const h = env0.els.app.innerHTML;
+  assert.ok(h.includes('data-k="theme" data-v="" aria-pressed="true">按时间') && h.includes('data-k="theme" data-v="sys"'));
+  assert.ok(html.includes('--btn:#15171a') && html.includes('--btn:#c8f169'), 'ink palette in both themes');
+});
+ok('Today folds finished items into one line; Show brings the cards back', () => {
+  env0.run(`S.lang='zh';S.seen=VER;S.days={};S.xps={};S.coach=null;hmExp=false;sh=null;tab='home';cur=ymd(new Date());render()`);
+  assert.ok(!env0.els.app.innerHTML.includes('data-a="hmexp"'), 'nothing to fold on an empty day');
+  env0.run(`const d=day();d.iso=true;d.wt='68.4';d.mood=4;d.nrg=3;d.sl='7';SUPS.filter(s=>s[1]==='am').forEach(s=>{d.sp[s[0]]=true});render()`);
+  let h = env0.els.app.innerHTML;
+  assert.ok(h.includes('✓ 异维A酸 · 状态 · 早上补剂 · 体重 68.4') && h.includes('data-a="hmexp"'));
+  assert.ok(!h.includes('data-a="iso"') && !h.includes('data-s="wt"') && !h.includes('data-s="sleep"') && h.includes('data-s="sup"'), 'folded cards are gone, the unfinished supplement tile stays');
+  env0.run(`hmExp=true;render()`); h = env0.els.app.innerHTML;
+  assert.ok(h.includes('data-a="iso"') && h.includes('data-s="wt"') && h.includes('收起'));
+  env0.run(`S.days={}`);
+});
+ok('evening flow: from 20:00, asks evening supplements, the experiment and a one-line summary; replaces the wrap-up card on Today', () => {
+  env0.run(`S.lang='zh';S.days={};S.xps={};S.mfd='';S.mfe='';mfSkip={};hmExp=false;sh=null;tab='home';cur=ymd(new Date());xpSet({g:'h2o',x:'xpW1'})`);
+  assert.equal(env.run(`mfAuto(16)`), false, 'nothing between 14:00 and 20:00');
+  assert.equal(env.run(`mfAuto(21)`), true);
+  assert.deepEqual(env.run(`mfSteps(day())`), ['spm', 'xp', 'win']);
+  env0.run(`render()`); let h = env0.els.app.innerHTML;
+  assert.ok(h.includes('晚间快速记录 · 还剩 3 题') && h.includes('data-a="spall" data-g="pm"') && !h.includes('id="wrap"'));
+  env0.run(`SUPS.filter(s=>s[1]==='pm').forEach(s=>{day().sp[s[0]]=true});render()`);
+  assert.ok(env0.els.app.innerHTML.includes('今天的小实验做了吗？') && env0.els.app.innerHTML.includes('起床先喝两杯水'));
+  env0.run(`day().xd=false;render()`);
+  assert.ok(env0.els.app.innerHTML.includes('今天一句话总结') && env0.els.app.innerHTML.includes('data-a="mfwr"'));
+  env0.run(`fillDraft(day(),cur);day().wr=1;render()`);
+  assert.equal(env.run(`sh`), null); assert.equal(env.run(`mfAuto(21)`), false, 'once an evening');
+  env0.run(`S.mfd=''`); assert.equal(env.run(`mfAuto(8)`), true, 'the morning flow is separate'); env0.run(`sh=null;mfOn=false`);
+  env0.run(`S.days={};S.xps={}`);
+});
+ok('experiment progress is read from records where possible; a manual tick wins', () => {
+  const at = h => env.run(`new Date(2026,2,10,${h},0).getTime()`);
+  env0.run(`S.days={}`);
+  assert.equal(env.run(`xpAuto({x:'xpP1'},norm({food:[{b:'Egg',p:18,at:${at(8)}}]}))`), true);
+  assert.equal(env.run(`xpAuto({x:'xpP1'},norm({food:[{b:'Egg',p:18,at:${at(12)}}]}))`), false, 'not breakfast');
+  assert.equal(env.run(`xpAuto({x:'xpP1'},norm({food:[{b:'Egg',p:8,at:${at(8)}}]}))`), false, 'under 15 g');
+  assert.equal(env.run(`xpAuto({x:'xpP2'},norm({food:[{b:'Whey',p:24,at:${at(16)}}]}))`), true);
+  assert.equal(env.run(`xpAuto({x:'xpL1'},norm({plan:[{t:'9:00',n:'a'}]}))`), true);
+  assert.equal(env.run(`xpAuto({x:'xpL1'},norm({}))`), false);
+  assert.equal(env.run(`xpAuto({x:'xpW1'},norm({h2o:8}))`), false, 'not readable from records');
+  assert.equal(env.run(`xpDone({x:'xpP1'},norm({xd:false,food:[{b:'Egg',p:18,at:${at(8)}}]}))`), false, 'manual un-tick wins');
+  assert.equal(env.run(`xpDone({x:'xpW1'},norm({xd:true}))`), true);
 });
 ok('release: a new VER comes with a new what-is-new line (hmUpd)', () => {
   // tests/release.json remembers the last version and its line; it is updated here when both have changed.

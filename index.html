@@ -9,29 +9,28 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Life Log">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="theme-color" content="#f4f2ee" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#0b0c10" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f3f3ee" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0d0e11" media="(prefers-color-scheme: dark)">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<script>try{var th=localStorage.getItem('dl1:theme'),hr=new Date().getHours();if(th!=='sys')document.documentElement.dataset.theme=th||(hr>=7&&hr<19?'light':'dark')}catch(e){}</script>
 <style>
 :root{
-  --bg:#f4f2ee;--card:rgba(255,255,255,.88);--solid:#fff;--tx:#15171d;--mut:#6c707b;--bd:rgba(21,23,29,.08);
-  --ac:#3b4fd8;--ac2:#7b5cf0;--onac:#fff;--chip:rgba(21,23,29,.045);--chip2:rgba(21,23,29,.08);--field:rgba(21,23,29,.035);--track:rgba(21,23,29,.07);
-  --hi:rgba(59,79,216,.075);--fat:#e3a03a;--carb:#2aa889;--warn:#e2702c;
-  --sh:0 1px 1px rgba(21,23,29,.03),0 8px 24px -12px rgba(21,23,29,.16);--sh2:0 8px 22px -10px rgba(59,79,216,.55);
-  --g1:rgba(123,92,240,.13);--g2:rgba(59,79,216,.09);--g3:rgba(227,160,58,.08);--grain:.55;
+  --bg:#f3f3ee;--card:#fff;--solid:#fff;--tx:#15171a;--mut:#6b6e76;--bd:#e2e2da;
+  --ac:#4f7a00;--ac2:#7fae12;--btn:#15171a;--onac:#f3f3ee;--chip:rgba(21,23,26,.05);--chip2:rgba(21,23,26,.09);--field:rgba(21,23,26,.035);--track:rgba(21,23,26,.08);
+  --hi:rgba(127,174,18,.1);--fat:#c98a1e;--carb:#1f9578;--warn:#d9601c;
+  --sh:none;--sh2:none;--g1:transparent;--g2:transparent;--g3:transparent;--grain:0;
   color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px)}
+/* dark: by the clock (data-theme set by applyDisp) or, with theme "sys", by the system setting */
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
-  --bg:#0b0c10;--card:rgba(25,27,35,.86);--solid:#181a22;--tx:#eef0f5;--mut:#8e94a4;--bd:rgba(255,255,255,.075);
-  --ac:#8c9dff;--ac2:#b69cff;--onac:#0b0c14;--chip:rgba(255,255,255,.06);--chip2:rgba(255,255,255,.1);--field:rgba(255,255,255,.05);--track:rgba(255,255,255,.08);
-  --hi:rgba(140,157,255,.12);--fat:#f0b457;--carb:#45c9a5;--warn:#ff9a5c;
-  --sh:inset 0 1px 0 rgba(255,255,255,.04),0 12px 32px -14px rgba(0,0,0,.7);--sh2:0 8px 24px -10px rgba(140,157,255,.45);
-  --g1:rgba(123,92,240,.2);--g2:rgba(59,79,216,.16);--g3:rgba(227,160,58,.05);--grain:.35;color-scheme:dark}}
+  --bg:#0d0e11;--card:#121418;--solid:#17191e;--tx:#f2f2ee;--mut:#8a8d96;--bd:#2a2c33;
+  --ac:#c8f169;--ac2:#a9e34b;--btn:#c8f169;--onac:#1a2405;--chip:rgba(255,255,255,.07);--chip2:rgba(255,255,255,.12);--field:rgba(255,255,255,.05);--track:rgba(255,255,255,.1);
+  --hi:rgba(200,241,105,.09);--fat:#f0b457;--carb:#45c9a5;--warn:#ff9a5c;
+  --sh:none;--sh2:none;--g1:transparent;--g2:transparent;--g3:transparent;--grain:0;color-scheme:dark}}
 :root[data-theme="dark"]{
-  --bg:#0b0c10;--card:rgba(25,27,35,.86);--solid:#181a22;--tx:#eef0f5;--mut:#8e94a4;--bd:rgba(255,255,255,.075);
-  --ac:#8c9dff;--ac2:#b69cff;--onac:#0b0c14;--chip:rgba(255,255,255,.06);--chip2:rgba(255,255,255,.1);--field:rgba(255,255,255,.05);--track:rgba(255,255,255,.08);
-  --hi:rgba(140,157,255,.12);--fat:#f0b457;--carb:#45c9a5;--warn:#ff9a5c;
-  --sh:inset 0 1px 0 rgba(255,255,255,.04),0 12px 32px -14px rgba(0,0,0,.7);--sh2:0 8px 24px -10px rgba(140,157,255,.45);
-  --g1:rgba(123,92,240,.2);--g2:rgba(59,79,216,.16);--g3:rgba(227,160,58,.05);--grain:.35;color-scheme:dark}
+  --bg:#0d0e11;--card:#121418;--solid:#17191e;--tx:#f2f2ee;--mut:#8a8d96;--bd:#2a2c33;
+  --ac:#c8f169;--ac2:#a9e34b;--btn:#c8f169;--onac:#1a2405;--chip:rgba(255,255,255,.07);--chip2:rgba(255,255,255,.12);--field:rgba(255,255,255,.05);--track:rgba(255,255,255,.1);
+  --hi:rgba(200,241,105,.09);--fat:#f0b457;--carb:#45c9a5;--warn:#ff9a5c;
+  --sh:none;--sh2:none;--g1:transparent;--g2:transparent;--g3:transparent;--grain:0;color-scheme:dark}
 html{scroll-padding-top:env(safe-area-inset-top,0px);-webkit-text-size-adjust:100%}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.5 -apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC","Hiragino Sans GB","Segoe UI","Microsoft YaHei",system-ui,sans-serif;-webkit-font-smoothing:antialiased;letter-spacing:-.005em}
@@ -137,6 +136,17 @@ input,textarea,select{scroll-margin:96px 0 140px}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .pill.amb{color:var(--fat)}}
 :root[data-theme="dark"] .pill.amb{color:var(--fat)}
 .row.amb{background:rgba(227,160,58,.12);border-radius:10px;padding:0 6px}
+/* ink style (2026-11-16): flat cards, pill buttons, one accent */
+.c{border-radius:16px}.tile{border-radius:16px}
+button{border-radius:999px}button.sm{border-radius:999px}
+button.on,button.on:hover{background:var(--btn);color:var(--onac);box-shadow:none}
+button:not(.on):not(.trd):not([data-a$="del"]){border-color:var(--bd)}
+.tabs button,.tabs button.on,.shelf button{border-color:transparent}.shelf button{border-color:var(--bd)}
+.m{height:4px}.ring circle{stroke-width:7}
+.tile .tv{font-size:20px;font-weight:600;letter-spacing:-.01em}
+.rc b{font-weight:600}.nav b{font-weight:650}
+.tiles .tile:last-child:nth-child(odd){grid-column:1/-1}
+.c.dn{border-style:dashed;background:none;box-shadow:none;padding:10px 14px;color:var(--mut);font-size:14px}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
@@ -148,10 +158,10 @@ input,textarea,select{scroll-margin:96px 0 140px}
 <script src="config.js"></script>
 <script>
 /* ---------- state and storage slots ---------- */
-const KEY='dl1',KCAL=2800,PROT=120,VER='2026-11-11b';
+const KEY='dl1',KCAL=2800,PROT=120,VER='2026-11-16';
 /* Storage slots keep "this device only" data and each account's data apart: dl1:local and dl1:u:<user id>.
    The old single key "dl1" is copied into the first slot opened, then kept as dl1:legacy. See docs/data-model.md. */
-const fresh=()=>({days:{},foods:[],dbx:[],t:{},gm:{},meals:[],tpl:null,lang:'',sched:[],stat:null,rem:{},tz:'',cal_tok:'',hl_tok:'',tpls:{},bin:[],timer:null,favs:[],al:{},isoc:{},xps:{},coach:null,mfd:''});
+const fresh=()=>({days:{},foods:[],dbx:[],t:{},gm:{},meals:[],tpl:null,lang:'',sched:[],stat:null,rem:{},tz:'',cal_tok:'',hl_tok:'',tpls:{},bin:[],timer:null,favs:[],al:{},isoc:{},xps:{},coach:null,mfd:'',mfe:''});
 // Account-wide fields synced through the cfg row (timer stays on this device).
 const CFG=['foods','dbx','t','gm','meals','tpl','lang','sched','stat','rem','tz','cal_tok','hl_tok','tpls','bin','favs','al','isoc','xps','coach'];
 const pref=(k,v)=>{try{if(v===undefined)return localStorage.getItem(KEY+':'+k);if(v===null)localStorage.removeItem(KEY+':'+k);else localStorage.setItem(KEY+':'+k,v)}catch(e){}return null};
@@ -385,8 +395,10 @@ coT:['Weekly AI coach (free)','每周 AI 教练（免费）'],coNote:['Copy this
 coQ:['You are my fitness and study coach. From the week above, tell me in at most 3 short sentences the ONE thing to focus on next week and exactly how to do it. No preamble.','你是我的健身和学习教练。根据上面这一周的数据，用不超过 3 句简短的中文告诉我：下周最该专注的一件事，以及具体怎么做。不要开场白。'],
 qlT:['Log without opening the app','不开应用也能记'],qlNote:['Each button copies a link. Opening the link logs it for today. Put it in an iPhone Shortcut for one tap.','每个按钮复制一个链接，打开链接就给今天记一笔。放进 iPhone 快捷指令里就能一键记录。'],qlW:['Water +1','喝水 +1'],qlI:['Isotretinoin','异维A酸'],qlA:['Morning supplements','早上补剂'],qlP:['Evening supplements','晚上补剂'],qlHow:['How to make a one-tap Shortcut','怎么做成一键快捷指令'],
 qlS1:['Copy a link above. Open the Shortcuts app → + (new shortcut).','先点上面的按钮复制链接。打开「快捷指令」App → 右上角 ＋。'],qlS2:['Add the action “Get Contents of URL” and paste the link. Name the shortcut, for example “Water”.','添加操作「获取 URL 内容」(Get Contents of URL)，粘贴链接。给它起名，比如「喝水」。'],qlS3:['Add it to the Home Screen, the Action Button, the Lock Screen or say the name to Siri. The app shows it the next time it syncs.','添加到主屏幕、操作按钮或锁屏，也可以对 Siri 说名字。下次应用同步时就能看到。'],
+dsTime:['By time','按时间'],mfPmRow:['Evening check','晚间快速记录'],mfGo:['Start','开始'],mfLeftPm:['Evening check · {n} left','晚间快速记录 · 还剩 {n} 题'],mfPmQ:['Evening supplements all taken?','晚上的补剂都吃了？'],mfXpQ:['Did today’s experiment?','今天的小实验做了吗？'],mfXpY:['Did it','做了'],mfWinQ:['Today in one line','今天一句话总结'],mfWinHint:['Leave it empty to use the draft shown in grey.','留空就采用灰色的草稿。'],
+isoShort:['Isotretinoin','异维A酸'],hmAmDone:['Morning supplements','早上补剂'],hmUnfold:['Show','展开'],hmFold:['Hide','收起'],hmExpOn:['Finished items are shown','已完成的项已展开'],xpAutoL:['Counted from your log','已自动记'],
 hmSlQ:['How many hours did you sleep last night?','昨晚睡了几小时？'],hmOther:['Other','其他'],hmStreak:['Food logged {n} days in a row','连续记录饮食 {n} 天'],
-hmUpd:['New: a 30-second morning check, one small experiment a week, your own isotretinoin interval with a running total, a free weekly AI coach in Review, and links that log water or pills without opening the app (More → Apple Health).','新增：早晨 30 秒快速记录、每周一个小实验、异维A酸可设自己的间隔并显示累计、「回顾」里的免费每周 AI 教练，以及不开应用就能记喝水和吃药的链接（更多 → Apple 健康）。'],
+hmUpd:['New look: light by day, dark at night (More → Display to change). Finished items fold into one line, a 30-second evening check replaces the wrap-up card, and some experiments now count themselves from your log.','新外观：白天浅色、晚上深色（更多 → 显示 可改）。已完成的项收成一行，晚间 30 秒记录替代收尾卡片，部分小实验会根据记录自动记进度。'],
 smB:['breakfast','早餐'],smL:['lunch','午饭'],smS:['snack','加餐'],smD:['dinner','晚饭'],
 shFoodT:['Log {m}','记一餐 · {m}'],shLineP:['One line: 2 eggs, a bowl of rice','一句话：两个鸡蛋，一碗米饭'],shOften:['You often eat','你常吃的'],shFull:['Search or photo ›','搜索或拍照 ›'],
 shEaten:['Today: {k} kcal · {p} g protein','今天：{k} 千卡 · 蛋白质 {p} 克'],shDone:['Done','完成'],shAdded:['Added: {n}','已记：{n}'],
@@ -524,8 +536,8 @@ DB.push.apply(DB,DISH);
 
 /* ---------- day rollover and messages ---------- */
 function rollDay(){const td=ymd(new Date());if(td===lastToday)return false;if(cur===lastToday)cur=td;lastToday=td;return true}
-setInterval(()=>{if(rollDay()){const ae=document.activeElement;if(!(ae&&/INPUT|TEXTAREA/.test(ae.tagName)))render()}},60000);
-document.addEventListener('visibilitychange',()=>{if(!document.hidden&&rollDay()){mfArm=true;render()}});
+setInterval(()=>{applyDisp();if(rollDay()){const ae=document.activeElement;if(!(ae&&/INPUT|TEXTAREA/.test(ae.tagName)))render()}},60000);
+document.addEventListener('visibilitychange',()=>{if(document.hidden)return;rollDay();applyDisp();const ae=document.activeElement;if(ae&&/INPUT|TEXTAREA/.test(ae.tagName))return;mfArm=true;render()});
 let toastT=null,toastAt=0,toastMsg='',toastAct=null;
 // Messages within 300 ms are joined, so an undo toast and an auto-untick message show together.
 function toast(m,act){
@@ -1251,12 +1263,18 @@ function xpList(){
   gs.forEach(g=>XP[g].forEach(x=>o.push({g:g,x:x,a:r.cnt[g],b:r.of[g],lw:lw})));
   return o;
 }
-function xpN(mon){let n=0;for(let i=0;i<7;i++){const r=S.days[shift(mon,i)];if(r&&r.xd)n++}return n}
+// Three ideas can be read from the day's records; a manual tick (xd true/false) always wins.
+function xpAuto(x,d){
+  const hp=(a,b)=>(d.food||[]).filter(e=>{if(!e.at)return false;const q=new Date(e.at),h=q.getHours()+q.getMinutes()/60;return h>=a&&h<b}).reduce((s0,e)=>s0+(+e.p||0),0)>=15;
+  return x.x==='xpP1'?hp(0,10.5):x.x==='xpP2'?hp(15,17.5):x.x==='xpL1'?!!(d.plan&&d.plan.length&&d.plan.length<=5):false;
+}
+const xpDone=(x,d)=>d.xd!=null?!!d.xd:xpAuto(x,d);
+function xpN(mon){const x=xpAt(mon);let n=0;for(let i=0;i<7;i++){const r=S.days[shift(mon,i)];if(r&&(x?xpDone(x,r):r.xd))n++}return n}
 function xpAt(mon){const x=(S.xps||{})[mon];return x&&!x.off&&I[x.x]&&XP[x.g]?x:null}
 function xpCard(d){
   const m0=monday(ymd(new Date())),raw=(S.xps||{})[m0],x=xpAt(m0);
   if(raw&&raw.off)return '';
-  if(x){const n=xpN(m0);return '<div class="c" style="padding:12px 14px"><div class="row" style="margin:0;flex-wrap:nowrap;gap:8px"><b style="flex:1;min-width:0">🧪 '+t('xpT')+' · '+t(x.x)+'</b><button class="sm" data-a="xpre">'+t('xpRe')+'</button></div><div class="m" style="margin:8px 0"><i style="width:'+Math.min(100,n/5*100)+'%"></i></div><div class="row" style="margin:0;flex-wrap:nowrap;gap:8px"><small class="mut" style="flex:1">'+t('xpProg',{n:n})+'</small><button class="sm'+(d.xd?' on':'')+'" data-a="xpdone" aria-pressed="'+!!d.xd+'">'+(d.xd?'✓ '+t('xpDid'):t('xpDo'))+'</button></div></div>'}
+  if(x){const n=xpN(m0),dn0=xpDone(x,d);return '<div class="c" style="padding:12px 14px"><div class="row" style="margin:0;flex-wrap:nowrap;gap:8px"><b style="flex:1;min-width:0">🧪 '+t('xpT')+' · '+t(x.x)+'</b><button class="sm" data-a="xpre">'+t('xpRe')+'</button></div><div class="m" style="margin:8px 0"><i style="width:'+Math.min(100,n/5*100)+'%"></i></div><div class="row" style="margin:0;flex-wrap:nowrap;gap:8px"><small class="mut" style="flex:1">'+t('xpProg',{n:n})+'</small><button class="sm'+(dn0?' on':'')+'" data-a="xpdone" aria-pressed="'+dn0+'">'+(dn0?'✓ '+t(d.xd==null?'xpAutoL':'xpDid'):t('xpDo'))+'</button></div></div>'}
   const l=xpList();if(!l.length)return '';const o=l[xpI%l.length];
   return '<div class="c" style="padding:12px 14px"><small class="mut">'+t(o.lw?'xpWeakL':'xpWeakT',{g:gLab(o.g),a:o.a,b:o.b})+'</small><div style="margin:4px 0 8px"><b>🧪 '+t('xpTry')+t(o.x)+'</b></div><div class="row" style="margin:0;gap:6px"><button class="sm on" data-a="xpok" data-g="'+o.g+'" data-x="'+o.x+'">'+t('xpOk')+'</button><button class="sm" data-a="xpswap">'+t('xpSwap')+'</button><button class="sm" data-a="xpno">'+t('xpNo')+'</button></div></div>';
 }
@@ -1338,7 +1356,7 @@ async function rpImage(mon){
   const lh=o=>o[0]===0?86:o[1]?56:28;
   cv.width=W0;cv.height=P*2+out.reduce((a,o)=>a+lh(o),0);
   x.fillStyle='#fbfaf7';x.fillRect(0,0,W0,cv.height);
-  const gr=x.createLinearGradient(0,0,W0,0);gr.addColorStop(0,'#3b4fd8');gr.addColorStop(1,'#7b5cf0');x.fillStyle=gr;x.fillRect(0,0,W0,16);
+  const gr=x.createLinearGradient(0,0,W0,0);gr.addColorStop(0,'#4f7a00');gr.addColorStop(1,'#7fae12');x.fillStyle=gr;x.fillRect(0,0,W0,16);
   let y=P;x.textBaseline='top';
   out.forEach(o=>{x.font=font(o[0]);x.fillStyle=o[0]===0?'#15171d':/^—/.test(o[1])?'#8a8d98':'#2c2f38';x.fillText(o[1],P,y);y+=lh(o)});
   const blob=await new Promise(r=>cv.toBlob(r,'image/png'));if(!blob)return false;
@@ -1475,15 +1493,18 @@ function srCard(){
 }
 
 /* ---------- display (Phase 7): theme and text size, kept on this device ---------- */
+// theme setting: '' = by the clock (light 07:00–19:00), 'light', 'dark', 'sys' = follow the system
+function thNow(hr){const th=pref('theme');if(hr==null)hr=new Date().getHours();return th==='light'||th==='dark'?th:th==='sys'?'':hr>=7&&hr<19?'light':'dark'}
 function applyDisp(){
-  const r=document.documentElement;if(!r)return;const th=pref('theme');
+  const r=document.documentElement;if(!r)return;const th=thNow();
+  if(document.querySelectorAll){const m=document.querySelectorAll('meta[name=theme-color]');if(m[0]&&m[1]){m[0].setAttribute('content',th==='dark'?'#0d0e11':'#f3f3ee');m[1].setAttribute('content',th==='light'?'#f3f3ee':'#0d0e11')}}
   if(r.dataset){if(th)r.dataset.theme=th;else delete r.dataset.theme}
   if(r.classList)r.classList.toggle('lg',pref('fs')==='lg');
 }
 function dispCard(){
   const th=pref('theme')||'',fs=pref('fs')||'';
   const B=(k,v,l,on)=>'<button class="sm'+(on?' on':'')+'" data-a="disp" data-k="'+k+'" data-v="'+v+'" aria-pressed="'+on+'">'+t(l)+'</button>';
-  return '<div class="c"><h2>'+t('dsT')+'</h2><div class="row" style="gap:6px"><span style="min-width:64px">'+t('dsTheme')+'</span>'+B('theme','','dsAuto',!th)+B('theme','light','dsLight',th==='light')+B('theme','dark','dsDark',th==='dark')+'</div>'
+  return '<div class="c"><h2>'+t('dsT')+'</h2><div class="row" style="gap:6px"><span style="min-width:64px">'+t('dsTheme')+'</span>'+B('theme','','dsTime',!th)+B('theme','light','dsLight',th==='light')+B('theme','dark','dsDark',th==='dark')+B('theme','sys','dsAuto',th==='sys')+'</div>'
    +'<div class="row" style="gap:6px"><span style="min-width:64px">'+t('dsText')+'</span>'+B('fs','','dsStd',!fs)+B('fs','lg','dsBig',fs==='lg')+'</div><p class="mut" style="margin:6px 0 0">'+t('dsNote')+'</p></div>';
 }
 function heat(){
@@ -1548,16 +1569,18 @@ function isoCard(d){
    +'<div class="isd" role="img" aria-label="'+t('iso14')+'">'+dots.join('')+'</div>'+hint+'<small class="mut">'+t('iso14')+' · '+info+(tot?' · '+t('isoTot',{n:Math.round(tot*10)/10}):'')+'</small>'+cfg+'</div>';
 }
 /* morning flow: one question per screen, one tap each; items already filled are not asked */
-let mfOn=false,mfArm=true,mfSkip={};
+let mfOn=false,mfArm=true,mfSkip={},mfM='am',hmExp=false;
 function mfSteps(d){
   const am=grpN(d,'am'),o=[];
+  if(mfM==='pm'){const pm=grpN(d,'pm'),x=xpAt(monday(ymd(new Date())));if(pm.of&&pm.n<pm.of)o.push('spm');if(x&&d.xd==null&&!xpAuto(x,d))o.push('xp');if(!d.wr)o.push('win');return o.filter(q=>!mfSkip[q])}
   if(!String(d.sl||'').trim())o.push('sl');if(!(parseFloat(d.wt)>0))o.push('wt');if(am.of&&am.n<am.of)o.push('sup');if(d.iso==null)o.push('iso');
   return o.filter(x=>!mfSkip[x]);
 }
 function mfAuto(hr){
   const td=ymd(new Date());if(hr==null)hr=new Date().getHours();
-  if(tab!=='home'||cur!==td||sh||hr>=14||S.mfd===td)return false;
-  S.mfd=td;mfSkip={};persist();
+  const m=hr<14?'am':hr>=20?'pm':'',f=m==='am'?'mfd':'mfe';
+  if(tab!=='home'||cur!==td||sh||!m||S[f]===td)return false;
+  S[f]=td;mfM=m;mfSkip={};persist();
   if(!mfSteps(day()).length)return false;
   sh='mf';mfOn=true;return true;
 }
@@ -1566,9 +1589,12 @@ function mfView(d){
   const s0=st[0],wl=wtAt(cur,true),r1=v=>Math.round(v*10)/10,B=(a,l,x)=>'<button class="on" data-a="'+a+'"'+(x||'')+' style="min-height:44px">'+l+'</button>',B2=(a,l,x)=>'<button data-a="'+a+'"'+(x||'')+' style="min-height:44px">'+l+'</button>';
   const q=s0==='sl'?'<h2>'+t('hmSlQ')+'</h2><div class="row" style="gap:8px">'+[6,6.5,7,7.5,8,8.5].map(v=>B2('slset',v,' data-v="'+v+'"')).join('')+'</div>'
    :s0==='wt'?'<h2>'+t('mfWtQ')+'</h2><div class="row" style="gap:8px">'+(wl?B('wtsame',t('mfSame',{v:wl.v}),' data-v="'+wl.v+'"')+B2('wtsame','−0.2',' data-v="'+r1(wl.v-.2)+'" aria-label="'+r1(wl.v-.2)+' kg"')+B2('wtsame','+0.2',' data-v="'+r1(wl.v+.2)+'" aria-label="'+r1(wl.v+.2)+' kg"'):'')+B2('sh',t('mfType'),' data-s="wt"')+'</div>'
+   :s0==='spm'?'<h2>'+t('mfPmQ')+'</h2><div class="row" style="gap:8px">'+B('spall',t('mfSpY'),' data-g="pm"')+'</div>'
+   :s0==='xp'?'<h2>'+t('mfXpQ')+'</h2><p class="mut" style="margin:0 0 8px">'+t(xpAt(monday(ymd(new Date()))).x)+'</p><div class="row" style="gap:8px">'+B('xpdone',t('mfXpY'))+B2('xpnot',t('mfIsoN'))+'</div>'
+   :s0==='win'?'<h2>'+t('mfWinQ')+'</h2><textarea id="win" rows="3" placeholder="'+esc(draftWin(d))+'">'+esc(d.win)+'</textarea><p class="mut" style="margin:6px 0">'+t('mfWinHint')+'</p><div class="row">'+B('mfwr',t('shDone'))+'</div>'
    :s0==='sup'?'<h2>'+t('mfSpQ')+'</h2><div class="row" style="gap:8px">'+B('spall',t('mfSpY'),' data-g="am"')+'</div>'
    :'<h2>'+t('isoQ')+'</h2><div class="row" style="gap:8px">'+B('iso',t('mfIsoY'))+B2('isono',t('mfIsoN'))+'</div>';
-  return '<div class="shv" data-a="mfend"></div><div class="sht" role="dialog" aria-modal="true"><div class="shg"></div><small class="mut">☀️ '+t('mfLeft',{n:st.length})+'</small>'+q+'<div class="row" style="justify-content:space-between;margin-top:14px"><button class="sm" data-a="mfskip" data-s="'+s0+'">'+t('mfSkip')+'</button><button class="sm" data-a="mfend">'+t('mfEnd')+'</button></div></div>';
+  return '<div class="shv" data-a="mfend"></div><div class="sht" role="dialog" aria-modal="true"><div class="shg"></div><small class="mut">'+(mfM==='pm'?'🌙 '+t('mfLeftPm',{n:st.length}):'☀️ '+t('mfLeft',{n:st.length}))+'</small>'+q+'<div class="row" style="justify-content:space-between;margin-top:14px"><button class="sm" data-a="mfskip" data-s="'+s0+'">'+t('mfSkip')+'</button><button class="sm" data-a="mfend">'+t('mfEnd')+'</button></div></div>';
 }
 const gymName=g=>(GYM.find(x=>x[0]===g)||[g,g])[L()];
 function vHome(d){
@@ -1579,23 +1605,27 @@ function vHome(d){
   if(isT&&kOpen(td).length)h+='<div class="c row" style="padding:12px 14px;flex-wrap:nowrap"><span style="flex:1">'+t('kT',{n:kOpen(td).length})+'</span><button class="sm" data-a="tab" data-t="today">'+t('kGo')+'</button></div>';
   const co=isT?coachOn():null;
   if(co)h+='<div class="c" style="padding:12px 14px"><div class="row" style="margin:0;flex-wrap:nowrap;gap:8px;align-items:flex-start"><span style="flex:1;min-width:0;overflow-wrap:anywhere">🎯 <b>'+t('coFocus')+'</b><br>'+coHtml(co.t,220)+'</span><button class="sm" data-a="cox" aria-label="'+t('coDel')+'">×</button></div></div>';
-  h+=wrapCard(d);
+  if(isT&&new Date().getHours()>=20&&!d.wr)h+='<div class="c row" style="padding:10px 14px;flex-wrap:nowrap"><span style="flex:1">🌙 '+t('mfPmRow')+'</span><button class="sm on" data-a="mfgo">'+t('mfGo')+'</button></div>';
   const pd=plan(d,cur),nx=isT?nextItem(d):null,done=pd.filter(x=>x.x).length;
   h+='<div class="c" style="padding:12px 14px"><div class="row" style="margin:0;gap:8px;flex-wrap:nowrap"><span style="flex:1">💧 <b>'+(d.h2o||0)+' / 8</b></span><button class="sm" data-a="h2o" data-v="-1" aria-label="-1">−</button><button class="sm on" data-a="h2o" data-v="1" aria-label="'+t('water1')+'">+1</button></div>'
    +(isT?'<div class="row" style="margin:10px 0 0;flex-wrap:nowrap">'+(nx?'<label class="ck" style="flex:1;margin:0;min-width:0"><input type="checkbox" data-a="pdone" data-i="'+nx.i+'"><span><span class="pill">'+t('nextL')+'</span> <b>'+esc(nx.x.t)+' '+esc(tx(nx.x.n,nx.x.z))+'</b></span></label>':'<span style="flex:1">'+(pd.length?t('allDoneT'):'<span class="mut">'+t('noPlanT')+'</span>')+'</span>')+'<button class="sm" data-a="tab" data-t="today">'+t('planTab')+' '+done+'/'+pd.length+'</button></div>':'')+'</div>';
-  if(isT)h+=xpCard(d);
-  h+=isoCard(d);
+  const dn=[],xa=isT?xpAt(monday(td)):null,xD=!!(xa&&xpDone(xa,d)),iD=!!d.iso;
+  if(isT){if(xD&&!hmExp)dn.push(t('xpT'));else h+=xpCard(d)}
+  if(iD&&!hmExp)dn.push(t('isoShort'));else h+=isoCard(d);
   const am=grpN(d,'am'),pm=grpN(d,'pm'),spN=am.n+pm.n,spG=am.n<am.of&&(pm.n===pm.of||new Date().getHours()<17||!isT)?'am':pm.n<pm.of?'pm':am.n<am.of?'am':'';
   const wt=parseFloat(d.wt)>0?parseFloat(d.wt):null,wl=wtAt(cur,true),w7=wt?wtAt(shift(cur,-7)):null;
   const tl=(ic,lab,val,sub,pc,btn)=>'<div class="tile"><div class="tl">'+ic+' '+lab+'</div><div class="tv">'+val+'</div>'+(pc!=null?'<div class="m" style="margin:4px 0"><i style="width:'+Math.min(100,Math.max(0,pc))+'%"></i></div>':'')+'<div class="ts">'+sub+'</div>'+btn+'</div>';
   const B=(s0,l,on)=>'<button class="sm'+(on?' on':'')+'" data-a="sh" data-s="'+s0+'">'+l+'</button>';
+  const stD=d.mood>0&&d.nrg>0&&!!sl,spD=supReq.length>0&&spN===supReq.length,wtD=wt!=null,stDone=stD&&!hmExp,spDone=spD&&!hmExp,wtDone=wtD&&!hmExp;
+  if(!hmExp){if(stD)dn.push(t('tMood'));if(spD)dn.push(t('tSup'));else if(am.of&&am.n===am.of)dn.push(t('hmAmDone'));if(wtD)dn.push(t('tWt')+' '+wt)}
+  if(dn.length||(hmExp&&(xD||iD||stD||spD||wtD)))h+='<div class="c dn row" style="flex-wrap:nowrap"><span style="flex:1;min-width:0">'+(hmExp?t('hmExpOn'):'✓ '+esc(dn.join(' · ')))+'</span><button class="sm" data-a="hmexp">'+t(hmExp?'hmFold':'hmUnfold')+'</button></div>';
   h+='<div class="tiles">'
    +tl('🍽',t('tFood'),Math.round(p)+' / '+T0.p+' g',r>=0?t('hmKLeft',{n:r}):t('hmKOver',{n:-r}),T0.p?p/T0.p*100:0,B('food',t('hmLog'),true))
    +tl('📖',t('tStudy'),hrs(tot(d)),tm?t('hmRun')+' · '+((CATS.find(c=>c[0]===tm.c)||[0,tm.c,tm.c])[1+L()]):'&nbsp;',null,tm?'<button class="sm on" data-a="tmstop">'+t('stop')+'</button>':B('study',t('hmStart'),true))
    +tl('🏋',t('tGym'),d.gym.length?esc(d.gym.map(gymName).join('、')):t('hmGymNone'),t('hmGymWk',{n:gymWk(cur)}),null,B('gym',t('hmGymBtn')))
-   +tl('🙂',t('tMood'),d.mood||d.nrg?(d.mood?MOOD[d.mood-1]+' ':'')+(d.nrg?t('hmNrg',{n:d.nrg}):''):t('hmSlNone'),sl?t('hmSlShort',{n:esc(sl)}):av!=null?t('hmSlAvg',{n:av}):'&nbsp;',null,B('sleep',t('hmMdBtn')))
-   +tl('💊',t('tSup'),spN+' / '+supReq.length,t('hmSpSub',{a:am.n+'/'+am.of,p:pm.n+'/'+pm.of}),supReq.length?spN/supReq.length*100:0,(spG?'<button class="sm on" data-a="spall" data-g="'+spG+'">'+t(spG==='am'?'hmSpAm':'hmSpPm')+'</button>':'<div class="ts">'+t('hmSpDone')+'</div>')+'<button class="sm" data-a="sh" data-s="sup" style="margin-top:6px">'+t('hmSpEach')+'</button>')
-   +tl('⚖️',t('tWt'),wt?esc(String(wt))+' kg':t('hmWtNone'),wt&&w7?t('hmWtCh',{v:(wt-w7.v>0?'+':wt-w7.v<0?'−':'±')+Math.abs(Math.round((wt-w7.v)*10)/10)}):wl?t('hmWtLast',{d:(+wl.k.slice(5,7))+'/'+(+wl.k.slice(8)),v:wl.v}):'&nbsp;',null,B('wt',t('hmWtBtn')))
+   +(stDone?'':tl('🙂',t('tMood'),d.mood||d.nrg?(d.mood?MOOD[d.mood-1]+' ':'')+(d.nrg?t('hmNrg',{n:d.nrg}):''):t('hmSlNone'),sl?t('hmSlShort',{n:esc(sl)}):av!=null?t('hmSlAvg',{n:av}):'&nbsp;',null,B('sleep',t('hmMdBtn'))))
+   +(spDone?'':tl('💊',t('tSup'),spN+' / '+supReq.length,t('hmSpSub',{a:am.n+'/'+am.of,p:pm.n+'/'+pm.of}),supReq.length?spN/supReq.length*100:0,(spG?'<button class="sm on" data-a="spall" data-g="'+spG+'">'+t(spG==='am'?'hmSpAm':'hmSpPm')+'</button>':'<div class="ts">'+t('hmSpDone')+'</div>')+'<button class="sm" data-a="sh" data-s="sup" style="margin-top:6px">'+t('hmSpEach')+'</button>'))
+   +(wtDone?'':tl('⚖️',t('tWt'),wt?esc(String(wt))+' kg':t('hmWtNone'),wt&&w7?t('hmWtCh',{v:(wt-w7.v>0?'+':wt-w7.v<0?'−':'±')+Math.abs(Math.round((wt-w7.v)*10)/10)}):wl?t('hmWtLast',{d:(+wl.k.slice(5,7))+'/'+(+wl.k.slice(8)),v:wl.v}):'&nbsp;',null,B('wt',t('hmWtBtn'))))
    +'</div>';
   const sk=streak('log').cur;
   if(sk>1)h+='<p class="mut" style="text-align:center">🔥 '+t('hmStreak',{n:sk})+'</p>';
@@ -1882,7 +1912,11 @@ document.addEventListener('click',e=>{
   else if(a==='xpswap'){xpI++;render();return}
   else if(a==='xpno'){xpSet({off:1})}
   else if(a==='xpre'){xpSet(null);xpI++}
-  else if(a==='xpdone'){d.xd=!d.xd}
+  else if(a==='xpdone'){const x=xpAt(monday(ymd(new Date())));d.xd=!(x?xpDone(x,d):d.xd)}
+  else if(a==='xpnot'){d.xd=false}
+  else if(a==='mfgo'){mfM='pm';mfSkip={};sh='mf';mfOn=true;render();return}
+  else if(a==='mfwr'){fillDraft(d,cur);d.wr=1}
+  else if(a==='hmexp'){hmExp=!hmExp;render();return}
   else if(a==='cocopy'){coCopy();return}
   else if(a==='copaste'){coPaste();return}
   else if(a==='cosave'){const el=$('#coin');coSave(el&&el.value);return}
