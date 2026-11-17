@@ -158,7 +158,7 @@ button:not(.on):not(.trd):not([data-a$="del"]){border-color:var(--bd)}
 <script src="config.js"></script>
 <script>
 /* ---------- state and storage slots ---------- */
-const KEY='dl1',KCAL=2800,PROT=120,VER='2026-11-16b';
+const KEY='dl1',KCAL=2800,PROT=120,VER='2026-11-17';
 /* Storage slots keep "this device only" data and each account's data apart: dl1:local and dl1:u:<user id>.
    The old single key "dl1" is copied into the first slot opened, then kept as dl1:legacy. See docs/data-model.md. */
 const fresh=()=>({days:{},foods:[],dbx:[],t:{},gm:{},meals:[],tpl:null,lang:'',sched:[],stat:null,rem:{},tz:'',cal_tok:'',hl_tok:'',tpls:{},bin:[],timer:null,favs:[],al:{},isoc:{},xps:{},coach:null,mfd:'',mfe:''});
@@ -398,7 +398,7 @@ qlS1:['Copy a link above. Open the Shortcuts app → + (new shortcut).','先点�
 dsTime:['By time','按时间'],mfPmRow:['Evening check','晚间快速记录'],mfGo:['Start','开始'],mfLeftPm:['Evening check · {n} left','晚间快速记录 · 还剩 {n} 题'],mfPmQ:['Evening supplements all taken?','晚上的补剂都吃了？'],mfXpQ:['Did today’s experiment?','今天的小实验做了吗？'],mfXpY:['Did it','做了'],mfWinQ:['Today in one line','今天一句话总结'],mfWinHint:['Leave it empty to use the draft shown in grey.','留空就采用灰色的草稿。'],
 isoShort:['Isotretinoin','异维A酸'],hmAmDone:['Morning supplements','早上补剂'],hmUnfold:['Show','展开'],hmFold:['Hide','收起'],hmExpOn:['Finished items are shown','已完成的项已展开'],xpAutoL:['Counted from your log','已自动记'],
 hmSlQ:['How many hours did you sleep last night?','昨晚睡了几小时？'],hmOther:['Other','其他'],hmStreak:['Food logged {n} days in a row','连续记录饮食 {n} 天'],
-hmUpd:['New: gym history by date and by exercise (Gym tile → History, or Review). Also in this version: the new look, light by day and dark at night (More → Display to change).','新增：健身记录，可按日期或按动作查看（健身格子 →「看记录」，或「回顾」页）。本版还有新外观：白天浅色、晚上深色（更多 → 显示 可改）。'],
+hmUpd:['Tiles rearranged: Supplements next to Food, Study next to Gym, Status below. Gym history is under the Gym tile → History.','格子换了位置：补剂在饮食右边，学习在健身旁边，状态在下面。健身记录在健身格子 →「看记录」。'],
 ghT:['Gym history','健身记录'],ghByD:['By date','按日期'],ghByX:['By exercise','按动作'],ghBtn:['History','看记录'],ghOpen:['Open','查看'],ghNoEx:['no exercises logged','没记动作'],ghSets:['{n} sets','{n} 组'],ghPR:['PR','新纪录'],ghMore:['Earlier','更早'],ghNone:['No gym days yet. Tick a body part or log a workout and it shows up here.','还没有健身记录。勾选部位或记一次训练后会出现在这里。'],ghTimes:['{n} sessions','{n} 次'],ghBest:['Best (estimated 1RM)','最好成绩（估算 1RM）'],ghBestR:['Most reps in one set','单组最多次数'],ghLast:['Last {n} sessions','最近 {n} 次'],ghAll:['‹ All exercises','‹ 全部动作'],ghMonth:['{n} this month','本月 {n} 次'],ghReps:['{n} reps','{n} 次'],
 smB:['breakfast','早餐'],smL:['lunch','午饭'],smS:['snack','加餐'],smD:['dinner','晚饭'],
 shFoodT:['Log {m}','记一餐 · {m}'],shLineP:['One line: 2 eggs, a bowl of rice','一句话：两个鸡蛋，一碗米饭'],shOften:['You often eat','你常吃的'],shFull:['Search or photo ›','搜索或拍照 ›'],
@@ -1659,10 +1659,10 @@ function vHome(d){
   if(dn.length||(hmExp&&(xD||iD||stD||spD||wtD)))h+='<div class="c dn row" style="flex-wrap:nowrap"><span style="flex:1;min-width:0">'+(hmExp?t('hmExpOn'):'✓ '+esc(dn.join(' · ')))+'</span><button class="sm" data-a="hmexp">'+t(hmExp?'hmFold':'hmUnfold')+'</button></div>';
   h+='<div class="tiles">'
    +tl('🍽',t('tFood'),Math.round(p)+' / '+T0.p+' g',r>=0?t('hmKLeft',{n:r}):t('hmKOver',{n:-r}),T0.p?p/T0.p*100:0,B('food',t('hmLog'),true))
-   +tl('📖',t('tStudy'),hrs(tot(d)),tm?t('hmRun')+' · '+((CATS.find(c=>c[0]===tm.c)||[0,tm.c,tm.c])[1+L()]):'&nbsp;',null,tm?'<button class="sm on" data-a="tmstop">'+t('stop')+'</button>':B('study',t('hmStart'),true))
-   +tl('🏋',t('tGym'),d.gym.length?esc(d.gym.map(gymName).join('、')):t('hmGymNone'),t('hmGymWk',{n:gymWk(cur)}),null,B('gym',t('hmGymBtn'))+'<button class="sm" data-a="tab" data-t="gh" style="margin-top:6px">'+t('ghBtn')+'</button>')
-   +(stDone?'':tl('🙂',t('tMood'),d.mood||d.nrg?(d.mood?MOOD[d.mood-1]+' ':'')+(d.nrg?t('hmNrg',{n:d.nrg}):''):t('hmSlNone'),sl?t('hmSlShort',{n:esc(sl)}):av!=null?t('hmSlAvg',{n:av}):'&nbsp;',null,B('sleep',t('hmMdBtn'))))
    +(spDone?'':tl('💊',t('tSup'),spN+' / '+supReq.length,t('hmSpSub',{a:am.n+'/'+am.of,p:pm.n+'/'+pm.of}),supReq.length?spN/supReq.length*100:0,(spG?'<button class="sm on" data-a="spall" data-g="'+spG+'">'+t(spG==='am'?'hmSpAm':'hmSpPm')+'</button>':'<div class="ts">'+t('hmSpDone')+'</div>')+'<button class="sm" data-a="sh" data-s="sup" style="margin-top:6px">'+t('hmSpEach')+'</button>'))
+   +tl('🏋',t('tGym'),d.gym.length?esc(d.gym.map(gymName).join('、')):t('hmGymNone'),t('hmGymWk',{n:gymWk(cur)}),null,B('gym',t('hmGymBtn'))+'<button class="sm" data-a="tab" data-t="gh" style="margin-top:6px">'+t('ghBtn')+'</button>')
+   +tl('📖',t('tStudy'),hrs(tot(d)),tm?t('hmRun')+' · '+((CATS.find(c=>c[0]===tm.c)||[0,tm.c,tm.c])[1+L()]):'&nbsp;',null,tm?'<button class="sm on" data-a="tmstop">'+t('stop')+'</button>':B('study',t('hmStart'),true))
+   +(stDone?'':tl('🙂',t('tMood'),d.mood||d.nrg?(d.mood?MOOD[d.mood-1]+' ':'')+(d.nrg?t('hmNrg',{n:d.nrg}):''):t('hmSlNone'),sl?t('hmSlShort',{n:esc(sl)}):av!=null?t('hmSlAvg',{n:av}):'&nbsp;',null,B('sleep',t('hmMdBtn'))))
    +(wtDone?'':tl('⚖️',t('tWt'),wt?esc(String(wt))+' kg':t('hmWtNone'),wt&&w7?t('hmWtCh',{v:(wt-w7.v>0?'+':wt-w7.v<0?'−':'±')+Math.abs(Math.round((wt-w7.v)*10)/10)}):wl?t('hmWtLast',{d:(+wl.k.slice(5,7))+'/'+(+wl.k.slice(8)),v:wl.v}):'&nbsp;',null,B('wt',t('hmWtBtn'))))
    +'</div>';
   const sk=streak('log').cur;

@@ -1,7 +1,7 @@
 {
-  "ver": "2026-11-16b",
+  "ver": "2026-11-17",
   "upd": [
-    "New: gym history by date and by exercise (Gym tile → History, or Review). Also in this version: the new look, light by day and dark at night (More → Display to change).",
-    "新增：健身记录，可按日期或按动作查看（健身格子 →「看记录」，或「回顾」页）。本版还有新外观：白天浅色、晚上深色（更多 → 显示 可改）。"
+    "Tiles rearranged: Supplements next to Food, Study next to Gym, Status below. Gym history is under the Gym tile → History.",
+    "格子换了位置：补剂在饮食右边，学习在健身旁边，状态在下面。健身记录在健身格子 →「看记录」。"
   ]
 }

@@ -627,6 +627,13 @@ ok('gym history: days newest first with best set and PR mark; per exercise sessi
   env0.run(`S.days={};tab='gh';render()`); assert.ok(env0.els.app.innerHTML.includes('还没有健身记录'));
   env0.run(`tab='home';cur=ymd(new Date())`);
 });
+ok('Today tiles in the order the user chose: food, supplements, gym, study, status, weight', () => {
+  env0.run(`S.lang='zh';S.seen=VER;S.days={};hmExp=false;sh=null;tab='home';cur=ymd(new Date());render()`);
+  const h = env0.els.app.innerHTML, at = k => h.indexOf('<div class="tl">' + k);
+  const pos = ['🍽', '💊', '🏋', '📖', '🙂', '⚖️'].map(at);
+  assert.ok(pos.every(p => p > 0), 'all six tiles on an empty day');
+  assert.deepEqual(pos.slice().sort((a, b) => a - b), pos);
+});
 ok('release: a new VER comes with a new what-is-new line (hmUpd)', () => {
   // tests/release.json remembers the last version and its line; it is updated here when both have changed.
   const file = new URL('./release.json', import.meta.url);
