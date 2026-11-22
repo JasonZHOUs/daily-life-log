@@ -634,6 +634,54 @@ ok('Today tiles in the order the user chose: food, supplements, gym, study, stat
   assert.ok(pos.every(p => p > 0), 'all six tiles on an empty day');
   assert.deepEqual(pos.slice().sort((a, b) => a - b), pos);
 });
+ok('targets card: shows until height, age and calories are set; computes from body and goal; Later hides it', () => {
+  env0.run(`S.lang='zh';S.seen=VER;S.t={c:400};tgV=null;pref('tgl',null);S.days={};cur=ymd(new Date());S.days[shift(cur,-2)]=norm({wt:'66.5'});hmExp=true;sh=null;tab='home';render()`);
+  let h = env0.els.app.innerHTML;
+  assert.ok(h.includes('先花 20 秒设一下目标') && h.includes('id="tg_w"') && h.includes('value="66.5"'));
+  assert.deepEqual(env.run(`tgCalc({h:178,a:22,w:66.5,g:'gain'})`), { k: 2250, p: 120 });
+  assert.deepEqual(env.run(`tgCalc({h:178,a:22,w:66.5,g:'cut'})`), { k: 1600, p: 120 });
+  env0.run(`tgInput('h','172');tgInput('a','24')`);
+  assert.deepEqual(env.run(`[tgV.k,tgV.p]`), [2200, 120], 'recomputed while typing');
+  env0.run(`tgInput('p','140');tgInput('w','70')`);
+  assert.deepEqual(env.run(`[tgV.k,tgV.p]`), [2250, 140], 'an edited value is kept');
+  env0.run(`tgInput('h','90')`); assert.equal(env.run(`tgSave()`), false, 'height out of range');
+  env0.run(`tgInput('h','172')`); assert.equal(env.run(`tgSave()`), true);
+  assert.deepEqual(env.run(`S.t`), { c: 400, h: 172, a: 24, k: 2250, p: 140 });
+  env0.run(`render()`); assert.ok(!env0.els.app.innerHTML.includes('先花 20 秒'), 'gone once set');
+  env0.run(`S.t={};pref('tgl',String(Date.now()+864e5));render()`); assert.ok(!env0.els.app.innerHTML.includes('先花 20 秒'), 'Later');
+  env0.run(`pref('tgl',null);S.t={};tgV=null;S.days={}`);
+});
+ok('template trim: daily items done under 20% of the last 14 days are listed; Remove edits the template, Keep silences it', () => {
+  env0.run(`S.lang='zh';S.tpl=TPL.map(x=>x.slice());S.tkeep={};S.days={};cur=ymd(new Date());
+    for(let i=1;i<=14;i++){const d=norm({});d.plan=plan(d,shift(cur,-i)).map(x=>Object.assign({},x,{x:x.n==='Breakfast with protein'||(x.n==='Night note and bed'&&i<5)}));S.days[shift(cur,-i)]=d}`);
+  const l = env.run(`trimList().map(o=>[o.r[3],o.dn,o.of])`);
+  assert.ok(l.some(x => x[0] === '口语练习5分钟' && x[1] === 0 && x[2] === 14));
+  assert.ok(!l.some(x => x[0] === '早餐（含蛋白质）'), 'done every day');
+  assert.ok(!l.some(x => x[0] === '睡前小结，准备睡觉'), '4 of 14 is not under 20%');
+  assert.ok(!l.some(x => x[0].startsWith('上课')), 'weekly items are not judged');
+  env0.run(`tab='today';render()`); assert.ok(env0.els.app.innerHTML.includes('这几项最近两周很少完成') && env0.els.app.innerHTML.includes('data-a="trdel" data-k="5 minutes of spoken English|口语练习5分钟"'));
+  env0.run(`const T1=ensureTpl(),i=T1.findIndex(r=>tKey(r)==='5 minutes of spoken English|口语练习5分钟');T1.splice(i,1)`);
+  assert.ok(!env.run(`tpl().some(r=>r[3]==='口语练习5分钟')`) && env.run(`!!TPL.find(r=>r[3]==='口语练习5分钟')`), 'user template only');
+  env0.run(`S.tkeep={[tKey(TPL.find(r=>r[3]==='下午加餐'))]:ymd(new Date())}`);
+  assert.ok(!env.run(`trimList().some(o=>o.r[3]==='下午加餐')`), 'kept for 28 days');
+  env0.run(`S.tpl=null;S.tkeep={};S.days={};tab='home'`);
+});
+ok('repeat last workout: prefers a day with today’s parts, copies all sets and parts, never overwrites logged sets', () => {
+  env0.run(`S.lang='zh';S.days={};wlI=0;cur='2026-03-20';
+    S.days['2026-03-10']=norm({gym:['Back'],wk:[{x:'Lat pulldown',s:[{r:8,kg:40},{r:8,kg:40}]},{x:'Crunch',s:[{r:20,kg:0}]}]});
+    S.days['2026-03-15']=norm({gym:['Chest'],wk:[{x:'Bench press',s:[{r:8,kg:50}]}]});
+    S.days['2026-03-20']=norm({gym:['Back']})`);
+  assert.deepEqual(env.run(`wlList(day())`), ['2026-03-10', '2026-03-15']);
+  env0.run(`tab='act';render()`); let h = env0.els.app.innerHTML;
+  assert.ok(h.includes('照上次再来一次') && h.includes('3/10') && h.includes('40×8 ×2') && h.includes('20 次 ×1') && h.includes('data-a="wlswap"'));
+  assert.equal(env.run(`wlCopy(day(),'2026-03-10')`), 2);
+  assert.deepEqual(env.run(`day().wk.map(w=>[w.x,w.s.length])`), [['Lat pulldown', 2], ['Crunch', 1]]);
+  env0.run(`day().wk[0].s.push({r:10,kg:42.5})`);
+  assert.equal(env.run(`S.days['2026-03-10'].wk[0].s.length`), 2, 'the old day is not changed');
+  env0.run(`render()`); assert.ok(!env0.els.app.innerHTML.includes('照上次再来一次'), 'hidden once exercises are logged');
+  env0.run(`day().wk=[];day().gym=[];sh='gym';tab='home';render()`); assert.ok(env0.els.app.innerHTML.includes('data-a="wlgo" data-k="2026-03-15"'), 'newest first with no part ticked');
+  env0.run(`sh=null;S.days={};cur=ymd(new Date())`);
+});
 ok('release: a new VER comes with a new what-is-new line (hmUpd)', () => {
   // tests/release.json remembers the last version and its line; it is updated here when both have changed.
   const file = new URL('./release.json', import.meta.url);

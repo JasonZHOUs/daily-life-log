@@ -1,7 +1,7 @@
 {
-  "ver": "2026-11-17",
+  "ver": "2026-11-22",
   "upd": [
-    "Tiles rearranged: Supplements next to Food, Study next to Gym, Status below. Gym history is under the Gym tile → History.",
-    "格子换了位置：补剂在饮食右边，学习在健身旁边，状态在下面。健身记录在健身格子 →「看记录」。"
+    "New: set your targets in 20 seconds (card on Today), Plan suggests dropping items you rarely do, and “Repeat last time” logs a whole workout in one tap.",
+    "新增：20 秒设好目标（今日页卡片）；计划页会提示删掉很少完成的项；记训练可以「照上次再来一次」一键记上。"
   ]
 }

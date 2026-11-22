@@ -158,12 +158,12 @@ button:not(.on):not(.trd):not([data-a$="del"]){border-color:var(--bd)}
 <script src="config.js"></script>
 <script>
 /* ---------- state and storage slots ---------- */
-const KEY='dl1',KCAL=2800,PROT=120,VER='2026-11-17';
+const KEY='dl1',KCAL=2800,PROT=120,VER='2026-11-22';
 /* Storage slots keep "this device only" data and each account's data apart: dl1:local and dl1:u:<user id>.
    The old single key "dl1" is copied into the first slot opened, then kept as dl1:legacy. See docs/data-model.md. */
-const fresh=()=>({days:{},foods:[],dbx:[],t:{},gm:{},meals:[],tpl:null,lang:'',sched:[],stat:null,rem:{},tz:'',cal_tok:'',hl_tok:'',tpls:{},bin:[],timer:null,favs:[],al:{},isoc:{},xps:{},coach:null,mfd:'',mfe:''});
+const fresh=()=>({days:{},foods:[],dbx:[],t:{},gm:{},meals:[],tpl:null,lang:'',sched:[],stat:null,rem:{},tz:'',cal_tok:'',hl_tok:'',tpls:{},bin:[],timer:null,favs:[],al:{},isoc:{},xps:{},coach:null,mfd:'',mfe:'',tkeep:{}});
 // Account-wide fields synced through the cfg row (timer stays on this device).
-const CFG=['foods','dbx','t','gm','meals','tpl','lang','sched','stat','rem','tz','cal_tok','hl_tok','tpls','bin','favs','al','isoc','xps','coach'];
+const CFG=['foods','dbx','t','gm','meals','tpl','lang','sched','stat','rem','tz','cal_tok','hl_tok','tpls','bin','favs','al','isoc','xps','coach','tkeep'];
 const pref=(k,v)=>{try{if(v===undefined)return localStorage.getItem(KEY+':'+k);if(v===null)localStorage.removeItem(KEY+':'+k);else localStorage.setItem(KEY+':'+k,v)}catch(e){}return null};
 let S=fresh(),SK=null;
 S.lang=pref('lang')||'zh';
@@ -398,7 +398,10 @@ qlS1:['Copy a link above. Open the Shortcuts app → + (new shortcut).','先点�
 dsTime:['By time','按时间'],mfPmRow:['Evening check','晚间快速记录'],mfGo:['Start','开始'],mfLeftPm:['Evening check · {n} left','晚间快速记录 · 还剩 {n} 题'],mfPmQ:['Evening supplements all taken?','晚上的补剂都吃了？'],mfXpQ:['Did today’s experiment?','今天的小实验做了吗？'],mfXpY:['Did it','做了'],mfWinQ:['Today in one line','今天一句话总结'],mfWinHint:['Leave it empty to use the draft shown in grey.','留空就采用灰色的草稿。'],
 isoShort:['Isotretinoin','异维A酸'],hmAmDone:['Morning supplements','早上补剂'],hmUnfold:['Show','展开'],hmFold:['Hide','收起'],hmExpOn:['Finished items are shown','已完成的项已展开'],xpAutoL:['Counted from your log','已自动记'],
 hmSlQ:['How many hours did you sleep last night?','昨晚睡了几小时？'],hmOther:['Other','其他'],hmStreak:['Food logged {n} days in a row','连续记录饮食 {n} 天'],
-hmUpd:['Tiles rearranged: Supplements next to Food, Study next to Gym, Status below. Gym history is under the Gym tile → History.','格子换了位置：补剂在饮食右边，学习在健身旁边，状态在下面。健身记录在健身格子 →「看记录」。'],
+hmUpd:['New: set your targets in 20 seconds (card on Today), Plan suggests dropping items you rarely do, and “Repeat last time” logs a whole workout in one tap.','新增：20 秒设好目标（今日页卡片）；计划页会提示删掉很少完成的项；记训练可以「照上次再来一次」一键记上。'],
+tgT:['Set your targets in 20 seconds','先花 20 秒设一下目标'],tgNote:['Calories left and protein on Today use these; right now they are defaults.','今日页的「还可吃」和蛋白质都按这些算，现在用的还是默认值。'],tgH:['Height (cm)','身高 cm'],tgA:['Age','年龄'],tgW:['Weight (kg)','体重 kg'],tgGain:['Build muscle','增肌'],tgKeep:['Maintain','保持'],tgCut:['Lose fat','减脂'],tgOut:['From these:','按这些算出：'],tgK:['Calories (kcal)','热量 千卡'],tgP:['Protein (g)','蛋白质 克'],tgEdit:['You can change both.','两项都可以改。'],tgSave:['Save','保存'],tgLater:['Later','以后再说'],tgSaved:['Targets saved','目标已保存'],tgBad:['Check height, age and weight.','请检查身高、年龄和体重。'],
+tmT:['Rarely done in the last two weeks','这几项最近两周很少完成'],tmNote:['Removing changes the template for future days only; today and past records stay.','删掉只改以后的模板，今天和过去的记录不动。'],tmDel:['Remove','删掉'],tmKeep:['Keep','保留'],tmDone:['Removed “{n}” from the template','已从模板删掉「{n}」'],
+wlT:['Repeat last time','照上次再来一次'],wlGo:['Log it all','一键记上'],wlSwap:['Another','换一次'],wlOk:['Logged {n} exercises','已记上 {n} 个动作'],
 ghT:['Gym history','健身记录'],ghByD:['By date','按日期'],ghByX:['By exercise','按动作'],ghBtn:['History','看记录'],ghOpen:['Open','查看'],ghNoEx:['no exercises logged','没记动作'],ghSets:['{n} sets','{n} 组'],ghPR:['PR','新纪录'],ghMore:['Earlier','更早'],ghNone:['No gym days yet. Tick a body part or log a workout and it shows up here.','还没有健身记录。勾选部位或记一次训练后会出现在这里。'],ghTimes:['{n} sessions','{n} 次'],ghBest:['Best (estimated 1RM)','最好成绩（估算 1RM）'],ghBestR:['Most reps in one set','单组最多次数'],ghLast:['Last {n} sessions','最近 {n} 次'],ghAll:['‹ All exercises','‹ 全部动作'],ghMonth:['{n} this month','本月 {n} 次'],ghReps:['{n} reps','{n} 次'],
 smB:['breakfast','早餐'],smL:['lunch','午饭'],smS:['snack','加餐'],smD:['dinner','晚饭'],
 shFoodT:['Log {m}','记一餐 · {m}'],shLineP:['One line: 2 eggs, a bowl of rice','一句话：两个鸡蛋，一碗米饭'],shOften:['You often eat','你常吃的'],shFull:['Search or photo ›','搜索或拍照 ›'],
@@ -945,8 +948,23 @@ function hero(k,p,f,c){
    +'<div class="macros">'+mac(t('pro'),p,T0.p,'')+mac(t('fat'),f,T0.f,'f')+mac(t('carb'),c,T0.c,'cb')+'</div></div>';
   return h;
 }
+/* daily template items done in under 20% of the last 14 days; Keep silences one for 28 days (cfg tkeep) */
+const tKey=r=>r[2]+'|'+r[3];
+function trimList(){
+  const td=ymd(new Date()),o=[];
+  tpl().forEach(r=>{
+    if(r[0]!=='0123456')return;const kp=(S.tkeep||{})[tKey(r)];if(kp&&kp>shift(td,-28))return;
+    let of=0,dn=0;for(let i=1;i<=14;i++){const d=S.days[shift(td,-i)];const x=d&&d.plan&&d.plan.find(p=>p.n===r[2]&&p.z===r[3]);if(x){of++;if(x.x)dn++}}
+    if(of>=10&&dn/of<0.2)o.push({r:r,of:of,dn:dn});
+  });
+  return o;
+}
+function trimCard(){
+  const l=trimList();if(!l.length)return '';
+  return '<div class="c"><h2>'+t('tmT')+'</h2><p class="mut" style="margin:0 0 4px">'+t('tmNote')+'</p>'+l.map(o=>'<div class="li"><span style="min-width:0">'+esc(tx(o.r[2],o.r[3]))+' <small>'+o.r[1]+' · '+o.dn+'/'+o.of+'</small></span><span class="row" style="margin:0;gap:6px;flex-wrap:nowrap"><button class="sm on" data-a="trdel" data-k="'+esc(tKey(o.r))+'">'+t('tmDel')+'</button><button class="sm" data-a="trkeep" data-k="'+esc(tKey(o.r))+'">'+t('tmKeep')+'</button></span></div>').join('')+'</div>';
+}
 function vToday(d){
-  let h=kCard()+wrapCard(d);
+  let h=(cur===ymd(new Date())?trimCard():'')+kCard()+wrapCard(d);
   const pv=S.days[shift(cur,-1)];
   if(pv&&pv.next&&pv.next.trim())h+='<div class="c hl"><h2>'+t('plannedL')+'</h2><div style="white-space:pre-wrap">'+esc(pv.next)+'</div></div>';
   const pd=plan(d,cur),pl=pd.map((x,i)=>({x:x,i:i})).sort((a,b)=>a.x.t<b.x.t?-1:a.x.t>b.x.t?1:0);
@@ -1044,10 +1062,30 @@ function vGym(){
    +'<div class="c" style="padding:6px 14px">'+o.ses.slice(0,15).map(q=>'<div class="li" style="align-items:flex-start"><span style="white-space:nowrap">'+md(q.k)+'</span><span style="text-align:right;overflow-wrap:anywhere">'+q.w.s.map(setTx).join(' · ')+'</span></div>').join('')+'</div>';
 }
 function ghCard(){const m=ymd(new Date()).slice(0,7),n=ghDays().filter(k=>k.slice(0,7)===m).length;return '<div class="c row" style="padding:12px 14px;flex-wrap:nowrap"><span style="flex:1">🏋 <b>'+t('ghT')+'</b> <small>· '+t('ghMonth',{n:n})+'</small></span><button class="sm" data-a="tab" data-t="gh">'+t('ghOpen')+'</button></div>'}
+/* earlier workouts to repeat: days that trained one of today's ticked parts first, then the rest, newest first */
+let wlI=0;
+function wlList(d){
+  const ks=Object.keys(S.days).filter(k=>k<cur&&(S.days[k].wk||[]).some(w=>w.s&&w.s.length)).sort().reverse();
+  const hit=k=>(S.days[k].gym||[]).some(g=>d.gym.indexOf(g)>=0);
+  return d.gym.length?ks.filter(hit).concat(ks.filter(k=>!hit(k))):ks;
+}
+const sTx=s=>s.kg?s.kg+'×'+(s.r||0):t('ghReps',{n:s.r||0});
+function wlSum(w){const a=w.s.map(sTx);return a.every(x=>x===a[0])?a[0]+' ×'+a.length:a.join(' · ')}
+function wlCard(d){
+  if(d.wk.length)return '';const l=wlList(d);if(!l.length)return '';const k=l[wlI%l.length],r=S.days[k],ws=r.wk.filter(w=>w.s&&w.s.length);
+  return '<div class="c" style="padding:12px 14px"><b>'+t('wlT')+'</b><br><small>'+md(k)+' · '+esc((r.gym||[]).map(gymName).join('、'))+'</small>'
+   +'<div style="margin:6px 0;font-size:14px">'+ws.map(w=>esc(exName(w.x))+' '+wlSum(w)).join('<br>')+'</div>'
+   +'<div class="row" style="margin:0;gap:6px"><button class="sm on" data-a="wlgo" data-k="'+k+'">'+t('wlGo')+'</button>'+(l.length>1?'<button class="sm" data-a="wlswap">'+t('wlSwap')+'</button>':'')+'</div></div>';
+}
+function wlCopy(d,k){
+  const r=S.days[k];if(!r)return 0;let n=0;
+  (r.wk||[]).forEach(w=>{if(!w.s||!w.s.length)return;const o=d.wk.find(y=>y.x===w.x);const s=w.s.map(x=>({r:x.r,kg:x.kg}));if(o){if(!o.s.length)o.s=s}else d.wk.push({x:w.x,s:s});n++});
+  (r.gym||[]).forEach(g=>{if(d.gym.indexOf(g)<0)d.gym.push(g)});return n;
+}
 function wkCard(d){
   const used=new Set();Object.keys(S.days).forEach(k=>(S.days[k].wk||[]).forEach(w=>used.add(w.x)));
   const opts=EXS.map(e=>e[L()]).concat([...used].filter(x=>!exF(x)));
-  let h='<div class="c"><h2>'+t('wkT')+'</h2>';
+  let h=wlCard(d)+'<div class="c"><h2>'+t('wkT')+'</h2>';
   d.wk.forEach((w,i)=>{
     const lt=lastEx(w.x,cur),pb=bestBefore(w.x,cur),ls=w.s[w.s.length-1]||(lt?lt.w.s[0]:null);
     let bj=-1;w.s.forEach((s,j)=>{if(pb>0&&e1rm(s)>pb&&(bj<0||e1rm(s)>e1rm(w.s[bj])))bj=j});
@@ -1634,12 +1672,35 @@ function mfView(d){
    :'<h2>'+t('isoQ')+'</h2><div class="row" style="gap:8px">'+B('iso',t('mfIsoY'))+B2('isono',t('mfIsoN'))+'</div>';
   return '<div class="shv" data-a="mfend"></div><div class="sht" role="dialog" aria-modal="true"><div class="shg"></div><small class="mut">'+(mfM==='pm'?'🌙 '+t('mfLeftPm',{n:st.length}):'☀️ '+t('mfLeft',{n:st.length}))+'</small>'+q+'<div class="row" style="justify-content:space-between;margin-top:14px"><button class="sm" data-a="mfskip" data-s="'+s0+'">'+t('mfSkip')+'</button><button class="sm" data-a="mfend">'+t('mfEnd')+'</button></div></div>';
 }
+/* one-time targets card: shows until height, age and calories are set; Later hides it for 7 days on this device */
+let tgV=null;
+const tgNeed=()=>{const t0=S.t||{};return !(t0.h>0&&t0.a>0&&t0.k>0)&&!(+pref('tgl')>Date.now())};
+function tgCalc(v){const b=10*v.w+6.25*v.h-5*v.a+5,add={gain:250,keep:0,cut:-400}[v.g]||0;return {k:Math.round((b*1.2+add)/50)*50,p:Math.round(1.8*v.w/5)*5}}
+function tgInit(){if(!tgV){const T0=T();tgV={h:T0.h,a:T0.a,w:W(),g:'gain',ke:0,pe:0};Object.assign(tgV,tgCalc(tgV))}return tgV}
+function tgCard(){
+  const v=tgInit(),F0=(id,l,x,st)=>'<div class="row" style="margin:6px 0;flex-wrap:nowrap"><label for="tg_'+id+'" style="flex:1">'+l+'</label><input class="s" id="tg_'+id+'" type="number" inputmode="decimal" step="'+(st||1)+'" value="'+x+'" style="width:92px;font-size:16px"></div>';
+  const G=(g,l)=>'<button class="sm'+(v.g===g?' on':'')+'" data-a="tgg" data-v="'+g+'" aria-pressed="'+(v.g===g)+'">'+t(l)+'</button>';
+  return '<div class="c"><h2>'+t('tgT')+'</h2><p class="mut" style="margin:0 0 6px">'+t('tgNote')+'</p>'+F0('h',t('tgH'),v.h)+F0('a',t('tgA'),v.a)+F0('w',t('tgW'),v.w,0.1)
+   +'<div class="row" style="gap:6px">'+G('gain','tgGain')+G('keep','tgKeep')+G('cut','tgCut')+'</div>'
+   +'<div class="li" style="display:block"><small>'+t('tgOut')+'</small>'+F0('k',t('tgK'),v.k,50)+F0('p',t('tgP'),v.p,5)+'<small>'+t('tgEdit')+'</small></div>'
+   +'<div class="row"><button class="on" data-a="tgsave">'+t('tgSave')+'</button><button data-a="tglater">'+t('tgLater')+'</button></div></div>';
+}
+function tgInput(id,val){
+  const v=tgInit(),x=parseFloat(val);if(!(x>0))return;v[id]=x;if(id==='k')v.ke=1;if(id==='p')v.pe=1;
+  if(id==='h'||id==='a'||id==='w'){const c=tgCalc(v);['k','p'].forEach(q=>{if(!v[q+'e']){v[q]=c[q];const el=$('#tg_'+q);if(el)el.value=c[q]}})}
+}
+function tgSave(){
+  const v=tgInit();
+  if(!(v.h>=120&&v.h<=230&&v.a>=10&&v.a<=90&&v.w>=30&&v.w<=250&&v.k>=800&&v.p>=20)){toast(t('tgBad'));return false}
+  S.t=Object.assign({},S.t,{h:v.h,a:v.a,k:v.k,p:v.p});touchCfg();tgV=null;return true;
+}
 const gymName=g=>(GYM.find(x=>x[0]===g)||[g,g])[L()];
 function vHome(d){
   const td=ymd(new Date()),isT=cur===td,T0=T(),k=sum(d,'k'),p=sum(d,'p'),r=Math.round(T0.k-k),tm=S.timer,av=slAvg(cur),sl=String(d.sl||'').trim();
   let h='';
   if(S.seen!==VER)h+='<div class="c hl row" style="margin-top:0;flex-wrap:nowrap"><span style="flex:1">'+t('hmUpd')+'</span><button class="sm on" data-a="seen">'+t('newOk')+'</button></div>';
   h+=alCard();
+  if(isT&&tgNeed())h+=tgCard();
   if(isT&&kOpen(td).length)h+='<div class="c row" style="padding:12px 14px;flex-wrap:nowrap"><span style="flex:1">'+t('kT',{n:kOpen(td).length})+'</span><button class="sm" data-a="tab" data-t="today">'+t('kGo')+'</button></div>';
   const co=isT?coachOn():null;
   if(co)h+='<div class="c" style="padding:12px 14px"><div class="row" style="margin:0;flex-wrap:nowrap;gap:8px;align-items:flex-start"><span style="flex:1;min-width:0;overflow-wrap:anywhere">🎯 <b>'+t('coFocus')+'</b><br>'+coHtml(co.t,220)+'</span><button class="sm" data-a="cox" aria-label="'+t('coDel')+'">×</button></div></div>';
@@ -1689,7 +1750,7 @@ function shView(d){
      +'<div class="mut" style="margin-top:14px;font-size:13px">'+t('shAddMin')+'</div>'
      +CATS.map(c=>'<div class="row" style="margin:6px 0;gap:6px;flex-wrap:nowrap"><span style="flex:1">'+c[1+L()]+' · <b>'+d.min[c[0]]+'</b> '+t('min')+'</span><button class="sm" data-a="min" data-c="'+c[0]+'" data-v="30">+30</button><button class="sm" data-a="min" data-c="'+c[0]+'" data-v="60">+60</button><button class="sm" data-a="min" data-c="'+c[0]+'" data-v="-10" aria-label="-10">−10</button></div>').join('');
   }else if(sh==='gym'){
-    b='<h2>'+t('shGymT')+'</h2><div class="row" style="gap:8px">'+GYM.map(g=>{const on=d.gym.indexOf(g[0])>=0;return '<button class="'+(on?'on':'')+'" data-a="gym" data-g="'+g[0]+'" aria-pressed="'+on+'">'+(on?'✓ ':'')+g[L()]+'</button>'}).join('')+'</div><div class="row"><button class="sm" data-a="shgo" data-t="act">'+t('shGymMore')+'</button></div>';
+    b='<h2>'+t('shGymT')+'</h2><div class="row" style="gap:8px">'+GYM.map(g=>{const on=d.gym.indexOf(g[0])>=0;return '<button class="'+(on?'on':'')+'" data-a="gym" data-g="'+g[0]+'" aria-pressed="'+on+'">'+(on?'✓ ':'')+g[L()]+'</button>'}).join('')+'</div>'+wlCard(d).replace('<div class="c" style="padding:12px 14px">','<div style="margin:12px 0 4px">')+'<div class="row"><button class="sm" data-a="shgo" data-t="act">'+t('shGymMore')+'</button></div>';
   }else if(sh==='sup'){
     b=supCard(d).replace('<div class="c">','<div>');
   }else if(sh==='wt'){
@@ -2069,6 +2130,13 @@ document.addEventListener('click',e=>{
   else if(a==='ghm'){ghM=b.dataset.v;ghX=null;render();return}
   else if(a==='ghx'){ghX=b.dataset.x||null;render();if(typeof scrollTo==='function')scrollTo(0,0);return}
   else if(a==='ghmore'){ghN+=20;render();return}
+  else if(a==='tgg'){tgInit().g=b.dataset.v;const v=tgV,c=tgCalc(v);if(!v.ke)v.k=c.k;if(!v.pe)v.p=c.p;render();return}
+  else if(a==='tgsave'){if(!tgSave())return;toast(t('tgSaved'))}
+  else if(a==='tglater'){pref('tgl',String(Date.now()+7*864e5));render();return}
+  else if(a==='trdel'){const T1=ensureTpl(),i=T1.findIndex(r=>tKey(r)===b.dataset.k);if(i<0)return;const r=T1.splice(i,1)[0];touchCfg();toast(t('tmDone',{n:tx(r[2],r[3])}))}
+  else if(a==='trkeep'){S.tkeep=Object.assign({},S.tkeep,{[b.dataset.k]:ymd(new Date())});touchCfg()}
+  else if(a==='wlswap'){wlI++;render();return}
+  else if(a==='wlgo'){const n=wlCopy(d,b.dataset.k);if(!n)return;wlI=0;toast(t('wlOk',{n:n}))}
   else if(a==='srgo'){cur=b.dataset.k;tab=b.dataset.t;sel=null;render();if(typeof scrollTo==='function')scrollTo(0,0);return}
   else if(a==='disp'){pref(b.dataset.k,b.dataset.v||null);applyDisp();render();return}
   else if(a==='remexam'){S.rem=Object.assign({},S.rem,{exam:b.checked});touchCfg()}
@@ -2096,6 +2164,7 @@ document.addEventListener('input',e=>{
   else if(id.indexOf('t_')===0){const v=parseFloat(e.target.value);if(!(v>0))return;S.t[id.slice(2)]=v;touchCfg()}
   else if(id==='ic_iv'||id==='ic_mg'){const v=parseFloat(e.target.value),o=Object.assign({},S.isoc);if(v>0)o[id.slice(3)]=v;else delete o[id.slice(3)];S.isoc=o;touchCfg()}
   else if(id==='coin')return;
+  else if(id.indexOf('tg_')===0){tgInput(id.slice(3),e.target.value);return}
   else return;
   save();
 });
